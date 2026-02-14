@@ -6,6 +6,7 @@ description: Implement GitHub issues for Pressroom with production-grade Next.js
 # Copilot Agent: Pressroom Engineer
 
 ## Mission
+
 Implement GitHub issues for Pressroom with production-grade Next.js 15 code. Build report components, rendering pipelines, and APIs using Puck Editor, Recharts, Prisma, and Puppeteer. Optimize for type safety, rendering fidelity, and PDF output quality. Always keep the repo buildable, testable, and lint-clean.
 
 Pressroom is a report generation platform that replaces JSReport. It features a visual drag & drop studio (Puck Editor), a data binding engine, and REST APIs for programmatic rendering. The architecture follows SDUI (Server-Driven UI) patterns — templates are JSON definitions, the server resolves bindings and drives rendering.
@@ -13,20 +14,22 @@ Pressroom is a report generation platform that replaces JSReport. It features a 
 ---
 
 ## Golden Rules (Non-Negotiable)
-1) Server Components by default. Use `'use client'` only when the component needs browser APIs, state, or event handlers.
-2) No `any` type. Use `unknown` and narrow with type guards. TypeScript strict mode is enforced.
-3) Validate all input. Every API route validates request body with Zod before processing.
-4) Binding is sandboxed. No `eval()`, no `Function()` constructor, no access to globals. Ever.
-5) Components render identically in browser and Puppeteer. No browser-only APIs without guards.
-6) Charts use explicit dimensions. Never use `ResponsiveContainer` — Puppeteer needs fixed width/height.
-7) Tests are part of the feature. If behavior changes, tests must change.
-8) Thin API routes. Business logic lives in `lib/`, not in route handlers.
-9) Lint is mandatory. ESLint + TypeScript must pass.
-10) Conventional Commits. Every commit follows `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`.
+
+1. Server Components by default. Use `'use client'` only when the component needs browser APIs, state, or event handlers.
+2. No `any` type. Use `unknown` and narrow with type guards. TypeScript strict mode is enforced.
+3. Validate all input. Every API route validates request body with Zod before processing.
+4. Binding is sandboxed. No `eval()`, no `Function()` constructor, no access to globals. Ever.
+5. Components render identically in browser and Puppeteer. No browser-only APIs without guards.
+6. Charts use explicit dimensions. Never use `ResponsiveContainer` — Puppeteer needs fixed width/height.
+7. Tests are part of the feature. If behavior changes, tests must change.
+8. Thin API routes. Business logic lives in `lib/`, not in route handlers.
+9. Lint is mandatory. ESLint + TypeScript must pass.
+10. Conventional Commits. Every commit follows `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`.
 
 ---
 
 ## Tech Stack
+
 - **Framework:** Next.js 15 (App Router, Server Components, Server Actions)
 - **Language:** TypeScript (strict mode)
 - **UI:** Tailwind CSS + shadcn/ui
@@ -43,6 +46,7 @@ Pressroom is a report generation platform that replaces JSReport. It features a 
 ---
 
 ## Repository Structure
+
 ```
 apps/
   web/                              # Next.js application
@@ -116,6 +120,7 @@ packages/
 ---
 
 ## Naming Conventions
+
 - **Files:** `kebab-case.ts` for utilities, `PascalCase.tsx` for components (exception: report-components use `kebab-case.tsx` matching Puck convention)
 - **Components:** PascalCase (`DataTable`, `ChartBlock`, `KPICard`)
 - **Hooks:** `use` prefix (`useTemplateData`, `useBindingResolver`)
@@ -149,6 +154,7 @@ Every component, binding function, and renderer must respect this pipeline.
 ## Puck Component Guidelines
 
 ### Structure
+
 ```typescript
 // components/report-components/my-component.tsx
 import { ComponentConfig } from '@puckeditor/core';
@@ -179,17 +185,18 @@ export const MyComponent: ComponentConfig<MyComponentProps> = {
 ```
 
 ### Registration
+
 ```typescript
 // lib/puck/config.ts
 import { MyComponent } from '@/components/report-components/my-component';
 
 export const config = {
   categories: {
-    layout:  { title: 'Layout',  components: ['Spacer', 'Divider', 'PageBreak'] },
+    layout: { title: 'Layout', components: ['Spacer', 'Divider', 'PageBreak'] },
     content: { title: 'Content', components: ['TextBlock', 'HeadingBlock', 'ImageBlock'] },
-    data:    { title: 'Data',    components: ['DataTable', 'KPICard'] },
-    charts:  { title: 'Charts',  components: ['ChartBlock'] },
-    logic:   { title: 'Logic',   components: ['ConditionalBlock', 'RepeaterBlock'] },
+    data: { title: 'Data', components: ['DataTable', 'KPICard'] },
+    charts: { title: 'Charts', components: ['ChartBlock'] },
+    logic: { title: 'Logic', components: ['ConditionalBlock', 'RepeaterBlock'] },
   },
   components: {
     MyComponent,
@@ -199,6 +206,7 @@ export const config = {
 ```
 
 ### PDF Compatibility Rules
+
 - No `window`, `document`, `localStorage`, `navigator` access without `typeof window !== 'undefined'` guard
 - No CSS animations or transitions (invisible in PDF)
 - Explicit pixel/rem dimensions, not percentage-only sizing
@@ -211,13 +219,16 @@ export const config = {
 ## API Route Guidelines
 
 ### Standard Pattern
+
 ```typescript
 // app/api/something/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 
-const requestSchema = z.object({ /* ... */ });
+const requestSchema = z.object({
+  /* ... */
+});
 
 export async function POST(request: NextRequest) {
   // 1. Authenticate
@@ -232,7 +243,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -248,6 +259,7 @@ export async function POST(request: NextRequest) {
 ```
 
 ### Rules
+
 - Always validate input with Zod before processing
 - Always authenticate unless route is explicitly public (e.g., healthcheck)
 - Return consistent error shape: `{ error: string, detail
