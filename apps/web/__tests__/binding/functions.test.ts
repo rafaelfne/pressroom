@@ -1,0 +1,275 @@
+import { describe, it, expect } from 'vitest';
+import { builtInFunctions } from '@/lib/binding/functions';
+
+describe('built-in functions', () => {
+  describe('formatCurrency', () => {
+    it('formats USD currency', () => {
+      const result = builtInFunctions.formatCurrency(1234.56, 'USD');
+      expect(result).toBe('$1,234.56');
+    });
+
+    it('formats BRL currency', () => {
+      const result = builtInFunctions.formatCurrency(1234.56, 'BRL');
+      // BRL format may vary by Node version/ICU data, just check it contains the right parts
+      expect(result).toMatch(/R\$.*1[.,]234[.,]56/);
+    });
+
+    it('formats EUR currency', () => {
+      const result = builtInFunctions.formatCurrency(1234.56, 'EUR');
+      expect(result).toMatch(/1[.,]234[.,]56/); // Different locales may format differently
+    });
+
+    it('formats GBP currency', () => {
+      const result = builtInFunctions.formatCurrency(1234.56, 'GBP');
+      expect(result).toMatch(/£1[.,]234[.,]56/);
+    });
+
+    it('handles string numbers', () => {
+      const result = builtInFunctions.formatCurrency('1234.56', 'USD');
+      expect(result).toBe('$1,234.56');
+    });
+
+    it('handles invalid numbers gracefully', () => {
+      const result = builtInFunctions.formatCurrency('invalid', 'USD');
+      expect(result).toBe('invalid');
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.formatCurrency(null, 'USD')).toBe('');
+      expect(builtInFunctions.formatCurrency(undefined, 'USD')).toBe('');
+    });
+
+    it('handles unknown currency code with fallback', () => {
+      const result = builtInFunctions.formatCurrency(1234.56, 'XYZ');
+      // Fallback format includes the currency code and formatted number
+      expect(result).toMatch(/XYZ.*1[,.]234\.56/);
+    });
+  });
+
+  describe('formatDate', () => {
+    it('formats Date object with locale', () => {
+      const date = new Date('2024-01-15T12:00:00Z');
+      const result = builtInFunctions.formatDate(date, 'en-US');
+      expect(result).toMatch(/1\/15\/2024/);
+    });
+
+    it('formats date string with locale', () => {
+      const result = builtInFunctions.formatDate('2024-01-15', 'en-US');
+      expect(result).toMatch(/1\/15\/2024/);
+    });
+
+    it('formats with YYYY-MM-DD pattern', () => {
+      const date = new Date('2024-01-15T12:00:00Z');
+      const result = builtInFunctions.formatDate(date, 'YYYY-MM-DD');
+      expect(result).toBe('2024-01-15');
+    });
+
+    it('formats with MM/DD/YYYY pattern', () => {
+      const date = new Date('2024-01-15T12:00:00Z');
+      const result = builtInFunctions.formatDate(date, 'MM/DD/YYYY');
+      expect(result).toBe('01/15/2024');
+    });
+
+    it('formats with DD/MM/YYYY pattern', () => {
+      const date = new Date('2024-01-15T12:00:00Z');
+      const result = builtInFunctions.formatDate(date, 'DD/MM/YYYY');
+      expect(result).toBe('15/01/2024');
+    });
+
+    it('handles invalid date gracefully', () => {
+      const result = builtInFunctions.formatDate('invalid', 'en-US');
+      expect(result).toBe('invalid');
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.formatDate(null, 'en-US')).toBe('');
+      expect(builtInFunctions.formatDate(undefined, 'en-US')).toBe('');
+    });
+
+    it('handles timestamp number', () => {
+      const timestamp = new Date('2024-01-15').getTime();
+      const result = builtInFunctions.formatDate(timestamp, 'YYYY-MM-DD');
+      expect(result).toBe('2024-01-15');
+    });
+  });
+
+  describe('formatNumber', () => {
+    it('formats number with 2 decimals by default', () => {
+      const result = builtInFunctions.formatNumber(1234.56, 2);
+      expect(result).toBe('1,234.56');
+    });
+
+    it('formats number with 0 decimals', () => {
+      const result = builtInFunctions.formatNumber(1234.56, 0);
+      expect(result).toBe('1,235');
+    });
+
+    it('formats number with 4 decimals', () => {
+      const result = builtInFunctions.formatNumber(1234.5678, 4);
+      expect(result).toBe('1,234.5678');
+    });
+
+    it('handles string numbers', () => {
+      const result = builtInFunctions.formatNumber('1234.56', 2);
+      expect(result).toBe('1,234.56');
+    });
+
+    it('handles invalid numbers gracefully', () => {
+      const result = builtInFunctions.formatNumber('invalid', 2);
+      expect(result).toBe('invalid');
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.formatNumber(null, 2)).toBe('');
+      expect(builtInFunctions.formatNumber(undefined, 2)).toBe('');
+    });
+
+    it('uses default decimals if not provided', () => {
+      const result = builtInFunctions.formatNumber(1234.56, undefined);
+      expect(result).toBe('1,234.56');
+    });
+  });
+
+  describe('if (conditional)', () => {
+    it('returns then value for truthy condition', () => {
+      const result = builtInFunctions.if(true, 'yes', 'no');
+      expect(result).toBe('yes');
+    });
+
+    it('returns else value for falsy condition', () => {
+      const result = builtInFunctions.if(false, 'yes', 'no');
+      expect(result).toBe('no');
+    });
+
+    it('treats non-zero numbers as truthy', () => {
+      const result = builtInFunctions.if(1, 'yes', 'no');
+      expect(result).toBe('yes');
+    });
+
+    it('treats zero as falsy', () => {
+      const result = builtInFunctions.if(0, 'yes', 'no');
+      expect(result).toBe('no');
+    });
+
+    it('treats empty string as falsy', () => {
+      const result = builtInFunctions.if('', 'yes', 'no');
+      expect(result).toBe('no');
+    });
+
+    it('treats non-empty string as truthy', () => {
+      const result = builtInFunctions.if('hello', 'yes', 'no');
+      expect(result).toBe('yes');
+    });
+
+    it('treats null as falsy', () => {
+      const result = builtInFunctions.if(null, 'yes', 'no');
+      expect(result).toBe('no');
+    });
+
+    it('treats undefined as falsy', () => {
+      const result = builtInFunctions.if(undefined, 'yes', 'no');
+      expect(result).toBe('no');
+    });
+
+    it('can return non-string values', () => {
+      const result = builtInFunctions.if(true, 42, 0);
+      expect(result).toBe(42);
+    });
+  });
+
+  describe('uppercase', () => {
+    it('converts string to uppercase', () => {
+      const result = builtInFunctions.uppercase('hello');
+      expect(result).toBe('HELLO');
+    });
+
+    it('handles already uppercase string', () => {
+      const result = builtInFunctions.uppercase('HELLO');
+      expect(result).toBe('HELLO');
+    });
+
+    it('handles mixed case', () => {
+      const result = builtInFunctions.uppercase('HeLLo WoRLd');
+      expect(result).toBe('HELLO WORLD');
+    });
+
+    it('handles numbers by converting to string', () => {
+      const result = builtInFunctions.uppercase(123);
+      expect(result).toBe('123');
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.uppercase(null)).toBe('');
+      expect(builtInFunctions.uppercase(undefined)).toBe('');
+    });
+  });
+
+  describe('lowercase', () => {
+    it('converts string to lowercase', () => {
+      const result = builtInFunctions.lowercase('HELLO');
+      expect(result).toBe('hello');
+    });
+
+    it('handles already lowercase string', () => {
+      const result = builtInFunctions.lowercase('hello');
+      expect(result).toBe('hello');
+    });
+
+    it('handles mixed case', () => {
+      const result = builtInFunctions.lowercase('HeLLo WoRLd');
+      expect(result).toBe('hello world');
+    });
+
+    it('handles numbers by converting to string', () => {
+      const result = builtInFunctions.lowercase(123);
+      expect(result).toBe('123');
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.lowercase(null)).toBe('');
+      expect(builtInFunctions.lowercase(undefined)).toBe('');
+    });
+  });
+
+  describe('join', () => {
+    it('joins array with default comma separator', () => {
+      const result = builtInFunctions.join(['a', 'b', 'c'], ',');
+      expect(result).toBe('a,b,c');
+    });
+
+    it('joins array with custom separator', () => {
+      const result = builtInFunctions.join(['a', 'b', 'c'], ' | ');
+      expect(result).toBe('a | b | c');
+    });
+
+    it('joins array with space separator', () => {
+      const result = builtInFunctions.join(['hello', 'world'], ' ');
+      expect(result).toBe('hello world');
+    });
+
+    it('handles array with numbers', () => {
+      const result = builtInFunctions.join([1, 2, 3], '-');
+      expect(result).toBe('1-2-3');
+    });
+
+    it('handles array with mixed types', () => {
+      const result = builtInFunctions.join([1, 'two', true], ',');
+      expect(result).toBe('1,two,true');
+    });
+
+    it('handles non-array by converting to string', () => {
+      const result = builtInFunctions.join('not-an-array', ',');
+      expect(result).toBe('not-an-array');
+    });
+
+    it('handles empty array', () => {
+      const result = builtInFunctions.join([], ',');
+      expect(result).toBe('');
+    });
+
+    it('handles null/undefined in array elements', () => {
+      const result = builtInFunctions.join(['a', null, 'b', undefined, 'c'], ',');
+      expect(result).toBe('a,,b,,c');
+    });
+  });
+});
