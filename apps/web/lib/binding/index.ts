@@ -88,22 +88,11 @@ function resolveString(str: string, data: Record<string, unknown>): unknown {
       if (resolved !== undefined) {
         result += String(resolved);
       } else {
-        // Fallback to original expression text
-        const exprText = extractExpressionText(str);
-        result += exprText;
+        // Fallback to original expression text from the AST node
+        result += node.original;
       }
     }
   }
 
   return result;
-}
-
-/**
- * Extract original expression text from string (for fallback)
- * Uses non-greedy match to find the first complete {{...}} expression
- */
-function extractExpressionText(original: string): string {
-  // Use non-greedy match to find first complete expression
-  const match = original.match(/\{\{.*?\}\}/);
-  return match ? match[0] : '';
 }

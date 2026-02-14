@@ -11,7 +11,7 @@
 
 export type ASTNode =
   | { type: 'literal'; value: string }
-  | { type: 'expression'; expression: Expression };
+  | { type: 'expression'; expression: Expression; original: string };
 
 export type Expression =
   | { type: 'path'; segments: PathSegment[] }
@@ -58,10 +58,12 @@ export function parse(template: string): ASTNode[] {
     }
 
     // Extract and parse expression
-    const expressionText = template.slice(openIndex + 2, closeIndex).trim();
+    const rawExpression = template.slice(openIndex + 2, closeIndex);
+    const expressionText = rawExpression.trim();
     if (expressionText.length > 0) {
       const expression = parseExpression(expressionText);
-      nodes.push({ type: 'expression', expression });
+      const original = `{{${rawExpression}}}`;
+      nodes.push({ type: 'expression', expression, original });
     }
 
     position = closeIndex + 2;
@@ -178,7 +180,11 @@ function parseArguments(argsStr: string): FunctionArg[] {
     const char = argsStr[i];
 
     if (inString) {
-      if (char === stringChar && (i === 0 || argsStr[i - 1] !== '\\')) {
+      if (char === '\\' && i + 1 < argsStr.length) {
+        // Escaped character - consume next char literally
+        stringValue += argsStr[i + 1];
+        i++;
+      } else if (char === stringChar) {
         // End of string - push the string value directly
         args.push({ type: 'string', value: stringValue });
         stringValue = '';

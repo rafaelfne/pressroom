@@ -57,10 +57,14 @@ function formatDate(value: unknown, format: unknown): string {
   const formatStr = String(format ?? 'en-US');
 
   // Simple pattern matching for common formats (check first)
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = String(date.getFullYear());
+
   const patterns: Record<string, () => string> = {
     'YYYY-MM-DD': () => date.toISOString().split('T')[0],
-    'MM/DD/YYYY': () => `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}/${date.getFullYear()}`,
-    'DD/MM/YYYY': () => `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`,
+    'MM/DD/YYYY': () => `${month}/${day}/${year}`,
+    'DD/MM/YYYY': () => `${day}/${month}/${year}`,
   };
 
   if (patterns[formatStr]) {
