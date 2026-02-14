@@ -1,6 +1,7 @@
 import type { ComponentConfig } from '@puckeditor/core';
 
-export type PageBreakProps = Record<string, never>;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type PageBreakProps = {};
 
 export const PageBreak: ComponentConfig<PageBreakProps> = {
   label: 'Page Break',

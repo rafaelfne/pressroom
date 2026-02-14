@@ -157,16 +157,14 @@ describe('PageBreak component', () => {
 
   it('renders with page-break style', () => {
     const Component = puckConfig.components.PageBreak.render;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { container } = render(<Component id="test-pagebreak" puck={mockPuckContext} {...{} as any} />);
+    const { container } = render(<Component id="test-pagebreak" puck={mockPuckContext} />);
     const pageBreak = container.firstChild as HTMLElement;
     expect(pageBreak).toHaveStyle({ pageBreakBefore: 'always' });
   });
 
   it('has aria-hidden attribute', () => {
     const Component = puckConfig.components.PageBreak.render;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { container } = render(<Component id="test-pagebreak" puck={mockPuckContext} {...{} as any} />);
+    const { container } = render(<Component id="test-pagebreak" puck={mockPuckContext} />);
     const pageBreak = container.firstChild as HTMLElement;
     expect(pageBreak).toHaveAttribute('aria-hidden', 'true');
   });
