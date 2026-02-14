@@ -13,7 +13,8 @@ describe('registry helpers', () => {
     expect(names).toContain('PageBreak');
     expect(names).toContain('ReportHeader');
     expect(names).toContain('ReportFooter');
-    expect(names).toHaveLength(8);
+    expect(names).toContain('DataTable');
+    expect(names).toHaveLength(9);
   });
 
   it('getComponentsByCategory returns components for a valid category', () => {

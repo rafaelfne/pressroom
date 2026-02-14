@@ -7,6 +7,7 @@ import { Divider, type DividerProps } from '@/components/report-components/divid
 import { PageBreak, type PageBreakProps } from '@/components/report-components/page-break';
 import { ReportHeader, type ReportHeaderProps } from '@/components/report-components/report-header';
 import { ReportFooter, type ReportFooterProps } from '@/components/report-components/report-footer';
+import { DataTable, type DataTableProps } from '@/components/report-components/data-table';
 
 type PuckComponents = {
   TextBlock: TextBlockProps;
@@ -17,6 +18,7 @@ type PuckComponents = {
   PageBreak: PageBreakProps;
   ReportHeader: ReportHeaderProps;
   ReportFooter: ReportFooterProps;
+  DataTable: DataTableProps;
 };
 
 export const puckConfig: Config<PuckComponents> = {
@@ -33,6 +35,10 @@ export const puckConfig: Config<PuckComponents> = {
       title: 'Header & Footer',
       components: ['ReportHeader', 'ReportFooter'],
     },
+    data: {
+      title: 'Data',
+      components: ['DataTable'],
+    },
   },
   components: {
     TextBlock,
@@ -43,5 +49,6 @@ export const puckConfig: Config<PuckComponents> = {
     PageBreak,
     ReportHeader,
     ReportFooter,
+    DataTable,
   },
 };
