@@ -46,8 +46,16 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Lint fix
+        if: failure()
+        run: pnpm lint:fix
+
       - name: Typecheck
         run: pnpm typecheck
+
+      - name: Typecheck fix
+        if: failure()
+        run: pnpm typecheck:fix
 
       - name: Test
         run: pnpm test
