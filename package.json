@@ -8,7 +8,18 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "prisma:generate": "pnpm --filter @pressroom/web exec prisma generate",
+    "prisma:migrate:dev": "pnpm --filter @pressroom/web exec prisma migrate dev",
+    "prisma:migrate:deploy": "pnpm --filter @pressroom/web exec prisma migrate deploy",
+    "prisma:migrate:reset": "pnpm --filter @pressroom/web exec prisma migrate reset",
+    "prisma:db:push": "pnpm --filter @pressroom/web exec prisma db push",
+    "prisma:db:seed": "pnpm --filter @pressroom/web exec prisma db seed",
+    "prisma:studio": "pnpm --filter @pressroom/web exec prisma studio",
+    "prisma:format": "pnpm --filter @pressroom/web exec prisma format"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
@@ -17,7 +28,10 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
       "esbuild",
+      "prisma",
       "sharp",
       "unrs-resolver"
     ]
