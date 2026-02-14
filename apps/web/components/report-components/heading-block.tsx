@@ -1,9 +1,8 @@
 import type { ComponentConfig } from '@puckeditor/core';
-import type { JSX } from 'react';
 
 export type HeadingBlockProps = {
   text: string;
-  level: string;
+  level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   color: string;
 };
 
@@ -31,7 +30,7 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
     color: '#000000',
   },
   render: ({ text, level, color }) => {
-    const Tag = level as keyof Pick<JSX.IntrinsicElements, 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'>;
+    const Tag = level;
     return <Tag style={{ color }} className="p-2">{text}</Tag>;
   },
 };

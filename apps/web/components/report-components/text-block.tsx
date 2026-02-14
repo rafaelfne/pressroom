@@ -4,7 +4,7 @@ export type TextBlockProps = {
   text: string;
   fontSize: string;
   color: string;
-  alignment: string;
+  alignment: 'left' | 'center' | 'right' | 'justify';
   bold: string;
   italic: string;
 };
@@ -64,7 +64,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
       style={{
         fontSize,
         color,
-        textAlign: alignment as 'left' | 'center' | 'right' | 'justify',
+        textAlign: alignment,
         fontWeight: bold === 'true' ? 'bold' : 'normal',
         fontStyle: italic === 'true' ? 'italic' : 'normal',
       }}

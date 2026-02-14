@@ -3,7 +3,7 @@ import type { ComponentConfig } from '@puckeditor/core';
 export type DividerProps = {
   color: string;
   thickness: string;
-  lineStyle: string;
+  lineStyle: 'solid' | 'dashed' | 'dotted';
 };
 
 export const Divider: ComponentConfig<DividerProps> = {
