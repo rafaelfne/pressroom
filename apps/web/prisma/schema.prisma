@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Organization {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   users     User[]
+  templates Template[]
 
   @@map("organizations")
 }
@@ -64,4 +65,19 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+}
+
+model Template {
+  id             String        @id @default(cuid())
+  name           String
+  description    String?
+  content        Json          @default("{}")
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdBy      String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([organizationId])
+  @@map("templates")
 }
