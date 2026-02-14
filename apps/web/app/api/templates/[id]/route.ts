@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { templateUpdateSchema } from '@/lib/validation/template-schemas';
+import type { Prisma } from '@prisma/client';
 
 export async function GET(
   _request: NextRequest,
@@ -50,9 +51,23 @@ export async function PUT(
       return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
+    const updateData: Prisma.TemplateUpdateInput = {};
+    
+    if (parsed.data.name !== undefined) {
+      updateData.name = parsed.data.name;
+    }
+    
+    if (parsed.data.description !== undefined) {
+      updateData.description = parsed.data.description;
+    }
+    
+    if (parsed.data.content !== undefined) {
+      updateData.content = parsed.data.content as Prisma.InputJsonValue;
+    }
+
     const template = await prisma.template.update({
       where: { id },
-      data: parsed.data,
+      data: updateData,
     });
 
     return NextResponse.json(template);

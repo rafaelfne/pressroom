@@ -53,9 +53,5 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Typecheck fix
-        if: failure()
-        run: pnpm typecheck:fix
-
       - name: Test
         run: pnpm test

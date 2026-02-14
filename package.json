@@ -8,7 +8,6 @@
     "lint:fix": "turbo run lint:fix",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "typecheck:fix": "turbo run typecheck:fix",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "docker:up": "docker-compose up -d",
