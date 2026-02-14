@@ -6,13 +6,21 @@ describe('registry helpers', () => {
   it('getComponentNames returns all component names', () => {
     const names = getComponentNames(puckConfig);
     expect(names).toContain('TextBlock');
+    expect(names).toContain('HeadingBlock');
+    expect(names).toContain('ImageBlock');
     expect(names).toContain('Spacer');
-    expect(names).toHaveLength(2);
+    expect(names).toContain('Divider');
+    expect(names).toContain('PageBreak');
+    expect(names).toContain('ReportHeader');
+    expect(names).toContain('ReportFooter');
+    expect(names).toHaveLength(8);
   });
 
   it('getComponentsByCategory returns components for a valid category', () => {
     const layoutComponents = getComponentsByCategory(puckConfig, 'layout');
     expect(layoutComponents).toContain('Spacer');
+    expect(layoutComponents).toContain('Divider');
+    expect(layoutComponents).toContain('PageBreak');
   });
 
   it('getComponentsByCategory returns empty array for unknown category', () => {

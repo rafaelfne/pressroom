@@ -8,20 +8,14 @@ export const Spacer: ComponentConfig<SpacerProps> = {
   label: 'Spacer',
   fields: {
     height: {
-      type: 'select',
-      label: 'Height',
-      options: [
-        { label: 'Small (16px)', value: '16px' },
-        { label: 'Medium (32px)', value: '32px' },
-        { label: 'Large (64px)', value: '64px' },
-        { label: 'Extra Large (96px)', value: '96px' },
-      ],
+      type: 'text',
+      label: 'Height (px)',
     },
   },
   defaultProps: {
-    height: '32px',
+    height: '32',
   },
   render: ({ height }) => (
-    <div style={{ height }} aria-hidden="true" />
+    <div style={{ height: `${height}px` }} aria-hidden="true" />
   ),
 };
