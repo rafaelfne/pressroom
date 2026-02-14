@@ -1,0 +1,32 @@
+import { z } from 'zod';
+
+export const renderRequestSchema = z.object({
+  templateId: z.string().min(1).optional(),
+  templateData: z.object({
+    content: z.array(z.record(z.string(), z.unknown())),
+    root: z.record(z.string(), z.unknown()),
+    zones: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))).optional(),
+  }).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+  format: z.enum(['pdf', 'html']).default('pdf'),
+  pageConfig: z.object({
+    format: z.enum(['A4', 'A3', 'Letter', 'Legal', 'Tabloid']).optional(),
+    width: z.string().optional(),
+    height: z.string().optional(),
+    margin: z.object({
+      top: z.string().optional(),
+      right: z.string().optional(),
+      bottom: z.string().optional(),
+      left: z.string().optional(),
+    }).optional(),
+    orientation: z.enum(['portrait', 'landscape']).optional(),
+    headerTemplate: z.string().optional(),
+    footerTemplate: z.string().optional(),
+    displayHeaderFooter: z.boolean().optional(),
+  }).optional(),
+}).refine(
+  (data) => data.templateId || data.templateData,
+  { message: 'Either templateId or templateData must be provided' },
+);
+
+export type RenderRequest = z.infer<typeof renderRequestSchema>;
