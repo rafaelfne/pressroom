@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-// Puck Data structure validation
+// Puck Data structure validation.
+// Puck component items have dynamic shapes determined by registered components,
+// so we validate the top-level structure (content array, root object, optional zones)
+// while allowing component-specific fields to pass through.
 const puckDataSchema = z.object({
   content: z.array(z.record(z.string(), z.unknown())),
   root: z.record(z.string(), z.unknown()),

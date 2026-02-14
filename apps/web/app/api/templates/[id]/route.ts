@@ -35,8 +35,9 @@ export async function PUT(
     const parsed = templateUpdateSchema.safeParse(body);
 
     if (!parsed.success) {
+      console.error('[API] PUT /api/templates/[id] validation error:', parsed.error.flatten());
       return NextResponse.json(
-        { error: 'Validation failed', details: parsed.error.flatten() },
+        { error: 'Validation failed' },
         { status: 400 },
       );
     }

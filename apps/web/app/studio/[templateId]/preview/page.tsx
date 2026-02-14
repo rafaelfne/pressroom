@@ -21,7 +21,8 @@ export default function PreviewPage() {
         } else {
           setError('Template not found');
         }
-      } catch {
+      } catch (err) {
+        console.error('[Preview] Failed to load template:', err);
         setError('Failed to load template');
       }
     }

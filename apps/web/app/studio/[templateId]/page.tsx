@@ -93,7 +93,7 @@ export default function StudioPage() {
           headerActions: ({ children }) => (
             <>
               {saveError && (
-                <div className="flex items-center gap-2 mr-2">
+                <div className="flex items-center gap-2 mr-2" role="alert">
                   <span className="text-sm text-destructive">{saveError}</span>
                   <Button
                     variant="ghost"
