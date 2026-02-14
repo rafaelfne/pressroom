@@ -4,10 +4,9 @@ import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { registerSchema, type RegisterInput } from '@/lib/validation/auth-schemas';
 
-export async function registerUser(input: RegisterInput): Promise<
-  | { success: true }
-  | { error: string }
-> {
+export async function registerUser(
+  input: RegisterInput,
+): Promise<{ success: true } | { error: string }> {
   try {
     const parsed = registerSchema.safeParse(input);
 

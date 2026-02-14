@@ -18,10 +18,7 @@ export default auth((req) => {
   if (pathname.startsWith('/api')) {
     if (!pathname.startsWith('/api/auth') && pathname !== '/api/reports/health') {
       if (!isAuthenticated) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
   }
@@ -30,9 +27,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: [
-    '/studio/:path*',
-    '/api/:path*',
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/studio/:path*', '/api/:path*', '/((?!_next/static|_next/image|favicon.ico).*)'],
 };

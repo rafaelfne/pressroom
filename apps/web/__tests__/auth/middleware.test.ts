@@ -14,9 +14,9 @@ describe('Middleware', () => {
       // The middleware should protect these routes
       expect(expectedMatchers).toContain('/studio/:path*');
       expect(expectedMatchers).toContain('/api/:path*');
-      
+
       const catchAllPattern = expectedMatchers.find((pattern) =>
-        pattern.includes('(?!_next/static|_next/image|favicon.ico)')
+        pattern.includes('(?!_next/static|_next/image|favicon.ico)'),
       );
       expect(catchAllPattern).toBeDefined();
       expect(expectedMatchers).toHaveLength(3);

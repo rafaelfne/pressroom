@@ -60,16 +60,12 @@ export default function RegisterPage() {
     <Card>
       <CardHeader>
         <CardTitle>Register</CardTitle>
-        <CardDescription>
-          Create a new account to access Pressroom
-        </CardDescription>
+        <CardDescription>Create a new account to access Pressroom</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-              {error}
-            </div>
+            <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>
           )}
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
