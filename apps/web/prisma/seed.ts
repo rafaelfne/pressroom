@@ -47,8 +47,8 @@ async function main() {
       name: 'Blank Template',
       description: 'Empty template ready to edit',
       organizationId: organization.id,
-      createdBy: user.id,
-      content: {
+      createdById: user.id,
+      templateData: {
         root: {},
         content: [],
         zones: {}

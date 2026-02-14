@@ -32,6 +32,7 @@ model User {
   updatedAt      DateTime      @updatedAt
   accounts       Account[]
   sessions       Session[]
+  templates      Template[]
 
   @@index([organizationId])
   @@map("users")
@@ -71,13 +72,20 @@ model Template {
   id             String        @id @default(cuid())
   name           String
   description    String?
-  content        Json          @default("{}")
+  templateData   Json          @default("{}")
+  sampleData     Json?
+  pageConfig     Json?
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
-  createdBy      String?
+  createdById    String?
+  createdBy      User?         @relation(fields: [createdById], references: [id])
+  version        Int           @default(1)
+  tags           String[]      @default([])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
 
   @@index([organizationId])
+  @@index([createdById])
   @@map("templates")
 }
