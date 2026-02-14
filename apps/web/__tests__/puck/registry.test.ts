@@ -14,7 +14,8 @@ describe('registry helpers', () => {
     expect(names).toContain('ReportHeader');
     expect(names).toContain('ReportFooter');
     expect(names).toContain('DataTable');
-    expect(names).toHaveLength(9);
+    expect(names).toContain('ChartBlock');
+    expect(names).toHaveLength(10);
   });
 
   it('getComponentsByCategory returns components for a valid category', () => {
