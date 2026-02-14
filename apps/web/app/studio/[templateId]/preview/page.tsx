@@ -17,7 +17,7 @@ export default function PreviewPage() {
         const response = await fetch(`/api/templates/${templateId}`);
         if (response.ok) {
           const template = await response.json();
-          setData(template.content as Data);
+          setData(template.templateData as Data);
         } else {
           setError('Template not found');
         }

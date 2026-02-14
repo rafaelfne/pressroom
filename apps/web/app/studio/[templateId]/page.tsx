@@ -22,8 +22,8 @@ export default function StudioPage() {
         const response = await fetch(`/api/templates/${templateId}`);
         if (response.ok) {
           const template = await response.json();
-          const content = template.content as Data;
-          setInitialData(content && content.content ? content : EMPTY_DATA);
+          const templateData = template.templateData as Data;
+          setInitialData(templateData && templateData.content ? templateData : EMPTY_DATA);
         } else {
           setInitialData(EMPTY_DATA);
         }
@@ -52,7 +52,7 @@ export default function StudioPage() {
         const response = await fetch(`/api/templates/${templateId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: data }),
+          body: JSON.stringify({ templateData: data }),
         });
         if (!response.ok) {
           const result = await response.json();
