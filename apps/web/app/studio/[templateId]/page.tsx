@@ -34,6 +34,16 @@ export default function StudioPage() {
     loadTemplate();
   }, [templateId]);
 
+  // Auto-hide error after 5 seconds
+  useEffect(() => {
+    if (saveError) {
+      const timeout = setTimeout(() => {
+        setSaveError(null);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [saveError]);
+
   const handlePublish = useCallback(
     async (data: Data) => {
       setIsSaving(true);
@@ -61,6 +71,10 @@ export default function StudioPage() {
     window.open(`/studio/${templateId}/preview`, '_blank');
   }, [templateId]);
 
+  const dismissError = useCallback(() => {
+    setSaveError(null);
+  }, []);
+
   if (!initialData) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -79,7 +93,17 @@ export default function StudioPage() {
           headerActions: ({ children }) => (
             <>
               {saveError && (
-                <span className="text-sm text-destructive mr-2">{saveError}</span>
+                <div className="flex items-center gap-2 mr-2">
+                  <span className="text-sm text-destructive">{saveError}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={dismissError}
+                    className="h-6 px-2"
+                  >
+                    ×
+                  </Button>
+                </div>
               )}
               {isSaving && (
                 <span className="text-sm text-muted-foreground mr-2">Saving...</span>
