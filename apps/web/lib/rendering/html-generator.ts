@@ -108,7 +108,7 @@ function buildHtmlDocument(
     .w-full { width: 100%; }
     .min-w-0 { min-width: 0; }
     .tracking-tight { letter-spacing: -0.025em; }
-    ${cssStyles}
+    ${sanitizeCss(cssStyles)}
   </style>
 </head>
 <body>
@@ -127,4 +127,12 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+/**
+ * Sanitize CSS to prevent style tag injection.
+ * Strips </style> sequences that could break out of the style block.
+ */
+function sanitizeCss(css: string): string {
+  return css.replace(/<\/style\s*>/gi, '');
 }

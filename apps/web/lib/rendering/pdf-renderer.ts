@@ -24,13 +24,22 @@ const DEFAULT_MARGIN = {
   left: '15mm',
 };
 
+const MAX_CONCURRENT_PAGES = 10;
+let activePages = 0;
+
 /**
  * Render an HTML string to a PDF buffer using Puppeteer.
+ * Limits concurrent pages to prevent resource exhaustion.
  */
 export async function renderPdf(
   html: string,
   options: PdfRenderOptions = {},
 ): Promise<Buffer> {
+  if (activePages >= MAX_CONCURRENT_PAGES) {
+    throw new Error('Too many concurrent render requests');
+  }
+
+  activePages++;
   const browser = await getBrowser();
   const page = await browser.newPage();
 
@@ -75,5 +84,6 @@ export async function renderPdf(
     return Buffer.from(pdfBuffer);
   } finally {
     await page.close();
+    activePages--;
   }
 }

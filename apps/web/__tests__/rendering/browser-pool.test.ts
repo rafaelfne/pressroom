@@ -39,8 +39,6 @@ describe('browser-pool', () => {
       expect(puppeteer.launch).toHaveBeenCalledWith({
         headless: true,
         args: expect.arrayContaining([
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
           '--font-render-hinting=none',

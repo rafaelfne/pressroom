@@ -28,15 +28,20 @@ export async function getBrowser(): Promise<Browser> {
 }
 
 async function launchBrowser(): Promise<Browser> {
+  const args = [
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--font-render-hinting=none',
+  ];
+
+  // Only disable sandbox when explicitly opted in (e.g., containerized environments)
+  if (process.env.PUPPETEER_DISABLE_SANDBOX === 'true') {
+    args.push('--no-sandbox', '--disable-setuid-sandbox');
+  }
+
   const browser = await puppeteer.launch({
     headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--font-render-hinting=none',
-    ],
+    args,
   });
 
   // Clean up on disconnect
