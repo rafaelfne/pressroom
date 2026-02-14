@@ -37,6 +37,26 @@ async function main() {
   });
 
   console.log('✅ Created user:', user.email);
+
+  // Create blank template
+  const template = await prisma.template.upsert({
+    where: { id: 'blank-template-1' },
+    update: {},
+    create: {
+      id: 'blank-template-1',
+      name: 'Blank Template',
+      description: 'Empty template ready to edit',
+      organizationId: organization.id,
+      createdBy: user.id,
+      content: {
+        root: {},
+        content: [],
+        zones: {}
+      },
+    },
+  });
+
+  console.log('✅ Created template:', template.name);
   console.log('');
   console.log('🎉 Seed completed!');
   console.log('');
