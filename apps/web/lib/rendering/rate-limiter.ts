@@ -115,7 +115,7 @@ export function checkRateLimit(key: string): RateLimitResult {
   // Calculate reset time (oldest timestamp + window size)
   let resetAt: number;
   if (record.timestamps.length > 0) {
-    const oldestTimestamp = Math.min(...record.timestamps);
+    const oldestTimestamp = record.timestamps[0];
     resetAt = Math.floor((oldestTimestamp + WINDOW_SIZE_MS) / 1000);
   } else {
     resetAt = Math.floor((now + WINDOW_SIZE_MS) / 1000);

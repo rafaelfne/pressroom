@@ -9,6 +9,13 @@ export const runtime = 'nodejs';
 
 const DEFAULT_RENDER_TIMEOUT_MS = 60_000;
 
+class RenderTimeoutError extends Error {
+  constructor() {
+    super('Render timeout exceeded');
+    this.name = 'RenderTimeoutError';
+  }
+}
+
 /**
  * Get the render timeout from environment variable or use default (60s)
  */
@@ -29,7 +36,7 @@ function getRenderTimeout(): number {
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
-      reject(new Error('Render timeout exceeded'));
+      reject(new RenderTimeoutError());
     }, timeoutMs);
 
     promise.then(
@@ -162,7 +169,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (error instanceof Error && error.message === 'Render timeout exceeded') {
+    if (error instanceof RenderTimeoutError) {
       return NextResponse.json(
         { error: 'Render timeout exceeded' },
         { status: 504 },
