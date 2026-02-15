@@ -17,7 +17,7 @@ describe('pageBreakBehavior prop', () => {
   it('DataTable defaults to auto and has pageBreakBehavior field', () => {
     const defaultProps = puckConfig.components.DataTable.defaultProps!;
     expect(defaultProps.pageBreakBehavior).toBe('auto');
-    expect(puckConfig.components.DataTable.fields.pageBreakBehavior).toBeDefined();
+    expect(puckConfig.components.DataTable.fields?.pageBreakBehavior).toBeDefined();
   });
 
   it('ChartBlock defaults to avoid', () => {
