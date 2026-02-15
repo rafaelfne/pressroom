@@ -48,6 +48,8 @@ export const Section: ComponentConfig<SectionProps> = {
         padding: `${padding}px`,
       }}
     >
+      {/* h2 is used as the default section heading level for report structure.
+          For nested sections, consider document hierarchy or use Container instead. */}
       <h2
         style={{
           fontSize: '1.25rem',
