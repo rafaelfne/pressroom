@@ -12,6 +12,8 @@ import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
 import { PageConfigPanel } from '@/components/studio/page-config-panel';
 import { DEFAULT_PAGE_CONFIG, parseStoredPageConfig, type PageConfig } from '@/lib/types/page-config';
+import { Loader2, Download } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
 
 const usePuck = createUsePuck();
 
@@ -107,6 +109,7 @@ export default function StudioPage() {
   const [activePageId, setActivePageId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [sampleData, setSampleData] = useState<Record<string, unknown>>(DEFAULT_SAMPLE_DATA);
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
@@ -241,7 +244,8 @@ export default function StudioPage() {
     window.open(`/studio/${templateId}/preview`, '_blank');
   }, [templateId]);
 
-  const handlePreviewPdf = useCallback(async () => {
+  const handleDownloadPdf = useCallback(async () => {
+    setIsDownloadingPdf(true);
     try {
       const { pageConfigToRenderOptions } = await import('@/lib/types/page-config');
       const response = await fetch('/api/reports/render', {
@@ -257,15 +261,23 @@ export default function StudioPage() {
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${templateName}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
       } else {
         const result = await response.json();
-        setSaveError(result.error ?? 'Failed to render PDF');
+        toast.error(result.error ?? 'Failed to render PDF');
       }
     } catch {
-      setSaveError('Failed to render PDF');
+      toast.error('Failed to render PDF');
+    } finally {
+      setIsDownloadingPdf(false);
     }
-  }, [templateId]);
+  }, [templateId, templateName]);
 
   const dismissError = useCallback(() => {
     setSaveError(null);
@@ -383,6 +395,7 @@ export default function StudioPage() {
 
   return (
     <div className="flex h-screen flex-col" data-testid="studio-editor">
+      <Toaster position="top-right" richColors />
       <StudioHeader
         templateName={templateName}
         onTemplateNameChange={handleTemplateNameChange}
@@ -428,8 +441,19 @@ export default function StudioPage() {
                     sampleData={sampleData}
                     onSampleDataChange={handleSampleDataChange}
                   />
-                  <Button variant="outline" size="sm" onClick={handlePreviewPdf}>
-                    Preview PDF
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadPdf}
+                    disabled={isDownloadingPdf}
+                    data-testid="download-pdf-button"
+                  >
+                    {isDownloadingPdf ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    {isDownloadingPdf ? 'Generating…' : 'Download PDF'}
                   </Button>
                   <Button variant="outline" size="sm" onClick={handlePreview}>
                     Preview
