@@ -6,6 +6,7 @@ export type SectionProps = {
   showDivider: 'true' | 'false';
   backgroundColor: string;
   padding: string;
+  id?: string;
 };
 
 export const Section: ComponentConfig<SectionProps> = {
@@ -38,7 +39,7 @@ export const Section: ComponentConfig<SectionProps> = {
     backgroundColor: 'transparent',
     padding: '16',
   },
-  render: ({ title, showDivider, backgroundColor, padding }) => (
+  render: ({ title, showDivider, backgroundColor, padding, id = 'section' }) => (
     <div
       role="region"
       aria-label={title}
@@ -68,7 +69,7 @@ export const Section: ComponentConfig<SectionProps> = {
           }}
         />
       )}
-      <DropZone zone="section-content" minEmptyHeight={40} />
+      <DropZone zone={`${id}-content`} minEmptyHeight={40} />
     </div>
   ),
 };

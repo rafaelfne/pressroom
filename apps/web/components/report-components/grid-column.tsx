@@ -7,6 +7,7 @@ export type GridColumnProps = {
   borderWidth: string;
   borderColor: string;
   verticalAlign: 'top' | 'center' | 'bottom';
+  id?: string;
 };
 
 const verticalAlignMap: Record<GridColumnProps['verticalAlign'], string> = {
@@ -51,7 +52,7 @@ export const GridColumn: ComponentConfig<GridColumnProps> = {
     borderColor: '#e5e7eb',
     verticalAlign: 'top',
   },
-  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign }) => (
+  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign, id = 'grid-column' }) => (
     <div
       style={{
         display: 'flex',
@@ -64,7 +65,7 @@ export const GridColumn: ComponentConfig<GridColumnProps> = {
         borderColor,
       }}
     >
-      <DropZone zone="column-content" minEmptyHeight={40} />
+      <DropZone zone={`${id}-content`} minEmptyHeight={40} />
     </div>
   ),
 };

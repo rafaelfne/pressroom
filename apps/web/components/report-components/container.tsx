@@ -9,6 +9,7 @@ export type ContainerProps = {
   backgroundColor: string;
   shadow: 'none' | 'sm' | 'md' | 'lg';
   minHeight: string;
+  id?: string;
 };
 
 const shadowMap: Record<ContainerProps['shadow'], string> = {
@@ -65,7 +66,7 @@ export const Container: ComponentConfig<ContainerProps> = {
     shadow: 'none',
     minHeight: '40',
   },
-  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight }) => (
+  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, id = 'container' }) => (
     <div
       style={{
         padding: `${padding}px`,
@@ -78,7 +79,7 @@ export const Container: ComponentConfig<ContainerProps> = {
         minHeight: `${minHeight}px`,
       }}
     >
-      <DropZone zone="container-content" minEmptyHeight={40} />
+      <DropZone zone={`${id}-content`} minEmptyHeight={40} />
     </div>
   ),
 };

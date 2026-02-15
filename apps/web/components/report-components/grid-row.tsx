@@ -5,6 +5,7 @@ export type GridRowProps = {
   columns: '2-equal' | '3-equal' | '4-equal' | '1-3_2-3' | '2-3_1-3' | 'custom';
   customColumns: string;
   gap: string;
+  id?: string;
 };
 
 type ColumnConfig = {
@@ -49,12 +50,14 @@ export const GridRow: ComponentConfig<GridRowProps> = {
     customColumns: '',
     gap: '16',
   },
-  render: ({ columns, customColumns, gap }) => {
+  render: ({ columns, customColumns, gap, id = 'grid-row' }) => {
     let template: string;
     let count: number;
 
     if (columns === 'custom') {
       template = customColumns || '1fr 1fr';
+      // Simple space-based parsing (supports basic syntax like "1fr 2fr 1fr")
+      // Note: Does not support complex CSS like minmax() or repeat()
       count = template.split(/\s+/).filter(Boolean).length;
     } else {
       const config = columnMap[columns];
@@ -72,7 +75,7 @@ export const GridRow: ComponentConfig<GridRowProps> = {
       >
         {Array.from({ length: count }, (_, i) => (
           <div key={i} style={{ minHeight: '40px' }}>
-            <DropZone zone={`column-${i}`} minEmptyHeight={40} />
+            <DropZone zone={`${id}-column-${i}`} minEmptyHeight={40} />
           </div>
         ))}
       </div>
