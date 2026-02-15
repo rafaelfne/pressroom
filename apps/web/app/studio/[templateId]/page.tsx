@@ -10,7 +10,7 @@ import { SampleDataPanel } from '@/components/studio/sample-data-panel';
 import { PageNavigator, type PageItem } from '@/components/studio/page-navigator';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
-import { PageConfigDialog } from '@/components/studio/page-config-dialog';
+import { PageConfigPanel } from '@/components/studio/page-config-panel';
 import { DEFAULT_PAGE_CONFIG, parseStoredPageConfig, type PageConfig } from '@/lib/types/page-config';
 
 const EMPTY_DATA: Data = { content: [], root: {} };
@@ -84,7 +84,6 @@ export default function StudioPage() {
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
   const [pageConfig, setPageConfig] = useState<PageConfig>(DEFAULT_PAGE_CONFIG);
-  const [pageConfigOpen, setPageConfigOpen] = useState(false);
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
   const pagesRef = useRef<PageItem[]>([]);
   const pageConfigRef = useRef<PageConfig>(pageConfig);
@@ -402,14 +401,6 @@ export default function StudioPage() {
                     sampleData={sampleData}
                     onSampleDataChange={handleSampleDataChange}
                   />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPageConfigOpen(true)}
-                    data-testid="page-settings-button"
-                  >
-                    ⚙ Page Settings
-                  </Button>
                   <Button variant="outline" size="sm" onClick={handlePreviewPdf}>
                     Preview PDF
                   </Button>
@@ -419,16 +410,23 @@ export default function StudioPage() {
                   {children}
                 </>
               ),
+              fields: ({ children, isLoading }) => (
+                <>
+                  {children}
+                  {!isLoading && (
+                    <div className="border-t border-border mt-4 pt-4">
+                      <PageConfigPanel
+                        config={pageConfig}
+                        onConfigChange={handlePageConfigChange}
+                      />
+                    </div>
+                  )}
+                </>
+              ),
             }}
           />
         </div>
       </div>
-      <PageConfigDialog
-        open={pageConfigOpen}
-        onOpenChange={setPageConfigOpen}
-        config={pageConfig}
-        onConfigChange={handlePageConfigChange}
-      />
     </div>
   );
 }
