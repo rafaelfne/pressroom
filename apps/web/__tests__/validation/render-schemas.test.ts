@@ -49,7 +49,7 @@ describe('renderRequestSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toContain('Either templateId or templateData');
+      expect(result.error.issues[0].message).toContain('Either templateId, templateData, or pages');
     }
   });
 
@@ -167,5 +167,139 @@ describe('renderRequestSchema', () => {
       templateId: '',
     });
     expect(result.success).toBe(false);
+  });
+
+  describe('pages field validation', () => {
+    it('accepts valid pages array', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [
+          {
+            id: 'page-1',
+            name: 'Cover',
+            content: {
+              content: [],
+              root: {},
+            },
+          },
+          {
+            id: 'page-2',
+            name: 'Details',
+            content: {
+              content: [],
+              root: {},
+            },
+          },
+        ],
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts pages with zones', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [
+          {
+            id: 'page-1',
+            name: 'Page 1',
+            content: {
+              content: [],
+              root: {},
+              zones: {
+                header: [],
+                footer: [],
+              },
+            },
+          },
+        ],
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects empty pages array', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects pages with missing id', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [
+          {
+            name: 'Page 1',
+            content: {
+              content: [],
+              root: {},
+            },
+          },
+        ],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects pages with empty id', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [
+          {
+            id: '',
+            name: 'Page 1',
+            content: {
+              content: [],
+              root: {},
+            },
+          },
+        ],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects pages with missing name', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [
+          {
+            id: 'page-1',
+            content: {
+              content: [],
+              root: {},
+            },
+          },
+        ],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects pages with invalid content structure', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [
+          {
+            id: 'page-1',
+            name: 'Page 1',
+            content: {
+              invalid: true,
+            },
+          },
+        ],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts pages with data field', () => {
+      const result = renderRequestSchema.safeParse({
+        pages: [
+          {
+            id: 'page-1',
+            name: 'Page 1',
+            content: {
+              content: [],
+              root: {},
+            },
+          },
+        ],
+        data: {
+          name: 'John',
+          items: [1, 2, 3],
+        },
+      });
+      expect(result.success).toBe(true);
+    });
   });
 });
