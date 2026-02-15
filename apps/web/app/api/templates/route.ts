@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
       data: {
         name: parsed.data.name,
         description: parsed.data.description,
-        templateData: (parsed.data.templateData ?? {}) as Prisma.InputJsonValue,
+        templateData: (parsed.data.pages
+          ? { pages: parsed.data.pages }
+          : parsed.data.templateData ?? {}) as Prisma.InputJsonValue,
         sampleData: parsed.data.sampleData ? (parsed.data.sampleData as Prisma.InputJsonValue) : undefined,
         pageConfig: parsed.data.pageConfig ? (parsed.data.pageConfig as Prisma.InputJsonValue) : undefined,
         tags: parsed.data.tags ?? [],
