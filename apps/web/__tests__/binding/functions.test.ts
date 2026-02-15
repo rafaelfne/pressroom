@@ -54,7 +54,8 @@ describe('built-in functions', () => {
     });
 
     it('formats date string with locale', () => {
-      const result = builtInFunctions.formatDate('2024-01-15', 'en-US');
+      // Use ISO format with time to avoid timezone issues
+      const result = builtInFunctions.formatDate('2024-01-15T12:00:00', 'en-US');
       expect(result).toMatch(/1\/15\/2024/);
     });
 
