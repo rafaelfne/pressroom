@@ -9,6 +9,10 @@ import { ReportHeader, type ReportHeaderProps } from '@/components/report-compon
 import { ReportFooter, type ReportFooterProps } from '@/components/report-components/report-footer';
 import { DataTable, type DataTableProps } from '@/components/report-components/data-table';
 import { ChartBlock, type ChartBlockProps } from '@/components/report-components/chart-block';
+import { Container, type ContainerProps } from '@/components/report-components/container';
+import { GridRow, type GridRowProps } from '@/components/report-components/grid-row';
+import { GridColumn, type GridColumnProps } from '@/components/report-components/grid-column';
+import { Section, type SectionProps } from '@/components/report-components/section';
 
 type PuckComponents = {
   TextBlock: TextBlockProps;
@@ -21,13 +25,17 @@ type PuckComponents = {
   ReportFooter: ReportFooterProps;
   DataTable: DataTableProps;
   ChartBlock: ChartBlockProps;
+  Container: ContainerProps;
+  GridRow: GridRowProps;
+  GridColumn: GridColumnProps;
+  Section: SectionProps;
 };
 
 export const puckConfig: Config<PuckComponents> = {
   categories: {
     layout: {
       title: 'Layout',
-      components: ['Spacer', 'Divider', 'PageBreak'],
+      components: ['Container', 'GridRow', 'GridColumn', 'Section', 'Spacer', 'Divider', 'PageBreak'],
     },
     content: {
       title: 'Content',
@@ -57,5 +65,9 @@ export const puckConfig: Config<PuckComponents> = {
     ReportFooter,
     DataTable,
     ChartBlock,
+    Container,
+    GridRow,
+    GridColumn,
+    Section,
   },
 };
