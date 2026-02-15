@@ -1,10 +1,11 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type ReportHeaderProps = {
   logoSrc: string;
   title: string;
   date: string;
-  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 /**
@@ -18,16 +19,7 @@ export const ReportHeader: ComponentConfig<ReportHeaderProps> = {
     logoSrc: { type: 'text', label: 'Logo URL' },
     title: { type: 'text', label: 'Report Title' },
     date: { type: 'text', label: 'Date' },
-    pageBreakBehavior: {
-      type: 'select',
-      label: 'Page Break',
-      options: [
-        { label: 'Auto', value: 'auto' },
-        { label: 'Avoid Split', value: 'avoid' },
-        { label: 'Break Before', value: 'before' },
-        { label: 'Break After', value: 'after' },
-      ],
-    },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     logoSrc: '',
@@ -35,25 +27,14 @@ export const ReportHeader: ComponentConfig<ReportHeaderProps> = {
     date: '',
     pageBreakBehavior: 'auto',
   },
-  render: ({ logoSrc, title, date, pageBreakBehavior }) => {
-    const pageBreakStyle: React.CSSProperties = {};
-    if (pageBreakBehavior === 'avoid') {
-      pageBreakStyle.pageBreakInside = 'avoid';
-    } else if (pageBreakBehavior === 'before') {
-      pageBreakStyle.pageBreakBefore = 'always';
-    } else if (pageBreakBehavior === 'after') {
-      pageBreakStyle.pageBreakAfter = 'always';
-    }
-
-    return (
-      <div className="flex items-center justify-between p-4 border-b" style={pageBreakStyle}>
-        <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {logoSrc && <img src={logoSrc} alt="Logo" style={{ height: '40px', width: 'auto' }} />}
-          <h1 className="text-xl font-bold">{title}</h1>
-        </div>
-        <span className="text-sm text-gray-500">{date}</span>
+  render: ({ logoSrc, title, date, pageBreakBehavior }) => (
+    <div className="flex items-center justify-between p-4 border-b" style={getPageBreakStyle(pageBreakBehavior)}>
+      <div className="flex items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {logoSrc && <img src={logoSrc} alt="Logo" style={{ height: '40px', width: 'auto' }} />}
+        <h1 className="text-xl font-bold">{title}</h1>
       </div>
-    );
-  },
+      <span className="text-sm text-gray-500">{date}</span>
+    </div>
+  ),
 };

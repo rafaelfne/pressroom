@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 import {
   BarChart,
   Bar,
@@ -43,7 +44,7 @@ export type ChartBlockProps = {
   centerLabel: string;
   backgroundColor: string;
   containerBorder: string;
-  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 // Sample data for Studio preview
@@ -207,16 +208,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         { label: 'No', value: 'false' },
       ],
     },
-    pageBreakBehavior: {
-      type: 'select',
-      label: 'Page Break',
-      options: [
-        { label: 'Auto', value: 'auto' },
-        { label: 'Avoid Split', value: 'avoid' },
-        { label: 'Break Before', value: 'before' },
-        { label: 'Break After', value: 'after' },
-      ],
-    },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     chartType: 'bar',
@@ -262,14 +254,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     containerBorder,
     pageBreakBehavior,
   }) => {
-    const pageBreakStyle: React.CSSProperties = {};
-    if (pageBreakBehavior === 'avoid') {
-      pageBreakStyle.pageBreakInside = 'avoid';
-    } else if (pageBreakBehavior === 'before') {
-      pageBreakStyle.pageBreakBefore = 'always';
-    } else if (pageBreakBehavior === 'after') {
-      pageBreakStyle.pageBreakAfter = 'always';
-    }
+    const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
 
     // Parse series JSON string safely
     let seriesConfig: SeriesConfig[] = [];

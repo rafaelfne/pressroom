@@ -1,10 +1,11 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type HeadingBlockProps = {
   text: string;
   level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   color: string;
-  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
@@ -24,16 +25,7 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
       ],
     },
     color: { type: 'text', label: 'Text Color' },
-    pageBreakBehavior: {
-      type: 'select',
-      label: 'Page Break',
-      options: [
-        { label: 'Auto', value: 'auto' },
-        { label: 'Avoid Split', value: 'avoid' },
-        { label: 'Break Before', value: 'before' },
-        { label: 'Break After', value: 'after' },
-      ],
-    },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     text: 'Heading',
@@ -42,16 +34,7 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
     pageBreakBehavior: 'auto',
   },
   render: ({ text, level, color, pageBreakBehavior }) => {
-    const pageBreakStyle: React.CSSProperties = {};
-    if (pageBreakBehavior === 'avoid') {
-      pageBreakStyle.pageBreakInside = 'avoid';
-    } else if (pageBreakBehavior === 'before') {
-      pageBreakStyle.pageBreakBefore = 'always';
-    } else if (pageBreakBehavior === 'after') {
-      pageBreakStyle.pageBreakAfter = 'always';
-    }
-
     const Tag = level;
-    return <Tag style={{ color, ...pageBreakStyle }} className="p-2">{text}</Tag>;
+    return <Tag style={{ color, ...getPageBreakStyle(pageBreakBehavior) }} className="p-2">{text}</Tag>;
   },
 };

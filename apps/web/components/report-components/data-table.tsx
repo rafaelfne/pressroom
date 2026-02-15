@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type DataTableColumn = {
   field: string;
@@ -16,7 +17,7 @@ export type DataTableProps = {
   compact: string;
   headerBgColor: string;
   headerTextColor: string;
-  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 // Sample data for Studio preview
@@ -168,16 +169,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       type: 'text',
       label: 'Header Text Color',
     },
-    pageBreakBehavior: {
-      type: 'select',
-      label: 'Page Break',
-      options: [
-        { label: 'Auto', value: 'auto' },
-        { label: 'Avoid Split', value: 'avoid' },
-        { label: 'Break Before', value: 'before' },
-        { label: 'Break After', value: 'after' },
-      ],
-    },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     dataExpression: '{{data.items}}',
@@ -204,14 +196,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     headerTextColor,
     pageBreakBehavior,
   }) => {
-    const pageBreakStyle: React.CSSProperties = {};
-    if (pageBreakBehavior === 'avoid') {
-      pageBreakStyle.pageBreakInside = 'avoid';
-    } else if (pageBreakBehavior === 'before') {
-      pageBreakStyle.pageBreakBefore = 'always';
-    } else if (pageBreakBehavior === 'after') {
-      pageBreakStyle.pageBreakAfter = 'always';
-    }
+    const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
 
     // Use sample data for preview (in real rendering, binding resolution will replace this)
     const data = SAMPLE_DATA;

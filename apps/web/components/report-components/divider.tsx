@@ -1,10 +1,11 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type DividerProps = {
   color: string;
   thickness: string;
   lineStyle: 'solid' | 'dashed' | 'dotted';
-  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 export const Divider: ComponentConfig<DividerProps> = {
@@ -21,16 +22,7 @@ export const Divider: ComponentConfig<DividerProps> = {
         { label: 'Dotted', value: 'dotted' },
       ],
     },
-    pageBreakBehavior: {
-      type: 'select',
-      label: 'Page Break',
-      options: [
-        { label: 'Auto', value: 'auto' },
-        { label: 'Avoid Split', value: 'avoid' },
-        { label: 'Break Before', value: 'before' },
-        { label: 'Break After', value: 'after' },
-      ],
-    },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     color: '#e5e7eb',
@@ -38,27 +30,16 @@ export const Divider: ComponentConfig<DividerProps> = {
     lineStyle: 'solid',
     pageBreakBehavior: 'auto',
   },
-  render: ({ color, thickness, lineStyle, pageBreakBehavior }) => {
-    const pageBreakStyle: React.CSSProperties = {};
-    if (pageBreakBehavior === 'avoid') {
-      pageBreakStyle.pageBreakInside = 'avoid';
-    } else if (pageBreakBehavior === 'before') {
-      pageBreakStyle.pageBreakBefore = 'always';
-    } else if (pageBreakBehavior === 'after') {
-      pageBreakStyle.pageBreakAfter = 'always';
-    }
-
-    return (
-      <hr
-        style={{
-          borderTop: `${thickness}px ${lineStyle} ${color}`,
-          borderBottom: 'none',
-          borderLeft: 'none',
-          borderRight: 'none',
-          ...pageBreakStyle,
-        }}
-        className="my-2"
-      />
-    );
-  },
+  render: ({ color, thickness, lineStyle, pageBreakBehavior }) => (
+    <hr
+      style={{
+        borderTop: `${thickness}px ${lineStyle} ${color}`,
+        borderBottom: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        ...getPageBreakStyle(pageBreakBehavior),
+      }}
+      className="my-2"
+    />
+  ),
 };

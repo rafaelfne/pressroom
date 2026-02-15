@@ -1,11 +1,12 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { DropZone } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type GridRowProps = {
   columns: '2-equal' | '3-equal' | '4-equal' | '1-3_2-3' | '2-3_1-3' | 'custom';
   customColumns: string;
   gap: string;
-  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 type ColumnConfig = {
@@ -44,16 +45,7 @@ export const GridRow: ComponentConfig<GridRowProps> = {
       type: 'text',
       label: 'Gap (px)',
     },
-    pageBreakBehavior: {
-      type: 'select',
-      label: 'Page Break',
-      options: [
-        { label: 'Auto', value: 'auto' },
-        { label: 'Avoid Split', value: 'avoid' },
-        { label: 'Break Before', value: 'before' },
-        { label: 'Break After', value: 'after' },
-      ],
-    },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     columns: '2-equal',
@@ -62,15 +54,6 @@ export const GridRow: ComponentConfig<GridRowProps> = {
     pageBreakBehavior: 'auto',
   },
   render: ({ columns, customColumns, gap, pageBreakBehavior, id = 'grid-row' }) => {
-    const pageBreakStyle: React.CSSProperties = {};
-    if (pageBreakBehavior === 'avoid') {
-      pageBreakStyle.pageBreakInside = 'avoid';
-    } else if (pageBreakBehavior === 'before') {
-      pageBreakStyle.pageBreakBefore = 'always';
-    } else if (pageBreakBehavior === 'after') {
-      pageBreakStyle.pageBreakAfter = 'always';
-    }
-
     let template: string;
     let count: number;
 
@@ -101,7 +84,7 @@ export const GridRow: ComponentConfig<GridRowProps> = {
           display: 'grid',
           gridTemplateColumns: template,
           gap: `${gap}px`,
-          ...pageBreakStyle,
+          ...getPageBreakStyle(pageBreakBehavior),
         }}
       >
         {Array.from({ length: count }, (_, i) => (
