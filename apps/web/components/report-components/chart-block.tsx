@@ -77,7 +77,6 @@ function formatYAxisValue(value: number, format: 'number' | 'percentage' | 'curr
     return `${value}%`;
   }
   if (format === 'currency') {
-    // TODO: Make currency symbol configurable for internationalization
     return `R$ ${value}`;
   }
   return String(value);
@@ -243,7 +242,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     showGrid,
     showTooltip,
     series,
-    xAxisFormat, // eslint-disable-line @typescript-eslint/no-unused-vars -- Keeping in signature for Puck field registration, reserved for future implementation
+    xAxisFormat,
     yAxisFormat,
     xAxisRotation,
     centerLabel,
@@ -290,6 +289,9 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
 
     // Get axis rotation angle
     const rotationAngle = getXAxisRotationAngle(xAxisRotation);
+
+    // Derive XAxis type from format ('number' uses numeric scale, otherwise category)
+    const xAxisType = xAxisFormat === 'number' ? 'number' as const : 'category' as const;
 
     // Validate data
     if (!Array.isArray(data) || data.length === 0) {
@@ -367,7 +369,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         chartElement = (
           <BarChart width={parsedWidth} height={parsedHeight} data={data}>
             {shouldShowGrid && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis dataKey={xField} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
+            <XAxis dataKey={xField} type={xAxisType} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
             <YAxis tickFormatter={yAxisTickFormatter} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
@@ -385,7 +387,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         chartElement = (
           <BarChart width={parsedWidth} height={parsedHeight} data={data}>
             {shouldShowGrid && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis dataKey={xField} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
+            <XAxis dataKey={xField} type={xAxisType} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
             <YAxis tickFormatter={yAxisTickFormatter} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
@@ -399,7 +401,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         chartElement = (
           <LineChart width={parsedWidth} height={parsedHeight} data={data}>
             {shouldShowGrid && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis dataKey={xField} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
+            <XAxis dataKey={xField} type={xAxisType} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
             <YAxis tickFormatter={yAxisTickFormatter} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
@@ -419,7 +421,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         chartElement = (
           <LineChart width={parsedWidth} height={parsedHeight} data={data}>
             {shouldShowGrid && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis dataKey={xField} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
+            <XAxis dataKey={xField} type={xAxisType} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
             <YAxis tickFormatter={yAxisTickFormatter} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
@@ -438,7 +440,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         chartElement = (
           <AreaChart width={parsedWidth} height={parsedHeight} data={data}>
             {shouldShowGrid && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis dataKey={xField} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
+            <XAxis dataKey={xField} type={xAxisType} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
             <YAxis tickFormatter={yAxisTickFormatter} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
@@ -458,7 +460,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         chartElement = (
           <AreaChart width={parsedWidth} height={parsedHeight} data={data}>
             {shouldShowGrid && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis dataKey={xField} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
+            <XAxis dataKey={xField} type={xAxisType} angle={rotationAngle} textAnchor={rotationAngle !== 0 ? 'end' : 'middle'} />
             <YAxis tickFormatter={yAxisTickFormatter} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
