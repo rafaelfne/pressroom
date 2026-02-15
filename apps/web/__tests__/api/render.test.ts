@@ -25,9 +25,15 @@ vi.mock('@/lib/rendering/render-report', () => ({
   renderReport: vi.fn(),
 }));
 
+// Mock rate limiter
+vi.mock('@/lib/rendering/rate-limiter', () => ({
+  checkRateLimit: vi.fn(),
+}));
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { renderReport } from '@/lib/rendering/render-report';
+import { checkRateLimit } from '@/lib/rendering/rate-limiter';
 
 // Helper to create NextRequest
 function createRequest(
@@ -63,6 +69,13 @@ const mockTemplate = {
 describe('POST /api/reports/render', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: rate limit allows requests
+    vi.mocked(checkRateLimit).mockReturnValue({
+      allowed: true,
+      limit: 10,
+      remaining: 9,
+      resetAt: Math.floor(Date.now() / 1000) + 60,
+    });
   });
 
   it('returns 401 when not authenticated', async () => {
@@ -332,5 +345,73 @@ describe('POST /api/reports/render', () => {
       format: 'pdf',
       pageConfig: undefined,
     });
+  });
+
+  it('returns 429 when rate limit is exceeded', async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(checkRateLimit).mockReturnValue({
+      allowed: false,
+      limit: 10,
+      remaining: 0,
+      resetAt: 1700000000,
+    });
+
+    const { POST } = await import('@/app/api/reports/render/route');
+    const request = createRequest('POST', '/api/reports/render', {
+      templateData: { content: [], root: {} },
+    });
+    const response = await POST(request);
+
+    expect(response.status).toBe(429);
+    const data = await response.json();
+    expect(data.error).toContain('Rate limit exceeded');
+    expect(response.headers.get('X-RateLimit-Limit')).toBe('10');
+    expect(response.headers.get('X-RateLimit-Remaining')).toBe('0');
+    expect(response.headers.get('X-RateLimit-Reset')).toBe('1700000000');
+  });
+
+  it('calls checkRateLimit with user id', async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(renderReport).mockResolvedValue({
+      content: Buffer.from('mock-pdf'),
+      contentType: 'application/pdf',
+    });
+
+    const { POST } = await import('@/app/api/reports/render/route');
+    const request = createRequest('POST', '/api/reports/render', {
+      templateData: { content: [], root: {} },
+    });
+    await POST(request);
+
+    expect(checkRateLimit).toHaveBeenCalledWith('user-1');
+  });
+
+  it('returns 504 when render times out', async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(renderReport).mockImplementation(
+      () => new Promise(() => {}), // never resolves
+    );
+
+    // Set a very short timeout for testing
+    const originalEnv = process.env.RENDER_TIMEOUT_MS;
+    process.env.RENDER_TIMEOUT_MS = '50';
+
+    try {
+      const { POST } = await import('@/app/api/reports/render/route');
+      const request = createRequest('POST', '/api/reports/render', {
+        templateData: { content: [], root: {} },
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(504);
+      const data = await response.json();
+      expect(data.error).toBe('Render timeout exceeded');
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.RENDER_TIMEOUT_MS;
+      } else {
+        process.env.RENDER_TIMEOUT_MS = originalEnv;
+      }
+    }
   });
 });
