@@ -280,7 +280,6 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       textAlign: 'left',
       borderBottom: isBordered ? '2px solid #d1d5db' : 'none',
       borderRight: isBordered ? '1px solid #e5e7eb' : 'none',
-      display: 'table-header-group',
     };
 
     // Body cell styles

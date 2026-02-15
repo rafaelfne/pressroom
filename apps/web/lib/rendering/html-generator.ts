@@ -146,13 +146,7 @@ function buildHtmlDocument(
     .w-full { width: 100%; }
     .min-w-0 { min-width: 0; }
     .tracking-tight { letter-spacing: -0.025em; }
-    /* Print & page break styles */
-    @media print {
-      table { page-break-inside: auto; }
-      tr { page-break-inside: avoid; page-break-after: auto; }
-      thead { display: table-header-group; }
-      tfoot { display: table-footer-group; }
-    }
+    /* Print & page break styles - applied universally for PDF/print compatibility */
     table { page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
     thead { display: table-header-group; }
