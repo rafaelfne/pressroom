@@ -77,6 +77,7 @@ function formatYAxisValue(value: number, format: 'number' | 'percentage' | 'curr
     return `${value}%`;
   }
   if (format === 'currency') {
+    // TODO: Make currency symbol configurable for internationalization
     return `R$ ${value}`;
   }
   return String(value);
@@ -242,20 +243,17 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     showGrid,
     showTooltip,
     series,
-    xAxisFormat,
+    xAxisFormat, // eslint-disable-line @typescript-eslint/no-unused-vars -- Keeping in signature for Puck field registration, reserved for future implementation
     yAxisFormat,
     xAxisRotation,
     centerLabel,
     backgroundColor,
     containerBorder,
   }) => {
-    // Note: xAxisFormat is reserved for future X-axis formatting implementation
-    void xAxisFormat;
-
     // Parse series JSON string safely
     let seriesConfig: SeriesConfig[] = [];
     try {
-      if (series && series.trim() !== '' && series !== '[]') {
+      if (series && series.trim() !== '') {
         const parsed: unknown = JSON.parse(series);
         if (Array.isArray(parsed)) {
           seriesConfig = parsed as SeriesConfig[];
