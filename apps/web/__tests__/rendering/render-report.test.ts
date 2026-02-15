@@ -369,7 +369,7 @@ describe('renderReport', () => {
       ).rejects.toThrow('Either templateData or pages must be provided');
     });
 
-    it('uses single-page rendering when templateData provided alongside pages', async () => {
+    it('uses multi-page rendering when both templateData and pages are provided', async () => {
       // When both are provided, pages takes precedence
       await renderReport({
         templateData: mockTemplateData,
