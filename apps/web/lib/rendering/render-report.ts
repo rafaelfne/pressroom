@@ -2,6 +2,8 @@ import type { Data } from '@puckeditor/core';
 import { resolveBindings } from '@/lib/binding';
 import { generateHtml, generateMultiPageHtml } from './html-generator';
 import { renderPdf, type PdfRenderOptions } from './pdf-renderer';
+import type { PageConfig } from '@/lib/types/page-config';
+import { pageConfigToRenderOptions } from '@/lib/types/page-config';
 
 export interface TemplatePage {
   id: string;
@@ -17,6 +19,8 @@ export interface RenderReportOptions {
   title?: string;
   cssStyles?: string;
   pageConfig?: PdfRenderOptions;
+  /** Structured page configuration (takes precedence over pageConfig when present with paperSize) */
+  templatePageConfig?: PageConfig;
 }
 
 export interface RenderResult {
@@ -40,7 +44,13 @@ export async function renderReport(
     title = 'Report',
     cssStyles = '',
     pageConfig = {},
+    templatePageConfig,
   } = options;
+
+  // Resolve PDF render options: templatePageConfig takes precedence
+  const resolvedPdfOptions: PdfRenderOptions = templatePageConfig
+    ? pageConfigToRenderOptions(templatePageConfig)
+    : pageConfig;
 
   let html: string;
 
@@ -65,7 +75,7 @@ export async function renderReport(
     };
   }
 
-  const pdfBuffer = await renderPdf(html, pageConfig);
+  const pdfBuffer = await renderPdf(html, resolvedPdfOptions);
   return {
     content: pdfBuffer,
     contentType: 'application/pdf',

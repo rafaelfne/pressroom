@@ -18,7 +18,20 @@ const pageSchema = z.object({
 
 const pagesSchema = z.array(pageSchema).min(1);
 
+const pageMarginsSchema = z.object({
+  top: z.number().min(0).optional(),
+  right: z.number().min(0).optional(),
+  bottom: z.number().min(0).optional(),
+  left: z.number().min(0).optional(),
+});
+
 const pageConfigSchema = z.object({
+  paperSize: z.enum(['A4', 'Letter', 'Legal', 'A3', 'Custom']).optional(),
+  orientation: z.enum(['portrait', 'landscape']).optional(),
+  margins: pageMarginsSchema.optional(),
+  customWidth: z.number().positive().optional(),
+  customHeight: z.number().positive().optional(),
+  // Keep backward compat with older format
   width: z.number().optional(),
   height: z.number().optional(),
   margin: z.object({
@@ -27,7 +40,6 @@ const pageConfigSchema = z.object({
     bottom: z.number().optional(),
     left: z.number().optional(),
   }).optional(),
-  orientation: z.enum(['portrait', 'landscape']).optional(),
 }).passthrough();
 
 export const templateCreateSchema = z.object({
