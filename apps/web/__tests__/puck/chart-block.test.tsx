@@ -169,10 +169,19 @@ describe('ChartBlock component', () => {
     expect(defaultProps.xField).toBe('name');
     expect(defaultProps.yField).toBe('value');
     expect(defaultProps.title).toBe('');
+    expect(defaultProps.subtitle).toBe('');
     expect(defaultProps.height).toBe('300');
+    expect(defaultProps.width).toBe('600');
     expect(defaultProps.showLegend).toBe('true');
     expect(defaultProps.showGrid).toBe('true');
     expect(defaultProps.showTooltip).toBe('false');
+    expect(defaultProps.series).toBe('[]');
+    expect(defaultProps.xAxisFormat).toBe('category');
+    expect(defaultProps.yAxisFormat).toBe('number');
+    expect(defaultProps.xAxisRotation).toBe('0');
+    expect(defaultProps.centerLabel).toBe('');
+    expect(defaultProps.backgroundColor).toBe('');
+    expect(defaultProps.containerBorder).toBe('false');
   });
 
   it('renders legend when showLegend is true', () => {
@@ -241,8 +250,9 @@ describe('ChartBlock component', () => {
     const { container } = render(
       <Component {...defaultProps} id="test-chart" puck={mockPuckContext} />,
     );
-    // The chart container div should have width 100%
-    const chartContainer = container.querySelector('div > div[style]') as HTMLElement;
+    // The inner chart container div should have width 100%
+    const wrapperDiv = container.firstChild as HTMLElement;
+    const chartContainer = wrapperDiv.querySelector('div[style*="width"]') as HTMLElement;
     expect(chartContainer).toHaveStyle({ width: '100%' });
   });
 
@@ -259,5 +269,328 @@ describe('ChartBlock component', () => {
     );
     const svg = container.querySelector('svg');
     expect(svg).toHaveAttribute('height', '300');
+  });
+
+  it('renders multi-series line chart with multiple lines', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const seriesJson = JSON.stringify([
+      { name: 'Series 1', yField: 'series1', color: '#8884d8' },
+      { name: 'Series 2', yField: 'series2', color: '#82ca9d' },
+      { name: 'Series 3', yField: 'series3', color: '#ffc658' },
+    ]);
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="line"
+        series={seriesJson}
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const lines = container.querySelectorAll('.recharts-line');
+    expect(lines.length).toBe(3);
+  });
+
+  it('renders multi-series bar chart with multiple bars', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const seriesJson = JSON.stringify([
+      { name: 'Series 1', yField: 'series1', color: '#8884d8' },
+      { name: 'Series 2', yField: 'series2', color: '#82ca9d' },
+    ]);
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="bar"
+        series={seriesJson}
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    // Should have multiple bar groups
+    const bars = container.querySelectorAll('.recharts-bar-rectangles');
+    expect(bars.length).toBeGreaterThan(1);
+  });
+
+  it('renders multi-series area chart with multiple areas', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const seriesJson = JSON.stringify([
+      { name: 'Series 1', yField: 'series1', color: '#8884d8' },
+      { name: 'Series 2', yField: 'series2', color: '#82ca9d' },
+    ]);
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="area"
+        series={seriesJson}
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const areas = container.querySelectorAll('.recharts-area');
+    expect(areas.length).toBe(2);
+  });
+
+  it('falls back to single yField when series is empty', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="line"
+        series="[]"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const lines = container.querySelectorAll('.recharts-line');
+    expect(lines.length).toBe(1);
+  });
+
+  it('handles invalid series JSON gracefully', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="line"
+        series="{invalid json}"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    // Should fall back to single series
+    const lines = container.querySelectorAll('.recharts-line');
+    expect(lines.length).toBe(1);
+  });
+
+  it('renders stacked bar chart', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="stackedBar"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const svg = container.querySelector('svg');
+    expect(svg).toBeInTheDocument();
+    const bars = container.querySelectorAll('.recharts-bar-rectangle');
+    expect(bars.length).toBeGreaterThan(0);
+  });
+
+  it('renders stacked bar chart with multiple series', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const seriesJson = JSON.stringify([
+      { name: 'Segment 1', yField: 'segment1', color: '#8884d8' },
+      { name: 'Segment 2', yField: 'segment2', color: '#82ca9d' },
+      { name: 'Segment 3', yField: 'segment3', color: '#ffc658' },
+    ]);
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="stackedBar"
+        series={seriesJson}
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const bars = container.querySelectorAll('.recharts-bar-rectangles');
+    expect(bars.length).toBe(3);
+  });
+
+  it('renders donut center label', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="donut"
+        centerLabel="Total: 100"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    expect(container.textContent).toContain('Total: 100');
+  });
+
+  it('does not render center label for non-donut charts', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        chartType="pie"
+        centerLabel="Should not show"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    // Should not find a div containing the center label text
+    const allDivs = Array.from(container.querySelectorAll('div'));
+    const centerDiv = allDivs.find((div) => div.textContent === 'Should not show');
+    expect(centerDiv).toBeUndefined();
+  });
+
+  it('renders subtitle when provided', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    render(
+      <Component
+        {...defaultProps}
+        title="Main Title"
+        subtitle="This is a subtitle"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    expect(screen.getByText('Main Title')).toBeInTheDocument();
+    expect(screen.getByText('This is a subtitle')).toBeInTheDocument();
+  });
+
+  it('applies custom width', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        width="800"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const svg = container.querySelector('svg');
+    expect(svg).toHaveAttribute('width', '800');
+  });
+
+  it('applies background color to container', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        backgroundColor="#f0f0f0"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ backgroundColor: '#f0f0f0' });
+  });
+
+  it('applies container border when enabled', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        containerBorder="true"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.style.border).toContain('1px solid');
+  });
+
+  it('does not apply border when disabled', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        containerBorder="false"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    // When border is false, the style should not include a border or should be empty/none
+    expect(wrapper.style.border).not.toContain('1px solid');
+  });
+
+  it('applies Y-axis percentage formatting', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        yAxisFormat="percentage"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    // Check if the Y-axis tick has percentage formatting
+    const yAxisTicks = container.querySelectorAll('.recharts-yAxis .recharts-cartesian-axis-tick-value');
+    expect(yAxisTicks.length).toBeGreaterThan(0);
+    // At least one tick should contain '%'
+    const hasPercentage = Array.from(yAxisTicks).some((tick) => tick.textContent?.includes('%'));
+    expect(hasPercentage).toBe(true);
+  });
+
+  it('applies Y-axis currency formatting', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        yAxisFormat="currency"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    // Check if the Y-axis tick has currency formatting
+    const yAxisTicks = container.querySelectorAll('.recharts-yAxis .recharts-cartesian-axis-tick-value');
+    expect(yAxisTicks.length).toBeGreaterThan(0);
+    // At least one tick should contain 'R$'
+    const hasCurrency = Array.from(yAxisTicks).some((tick) => tick.textContent?.includes('R$'));
+    expect(hasCurrency).toBe(true);
+  });
+
+  it('applies X-axis rotation 45 degrees', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        xAxisRotation="45"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const xAxisTicks = container.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
+    expect(xAxisTicks.length).toBeGreaterThan(0);
+    // Check if ticks have rotation transform
+    const hasRotation = Array.from(xAxisTicks).some((tick) => {
+      const text = tick.querySelector('text');
+      return text && text.getAttribute('transform')?.includes('rotate');
+    });
+    expect(hasRotation).toBe(true);
+  });
+
+  it('applies X-axis rotation 90 degrees', () => {
+    const Component = puckConfig.components.ChartBlock.render;
+    const defaultProps = puckConfig.components.ChartBlock.defaultProps!;
+    const { container } = render(
+      <Component
+        {...defaultProps}
+        xAxisRotation="90"
+        id="test-chart"
+        puck={mockPuckContext}
+      />,
+    );
+    const xAxisTicks = container.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
+    expect(xAxisTicks.length).toBeGreaterThan(0);
+    // Check if ticks have rotation transform
+    const hasRotation = Array.from(xAxisTicks).some((tick) => {
+      const text = tick.querySelector('text');
+      return text && text.getAttribute('transform')?.includes('rotate');
+    });
+    expect(hasRotation).toBe(true);
   });
 });
