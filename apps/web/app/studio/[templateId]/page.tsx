@@ -70,8 +70,8 @@ export default function StudioPage() {
             });
           }
         }
-      } catch {
-        // Fail silently
+      } catch (error) {
+        console.error('[Studio] Failed to load user session:', error);
       }
     }
 
@@ -153,18 +153,24 @@ export default function StudioPage() {
 
   const handleTemplateNameChange = useCallback(
     async (newName: string) => {
+      const previousName = templateName;
       setTemplateName(newName);
       try {
-        await fetch(`/api/templates/${templateId}`, {
+        const response = await fetch(`/api/templates/${templateId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: newName }),
         });
+        if (!response.ok) {
+          setTemplateName(previousName);
+          setSaveError('Failed to rename template');
+        }
       } catch {
-        // Fail silently, user can retry
+        setTemplateName(previousName);
+        setSaveError('Failed to rename template');
       }
     },
-    [templateId],
+    [templateId, templateName],
   );
 
   if (!initialData) {
