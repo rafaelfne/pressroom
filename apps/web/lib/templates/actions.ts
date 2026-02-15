@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
+import { DEFAULT_SAMPLE_DATA } from './default-sample-data';
 
 type GetTemplatesParams = {
   search?: string;
@@ -39,7 +40,7 @@ export async function createTemplate(formData: FormData) {
     data: {
       name,
       templateData: {},
-      sampleData: {},
+      sampleData: DEFAULT_SAMPLE_DATA as unknown as Prisma.InputJsonValue,
       pageConfig: {},
       version: 1,
       tags: [],

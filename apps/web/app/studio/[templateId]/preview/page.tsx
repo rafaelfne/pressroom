@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Render, type Data } from '@puckeditor/core';
 import { puckConfig } from '@/lib/puck/config';
+import { resolveBindings } from '@/lib/binding';
 
 export default function PreviewPage() {
   const params = useParams<{ templateId: string }>();
@@ -17,7 +18,14 @@ export default function PreviewPage() {
         const response = await fetch(`/api/templates/${templateId}`);
         if (response.ok) {
           const template = await response.json();
-          setData(template.templateData as Data);
+          const templateData = template.templateData as Data;
+          const sampleData =
+            template.sampleData && typeof template.sampleData === 'object'
+              ? (template.sampleData as Record<string, unknown>)
+              : {};
+          // Resolve bindings in the template using sample data
+          const resolved = resolveBindings(templateData, sampleData) as Data;
+          setData(resolved);
         } else {
           setError('Template not found');
         }
