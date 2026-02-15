@@ -9,7 +9,6 @@ export type ContainerProps = {
   backgroundColor: string;
   shadow: 'none' | 'sm' | 'md' | 'lg';
   minHeight: string;
-  id?: string;
 };
 
 const shadowMap: Record<ContainerProps['shadow'], string> = {

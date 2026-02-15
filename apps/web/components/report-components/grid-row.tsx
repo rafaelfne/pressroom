@@ -5,7 +5,6 @@ export type GridRowProps = {
   columns: '2-equal' | '3-equal' | '4-equal' | '1-3_2-3' | '2-3_1-3' | 'custom';
   customColumns: string;
   gap: string;
-  id?: string;
 };
 
 type ColumnConfig = {

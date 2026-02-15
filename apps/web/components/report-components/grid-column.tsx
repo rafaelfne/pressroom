@@ -7,7 +7,6 @@ export type GridColumnProps = {
   borderWidth: string;
   borderColor: string;
   verticalAlign: 'top' | 'center' | 'bottom';
-  id?: string;
 };
 
 const verticalAlignMap: Record<GridColumnProps['verticalAlign'], string> = {

@@ -6,7 +6,6 @@ export type SectionProps = {
   showDivider: 'true' | 'false';
   backgroundColor: string;
   padding: string;
-  id?: string;
 };
 
 export const Section: ComponentConfig<SectionProps> = {
