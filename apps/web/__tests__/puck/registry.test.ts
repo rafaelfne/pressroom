@@ -15,11 +15,19 @@ describe('registry helpers', () => {
     expect(names).toContain('ReportFooter');
     expect(names).toContain('DataTable');
     expect(names).toContain('ChartBlock');
-    expect(names).toHaveLength(10);
+    expect(names).toContain('Container');
+    expect(names).toContain('GridRow');
+    expect(names).toContain('GridColumn');
+    expect(names).toContain('Section');
+    expect(names).toHaveLength(14);
   });
 
   it('getComponentsByCategory returns components for a valid category', () => {
     const layoutComponents = getComponentsByCategory(puckConfig, 'layout');
+    expect(layoutComponents).toContain('Container');
+    expect(layoutComponents).toContain('GridRow');
+    expect(layoutComponents).toContain('GridColumn');
+    expect(layoutComponents).toContain('Section');
     expect(layoutComponents).toContain('Spacer');
     expect(layoutComponents).toContain('Divider');
     expect(layoutComponents).toContain('PageBreak');
