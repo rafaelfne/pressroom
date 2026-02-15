@@ -22,6 +22,9 @@ type UserSession = {
 let pageIdCounter = 0;
 function generatePageId(): string {
   pageIdCounter++;
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `page-${crypto.randomUUID()}`;
+  }
   return `page-${Date.now()}-${pageIdCounter}`;
 }
 
