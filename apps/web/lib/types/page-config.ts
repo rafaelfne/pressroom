@@ -153,6 +153,11 @@ export function pageConfigToRenderOptions(
   return options;
 }
 
+/** Override type that allows partial margins for per-page overrides */
+export type PageConfigOverride = Partial<Omit<PageConfig, 'margins'>> & {
+  margins?: Partial<PageMargins>;
+};
+
 /**
  * Merges a per-page override with template defaults.
  * If override is undefined/empty, returns base.
@@ -160,18 +165,19 @@ export function pageConfigToRenderOptions(
  */
 export function mergePageConfig(
   base: PageConfig,
-  override?: Partial<PageConfig>,
+  override?: PageConfigOverride,
 ): PageConfig {
   if (!override) {
     return base;
   }
 
-  // Merge margins individually
+  // Safely merge margins, supporting Partial<PageMargins>
+  const overrideMargins = override.margins ?? {};
   const margins: PageMargins = {
-    top: override.margins?.top ?? base.margins.top,
-    right: override.margins?.right ?? base.margins.right,
-    bottom: override.margins?.bottom ?? base.margins.bottom,
-    left: override.margins?.left ?? base.margins.left,
+    top: overrideMargins.top ?? base.margins.top,
+    right: overrideMargins.right ?? base.margins.right,
+    bottom: overrideMargins.bottom ?? base.margins.bottom,
+    left: overrideMargins.left ?? base.margins.left,
   };
 
   return {
