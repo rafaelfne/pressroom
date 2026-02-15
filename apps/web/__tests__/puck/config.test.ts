@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { puckConfig } from '@/lib/puck/config';
 
 describe('puckConfig', () => {
-  it('has all 10 components registered', () => {
+  it('has all 14 components registered', () => {
     expect(puckConfig.components).toHaveProperty('TextBlock');
     expect(puckConfig.components).toHaveProperty('HeadingBlock');
     expect(puckConfig.components).toHaveProperty('ImageBlock');
@@ -13,6 +13,10 @@ describe('puckConfig', () => {
     expect(puckConfig.components).toHaveProperty('ReportFooter');
     expect(puckConfig.components).toHaveProperty('DataTable');
     expect(puckConfig.components).toHaveProperty('ChartBlock');
+    expect(puckConfig.components).toHaveProperty('Container');
+    expect(puckConfig.components).toHaveProperty('GridRow');
+    expect(puckConfig.components).toHaveProperty('GridColumn');
+    expect(puckConfig.components).toHaveProperty('Section');
   });
 
   it('has layout, content, header_footer, data, and charts categories', () => {
@@ -23,7 +27,11 @@ describe('puckConfig', () => {
     expect(puckConfig.categories).toHaveProperty('charts');
   });
 
-  it('assigns Spacer, Divider, and PageBreak to layout category', () => {
+  it('assigns Container, GridRow, GridColumn, Section, Spacer, Divider, and PageBreak to layout category', () => {
+    expect(puckConfig.categories?.layout?.components).toContain('Container');
+    expect(puckConfig.categories?.layout?.components).toContain('GridRow');
+    expect(puckConfig.categories?.layout?.components).toContain('GridColumn');
+    expect(puckConfig.categories?.layout?.components).toContain('Section');
     expect(puckConfig.categories?.layout?.components).toContain('Spacer');
     expect(puckConfig.categories?.layout?.components).toContain('Divider');
     expect(puckConfig.categories?.layout?.components).toContain('PageBreak');
