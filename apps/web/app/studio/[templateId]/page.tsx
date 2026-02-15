@@ -10,6 +10,8 @@ import { SampleDataPanel } from '@/components/studio/sample-data-panel';
 import { PageNavigator, type PageItem } from '@/components/studio/page-navigator';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
+import { PageConfigDialog } from '@/components/studio/page-config-dialog';
+import { DEFAULT_PAGE_CONFIG, type PageConfig } from '@/lib/types/page-config';
 
 const EMPTY_DATA: Data = { content: [], root: {} };
 
@@ -81,8 +83,15 @@ export default function StudioPage() {
   const [sampleData, setSampleData] = useState<Record<string, unknown>>(DEFAULT_SAMPLE_DATA);
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
+  const [pageConfig, setPageConfig] = useState<PageConfig>(DEFAULT_PAGE_CONFIG);
+  const [pageConfigOpen, setPageConfigOpen] = useState(false);
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
   const pagesRef = useRef<PageItem[]>([]);
+  const pageConfigRef = useRef<PageConfig>(pageConfig);
+
+  useEffect(() => {
+    pageConfigRef.current = pageConfig;
+  }, [pageConfig]);
 
   useEffect(() => {
     sampleDataRef.current = sampleData;
@@ -110,6 +119,18 @@ export default function StudioPage() {
             const loaded = template.sampleData as Record<string, unknown>;
             setSampleData(loaded);
             sampleDataRef.current = loaded;
+          }
+          if (template.pageConfig && typeof template.pageConfig === 'object') {
+            const loadedConfig = {
+              ...DEFAULT_PAGE_CONFIG,
+              ...(template.pageConfig as Record<string, unknown>),
+              margins: {
+                ...DEFAULT_PAGE_CONFIG.margins,
+                ...((template.pageConfig as Record<string, unknown>).margins as Record<string, number> | undefined),
+              },
+            } as PageConfig;
+            setPageConfig(loadedConfig);
+            pageConfigRef.current = loadedConfig;
           }
         } else {
           const defaultPages = [createDefaultPage('Page 1')];
@@ -181,6 +202,7 @@ export default function StudioPage() {
           body: JSON.stringify({
             pages: pagesPayload,
             sampleData: sampleDataRef.current,
+            pageConfig: pageConfigRef.current,
           }),
         });
         if (!response.ok) {
@@ -202,6 +224,7 @@ export default function StudioPage() {
 
   const handlePreviewPdf = useCallback(async () => {
     try {
+      const { pageConfigToRenderOptions } = await import('@/lib/types/page-config');
       const response = await fetch('/api/reports/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -209,6 +232,7 @@ export default function StudioPage() {
           templateId,
           data: sampleDataRef.current,
           format: 'pdf',
+          pageConfig: pageConfigToRenderOptions(pageConfigRef.current),
         }),
       });
       if (response.ok) {
@@ -230,6 +254,11 @@ export default function StudioPage() {
 
   const handleSampleDataChange = useCallback((data: Record<string, unknown>) => {
     setSampleData(data);
+  }, []);
+
+  const handlePageConfigChange = useCallback((config: PageConfig) => {
+    setPageConfig(config);
+    pageConfigRef.current = config;
   }, []);
 
   const handleTemplateNameChange = useCallback(
@@ -380,6 +409,14 @@ export default function StudioPage() {
                     sampleData={sampleData}
                     onSampleDataChange={handleSampleDataChange}
                   />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPageConfigOpen(true)}
+                    data-testid="page-settings-button"
+                  >
+                    ⚙ Page Settings
+                  </Button>
                   <Button variant="outline" size="sm" onClick={handlePreviewPdf}>
                     Preview PDF
                   </Button>
@@ -393,6 +430,12 @@ export default function StudioPage() {
           />
         </div>
       </div>
+      <PageConfigDialog
+        open={pageConfigOpen}
+        onOpenChange={setPageConfigOpen}
+        config={pageConfig}
+        onConfigChange={handlePageConfigChange}
+      />
     </div>
   );
 }
