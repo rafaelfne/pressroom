@@ -56,24 +56,18 @@ export const GridRow: ComponentConfig<GridRowProps> = {
 
     if (columns === 'custom') {
       template = customColumns || '1fr 1fr';
-      // Simple space-based parsing (supports basic syntax like "1fr 2fr 1fr")
-      // Note: Does not support complex CSS like minmax(), repeat(), fit-content(), etc.
-      // For complex layouts, use the preset options or ensure proper space-separated values.
-      
-      // Attempt to parse column count from simple space-separated values
-      // This is intentionally simple and will fallback to 2 columns for complex syntax
-      const tokens = template.split(/\s+/).filter(Boolean);
-      
-      // Check if it looks like complex syntax (contains parentheses, commas)
-      const hasComplexSyntax = /[(),]/.test(template);
-      
-      if (hasComplexSyntax) {
-        // For complex syntax, default to 2 columns and let CSS handle the layout
-        // User should use preset layouts for predictable DropZone generation
+
+      // Parse column count from the template string
+      const repeatMatch = template.match(/^repeat\(\s*(\d+)\s*,/);
+      if (repeatMatch) {
+        // Handle repeat(N, ...) syntax
+        count = parseInt(repeatMatch[1], 10);
+      } else if (/[(),]/.test(template)) {
+        // Other complex syntax (minmax, fit-content, etc.) — fall back to 2
         count = 2;
       } else {
-        // Simple space-separated values like "1fr 2fr" or "100px 1fr 2fr"
-        count = tokens.length;
+        // Simple space-separated values like "1fr 2fr 1fr"
+        count = template.split(/\s+/).filter(Boolean).length;
       }
     } else {
       const config = columnMap[columns];

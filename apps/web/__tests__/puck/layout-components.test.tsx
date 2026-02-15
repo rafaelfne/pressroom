@@ -173,6 +173,16 @@ describe('GridRow component', () => {
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 1fr' });
   });
+
+  it('parses repeat() syntax for column count', () => {
+    const Component = puckConfig.components.GridRow.render;
+    render(
+      <Component columns="custom" customColumns="repeat(3, 1fr)" gap="16" id="test-grid" puck={mockPuckContext} />,
+    );
+    expect(screen.getByTestId('dropzone-test-grid-column-0')).toBeInTheDocument();
+    expect(screen.getByTestId('dropzone-test-grid-column-1')).toBeInTheDocument();
+    expect(screen.getByTestId('dropzone-test-grid-column-2')).toBeInTheDocument();
+  });
 });
 
 describe('GridColumn component', () => {
