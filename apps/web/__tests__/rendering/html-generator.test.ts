@@ -387,8 +387,9 @@ describe('generateMultiPageHtml', () => {
 
     const html = await generateMultiPageHtml(pages);
 
-    // Count occurrences of page-break-after
-    const pageBreakCount = (html.match(/page-break-after: always;/g) || []).length;
+    // Count occurrences of page-break-after in the body (not in CSS style definitions)
+    const bodyHtml = html.split('<body>')[1] || '';
+    const pageBreakCount = (bodyHtml.match(/page-break-after: always;/g) || []).length;
     expect(pageBreakCount).toBe(0); // No page breaks for single page
   });
 
@@ -497,7 +498,8 @@ describe('generateMultiPageHtml', () => {
     expect(html).toContain('Page 3');
     
     // Should have 2 page breaks (after page 1 and page 2, but not after page 3)
-    const pageBreakCount = (html.match(/page-break-after: always;/g) || []).length;
+    const bodyHtml = html.split('<body>')[1] || '';
+    const pageBreakCount = (bodyHtml.match(/page-break-after: always;/g) || []).length;
     expect(pageBreakCount).toBe(2);
   });
 
