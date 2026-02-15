@@ -102,6 +102,14 @@ function PageConfigPanelWrapper({
   );
 }
 
+/**
+ * Sanitize a string for use as a filename by removing characters
+ * that are invalid on common operating systems.
+ */
+function sanitizeFilename(name: string): string {
+  return name.replace(/[/\\:*?"<>|]/g, '_').trim() || 'report';
+}
+
 export default function StudioPage() {
   const params = useParams<{ templateId: string }>();
   const templateId = params.templateId;
@@ -263,7 +271,7 @@ export default function StudioPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${templateName}.pdf`;
+        a.download = `${sanitizeFilename(templateName)}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();

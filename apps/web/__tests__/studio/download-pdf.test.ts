@@ -133,9 +133,15 @@ describe('Studio Download PDF', () => {
   });
 
   it('sanitizes template name for filename', () => {
-    // Test that the template name is used as-is for the filename
-    const templateName = 'Quarterly Report 2024';
-    const expectedFilename = `${templateName}.pdf`;
-    expect(expectedFilename).toBe('Quarterly Report 2024.pdf');
+    // Replicate the sanitizeFilename logic from the studio page
+    const sanitizeFilename = (name: string) =>
+      name.replace(/[/\\:*?"<>|]/g, '_').trim() || 'report';
+
+    expect(sanitizeFilename('Quarterly Report 2024')).toBe('Quarterly Report 2024');
+    expect(sanitizeFilename('Report/2024')).toBe('Report_2024');
+    expect(sanitizeFilename('File: "test"')).toBe('File_ _test_');
+    expect(sanitizeFilename('A<B>C|D')).toBe('A_B_C_D');
+    expect(sanitizeFilename('path\\to\\file')).toBe('path_to_file');
+    expect(sanitizeFilename('')).toBe('report');
   });
 });
