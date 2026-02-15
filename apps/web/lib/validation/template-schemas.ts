@@ -42,6 +42,64 @@ const pageConfigSchema = z.object({
   }).optional(),
 }).passthrough();
 
+// Header/footer zone content schemas
+const zoneContentSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('text'),
+    value: z.string(),
+    fontSize: z.number().positive().optional(),
+    fontWeight: z.enum(['normal', 'bold']).optional(),
+    color: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('image'),
+    src: z.string(),
+    alt: z.string().optional(),
+    height: z.number().positive().optional(),
+  }),
+  z.object({
+    type: z.literal('pageNumber'),
+    format: z.enum(['{page}', '{page}/{total}', 'Page {page} of {total}']),
+    fontSize: z.number().positive().optional(),
+    fontWeight: z.enum(['normal', 'bold']).optional(),
+    color: z.string().optional(),
+  }),
+  z.object({ type: z.literal('empty') }),
+]);
+
+const borderConfigSchema = z.object({
+  enabled: z.boolean(),
+  color: z.string().optional(),
+  thickness: z.number().min(0).optional(),
+});
+
+const zonesSchema = z.object({
+  left: zoneContentSchema,
+  center: zoneContentSchema,
+  right: zoneContentSchema,
+});
+
+const headerConfigSchema = z.object({
+  enabled: z.boolean(),
+  height: z.number().positive(),
+  zones: zonesSchema,
+  bottomBorder: borderConfigSchema.optional(),
+  backgroundColor: z.string().optional(),
+});
+
+const footerConfigSchema = z.object({
+  enabled: z.boolean(),
+  height: z.number().positive(),
+  zones: zonesSchema,
+  topBorder: borderConfigSchema.optional(),
+  backgroundColor: z.string().optional(),
+});
+
+const headerFooterConfigSchema = z.object({
+  header: headerConfigSchema.optional(),
+  footer: footerConfigSchema.optional(),
+});
+
 export const templateCreateSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
@@ -49,6 +107,7 @@ export const templateCreateSchema = z.object({
   pages: pagesSchema.optional(),
   sampleData: z.record(z.string(), z.unknown()).optional(),
   pageConfig: pageConfigSchema.optional(),
+  headerFooterConfig: headerFooterConfigSchema.optional(),
   tags: z.array(z.string()).optional(),
 });
 
@@ -59,6 +118,7 @@ export const templateUpdateSchema = z.object({
   pages: pagesSchema.optional(),
   sampleData: z.record(z.string(), z.unknown()).optional(),
   pageConfig: pageConfigSchema.optional(),
+  headerFooterConfig: headerFooterConfigSchema.optional(),
   tags: z.array(z.string()).optional(),
 });
 

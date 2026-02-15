@@ -2,8 +2,10 @@ import type { Data } from '@puckeditor/core';
 import { resolveBindings } from '@/lib/binding';
 import { generateHtml, generateMultiPageHtml } from './html-generator';
 import { renderPdf, type PdfRenderOptions } from './pdf-renderer';
+import { generateHeaderHtml, generateFooterHtml } from './header-footer-generator';
 import type { PageConfig } from '@/lib/types/page-config';
 import { pageConfigToRenderOptions } from '@/lib/types/page-config';
+import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
 
 export interface TemplatePage {
   id: string;
@@ -21,6 +23,8 @@ export interface RenderReportOptions {
   pageConfig?: PdfRenderOptions;
   /** Structured page configuration (takes precedence over pageConfig when present with paperSize) */
   templatePageConfig?: PageConfig;
+  /** Template-level header/footer configuration */
+  headerFooterConfig?: HeaderFooterConfig;
 }
 
 export interface RenderResult {
@@ -32,6 +36,8 @@ export interface RenderResult {
  * Render a report through the full pipeline:
  * Template JSON → Binding Resolution → Puck Render → HTML → PDF
  * Supports both single-page (templateData) and multi-page (pages) templates.
+ * When headerFooterConfig is provided, generates Puppeteer header/footer templates
+ * and auto-adjusts margins to accommodate header/footer height.
  */
 export async function renderReport(
   options: RenderReportOptions,
@@ -45,12 +51,45 @@ export async function renderReport(
     cssStyles = '',
     pageConfig = {},
     templatePageConfig,
+    headerFooterConfig,
   } = options;
 
   // Resolve PDF render options: templatePageConfig takes precedence
   const resolvedPdfOptions: PdfRenderOptions = templatePageConfig
     ? pageConfigToRenderOptions(templatePageConfig)
-    : pageConfig;
+    : { ...pageConfig };
+
+  // Integrate header/footer into PDF options when configured
+  if (headerFooterConfig) {
+    const headerConfig = headerFooterConfig.header;
+    const footerConfig = headerFooterConfig.footer;
+    const hasHeader = headerConfig?.enabled === true;
+    const hasFooter = footerConfig?.enabled === true;
+
+    if (hasHeader || hasFooter) {
+      resolvedPdfOptions.displayHeaderFooter = true;
+
+      if (hasHeader && headerConfig) {
+        resolvedPdfOptions.headerTemplate = generateHeaderHtml(headerConfig, data);
+        // Auto-adjust top margin to accommodate header height
+        const headerHeight = headerConfig.height ?? 15;
+        resolvedPdfOptions.margin = {
+          ...resolvedPdfOptions.margin,
+          top: `${headerHeight}mm`,
+        };
+      }
+
+      if (hasFooter && footerConfig) {
+        resolvedPdfOptions.footerTemplate = generateFooterHtml(footerConfig, data);
+        // Auto-adjust bottom margin to accommodate footer height
+        const footerHeight = footerConfig.height ?? 12;
+        resolvedPdfOptions.margin = {
+          ...resolvedPdfOptions.margin,
+          bottom: `${footerHeight}mm`,
+        };
+      }
+    }
+  }
 
   let html: string;
 

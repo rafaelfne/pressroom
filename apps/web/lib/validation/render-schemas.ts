@@ -1,5 +1,59 @@
 import { z } from 'zod';
 
+// Header/footer zone content schemas (shared with template-schemas)
+const zoneContentSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('text'),
+    value: z.string(),
+    fontSize: z.number().positive().optional(),
+    fontWeight: z.enum(['normal', 'bold']).optional(),
+    color: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('image'),
+    src: z.string(),
+    alt: z.string().optional(),
+    height: z.number().positive().optional(),
+  }),
+  z.object({
+    type: z.literal('pageNumber'),
+    format: z.enum(['{page}', '{page}/{total}', 'Page {page} of {total}']),
+    fontSize: z.number().positive().optional(),
+    fontWeight: z.enum(['normal', 'bold']).optional(),
+    color: z.string().optional(),
+  }),
+  z.object({ type: z.literal('empty') }),
+]);
+
+const borderConfigSchema = z.object({
+  enabled: z.boolean(),
+  color: z.string().optional(),
+  thickness: z.number().min(0).optional(),
+});
+
+const zonesSchema = z.object({
+  left: zoneContentSchema,
+  center: zoneContentSchema,
+  right: zoneContentSchema,
+});
+
+const headerFooterConfigSchema = z.object({
+  header: z.object({
+    enabled: z.boolean(),
+    height: z.number().positive(),
+    zones: zonesSchema,
+    bottomBorder: borderConfigSchema.optional(),
+    backgroundColor: z.string().optional(),
+  }).optional(),
+  footer: z.object({
+    enabled: z.boolean(),
+    height: z.number().positive(),
+    zones: zonesSchema,
+    topBorder: borderConfigSchema.optional(),
+    backgroundColor: z.string().optional(),
+  }).optional(),
+});
+
 export const renderRequestSchema = z.object({
   templateId: z.string().min(1).optional(),
   templateData: z.object({
@@ -42,6 +96,7 @@ export const renderRequestSchema = z.object({
     footerTemplate: z.string().optional(),
     displayHeaderFooter: z.boolean().optional(),
   }).optional(),
+  headerFooterConfig: headerFooterConfigSchema.optional(),
 }).refine(
   (data) => data.templateId || data.templateData || data.pages,
   { message: 'Either templateId, templateData, or pages must be provided' },
