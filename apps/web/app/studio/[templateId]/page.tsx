@@ -1,11 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Puck, type Data } from '@puckeditor/core';
 import '@puckeditor/core/puck.css';
 import { puckConfig } from '@/lib/puck/config';
 import { Button } from '@/components/ui/button';
+import { SampleDataPanel } from '@/components/studio/sample-data-panel';
+import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 
 const EMPTY_DATA: Data = { content: [], root: {} };
 
@@ -15,6 +17,12 @@ export default function StudioPage() {
   const [initialData, setInitialData] = useState<Data | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [sampleData, setSampleData] = useState<Record<string, unknown>>(DEFAULT_SAMPLE_DATA);
+  const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
+
+  useEffect(() => {
+    sampleDataRef.current = sampleData;
+  }, [sampleData]);
 
   useEffect(() => {
     async function loadTemplate() {
@@ -24,6 +32,11 @@ export default function StudioPage() {
           const template = await response.json();
           const templateData = template.templateData as Data;
           setInitialData(templateData && templateData.content ? templateData : EMPTY_DATA);
+          if (template.sampleData && typeof template.sampleData === 'object') {
+            const loaded = template.sampleData as Record<string, unknown>;
+            setSampleData(loaded);
+            sampleDataRef.current = loaded;
+          }
         } else {
           setInitialData(EMPTY_DATA);
         }
@@ -52,7 +65,10 @@ export default function StudioPage() {
         const response = await fetch(`/api/templates/${templateId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ templateData: data }),
+          body: JSON.stringify({
+            templateData: data,
+            sampleData: sampleDataRef.current,
+          }),
         });
         if (!response.ok) {
           const result = await response.json();
@@ -71,8 +87,36 @@ export default function StudioPage() {
     window.open(`/studio/${templateId}/preview`, '_blank');
   }, [templateId]);
 
+  const handlePreviewPdf = useCallback(async () => {
+    try {
+      const response = await fetch('/api/reports/render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId,
+          data: sampleDataRef.current,
+          format: 'pdf',
+        }),
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      } else {
+        const result = await response.json();
+        setSaveError(result.error ?? 'Failed to render PDF');
+      }
+    } catch {
+      setSaveError('Failed to render PDF');
+    }
+  }, [templateId]);
+
   const dismissError = useCallback(() => {
     setSaveError(null);
+  }, []);
+
+  const handleSampleDataChange = useCallback((data: Record<string, unknown>) => {
+    setSampleData(data);
   }, []);
 
   if (!initialData) {
@@ -108,6 +152,13 @@ export default function StudioPage() {
               {isSaving && (
                 <span className="text-sm text-muted-foreground mr-2">Saving...</span>
               )}
+              <SampleDataPanel
+                sampleData={sampleData}
+                onSampleDataChange={handleSampleDataChange}
+              />
+              <Button variant="outline" size="sm" onClick={handlePreviewPdf}>
+                Preview PDF
+              </Button>
               <Button variant="outline" size="sm" onClick={handlePreview}>
                 Preview
               </Button>
