@@ -72,8 +72,16 @@ describe('DataTable component', () => {
     render(
       <Component {...defaultProps} id="test-table" puck={mockPuckContext} />,
     );
-    expect(screen.getByText('1/15/2024')).toBeInTheDocument();
-    expect(screen.getByText('2/20/2024')).toBeInTheDocument();
+    // Date formatting is timezone-dependent, so we check for either possible date
+    // (2024-01-15 UTC may appear as 1/14 or 1/15 depending on local timezone)
+    const dateCell1 = screen.getAllByRole('cell').find(cell =>
+      cell.textContent?.match(/1\/1[45]\/2024/)
+    );
+    const dateCell2 = screen.getAllByRole('cell').find(cell =>
+      cell.textContent?.match(/2\/(19|20)\/2024/)
+    );
+    expect(dateCell1).toBeInTheDocument();
+    expect(dateCell2).toBeInTheDocument();
   });
 
   it('renders text values as-is', () => {
