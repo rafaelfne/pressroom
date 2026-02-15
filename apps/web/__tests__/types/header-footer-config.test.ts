@@ -6,9 +6,6 @@ import {
   PAGE_NUMBER_FORMATS,
   parseStoredHeaderFooterConfig,
   mergePageHeaderFooterOverride,
-  type HeaderConfig,
-  type FooterConfig,
-  type HeaderFooterConfig,
 } from '@/lib/types/header-footer-config';
 
 describe('DEFAULT_HEADER_CONFIG', () => {
