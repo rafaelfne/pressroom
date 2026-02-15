@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
     // 4. Resolve template data
     let templateData: Data | undefined;
     let pages: Array<{ id: string; name: string; content: Data }> | undefined;
+    let storedPageConfig: Record<string, unknown> | undefined;
 
     if (inlinePages) {
       pages = inlinePages as Array<{ id: string; name: string; content: Data }>;
@@ -142,6 +143,11 @@ export async function POST(request: NextRequest) {
       } else {
         templateData = template.templateData as Data;
       }
+
+      // Use stored page config from template (request pageConfig overrides it)
+      if (template.pageConfig && typeof template.pageConfig === 'object') {
+        storedPageConfig = template.pageConfig as Record<string, unknown>;
+      }
     } else {
       return NextResponse.json(
         { error: 'Either templateId, templateData, or pages must be provided' },
@@ -149,14 +155,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Render report with timeout - dynamic import to avoid bundling react-dom/server
+    // 5. Build page config: request pageConfig takes precedence, then stored template config
+    const { pageConfigToRenderOptions, DEFAULT_PAGE_CONFIG } = await import('@/lib/types/page-config');
+    type PageConfigType = import('@/lib/types/page-config').PageConfig;
+
+    // Determine if we have a structured PageConfig (with paperSize field) from stored template
+    let templatePageConfig: PageConfigType | undefined;
+    if (!pageConfig && storedPageConfig && 'paperSize' in storedPageConfig) {
+      templatePageConfig = {
+        ...DEFAULT_PAGE_CONFIG,
+        ...storedPageConfig,
+        margins: {
+          ...DEFAULT_PAGE_CONFIG.margins,
+          ...(storedPageConfig.margins as Record<string, number> | undefined),
+        },
+      } as PageConfigType;
+    }
+
+    // Resolve effective PDF render options
+    const effectivePageConfig = pageConfig ?? (templatePageConfig ? pageConfigToRenderOptions(templatePageConfig) : undefined);
+
+    // 6. Render report with timeout - dynamic import to avoid bundling react-dom/server
     const { renderReport } = await import('@/lib/rendering/render-report');
     const renderPromise = renderReport({
       templateData,
       pages,
       data,
       format,
-      pageConfig,
+      pageConfig: effectivePageConfig,
     });
 
     const result = await withTimeout(renderPromise, getRenderTimeout());
