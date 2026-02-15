@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Puck, type Data } from '@puckeditor/core';
+import { Puck, createUsePuck, type Data } from '@puckeditor/core';
 import '@puckeditor/core/puck.css';
 import { puckConfig } from '@/lib/puck/config';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
 import { PageConfigPanel } from '@/components/studio/page-config-panel';
 import { DEFAULT_PAGE_CONFIG, parseStoredPageConfig, type PageConfig } from '@/lib/types/page-config';
+
+const usePuck = createUsePuck();
 
 const EMPTY_DATA: Data = { content: [], root: {} };
 
@@ -71,6 +73,31 @@ function parseTemplateData(templateData: unknown): PageItem[] {
   }
 
   return [createDefaultPage('Page 1')];
+}
+
+/**
+ * Wrapper component that shows PageConfigPanel only when no component is selected.
+ * Uses usePuck hook to detect selection state.
+ */
+function PageConfigPanelWrapper({
+  config,
+  onConfigChange,
+}: {
+  config: PageConfig;
+  onConfigChange: (config: PageConfig) => void;
+}) {
+  const selectedItem = usePuck((s) => s.selectedItem);
+
+  // Only show when no component is selected (i.e., viewing page-level settings)
+  if (selectedItem) {
+    return null;
+  }
+
+  return (
+    <div className="border-t border-border mt-4 pt-4">
+      <PageConfigPanel config={config} onConfigChange={onConfigChange} />
+    </div>
+  );
 }
 
 export default function StudioPage() {
@@ -411,17 +438,15 @@ export default function StudioPage() {
                 </>
               ),
               fields: ({ children, isLoading }) => (
-                <>
+                <div className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-20">
                   {children}
                   {!isLoading && (
-                    <div className="border-t border-border mt-4 pt-4">
-                      <PageConfigPanel
-                        config={pageConfig}
-                        onConfigChange={handlePageConfigChange}
-                      />
-                    </div>
+                    <PageConfigPanelWrapper
+                      config={pageConfig}
+                      onConfigChange={handlePageConfigChange}
+                    />
                   )}
-                </>
+                </div>
               ),
             }}
           />
