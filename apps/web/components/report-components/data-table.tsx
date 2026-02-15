@@ -16,6 +16,7 @@ export type DataTableProps = {
   compact: string;
   headerBgColor: string;
   headerTextColor: string;
+  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
 };
 
 // Sample data for Studio preview
@@ -167,6 +168,16 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       type: 'text',
       label: 'Header Text Color',
     },
+    pageBreakBehavior: {
+      type: 'select',
+      label: 'Page Break',
+      options: [
+        { label: 'Auto', value: 'auto' },
+        { label: 'Avoid Split', value: 'avoid' },
+        { label: 'Break Before', value: 'before' },
+        { label: 'Break After', value: 'after' },
+      ],
+    },
   },
   defaultProps: {
     dataExpression: '{{data.items}}',
@@ -181,6 +192,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     compact: 'false',
     headerBgColor: '#f3f4f6',
     headerTextColor: '#111827',
+    pageBreakBehavior: 'auto',
   },
   render: ({
     dataExpression,
@@ -190,7 +202,17 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     compact,
     headerBgColor,
     headerTextColor,
+    pageBreakBehavior,
   }) => {
+    const pageBreakStyle: React.CSSProperties = {};
+    if (pageBreakBehavior === 'avoid') {
+      pageBreakStyle.pageBreakInside = 'avoid';
+    } else if (pageBreakBehavior === 'before') {
+      pageBreakStyle.pageBreakBefore = 'always';
+    } else if (pageBreakBehavior === 'after') {
+      pageBreakStyle.pageBreakAfter = 'always';
+    }
+
     // Use sample data for preview (in real rendering, binding resolution will replace this)
     const data = SAMPLE_DATA;
 
@@ -238,6 +260,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     const containerStyle: React.CSSProperties = {
       maxWidth: '100%',
       overflowX: 'auto',
+      ...pageBreakStyle,
     };
 
     // Table styles
@@ -257,6 +280,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       textAlign: 'left',
       borderBottom: isBordered ? '2px solid #d1d5db' : 'none',
       borderRight: isBordered ? '1px solid #e5e7eb' : 'none',
+      display: 'table-header-group',
     };
 
     // Body cell styles
@@ -269,7 +293,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     return (
       <div style={containerStyle}>
         <table style={tableStyle}>
-          <thead>
+          <thead style={{ display: 'table-header-group' }}>
             <tr>
               {columns.map((column, index) => (
                 <th

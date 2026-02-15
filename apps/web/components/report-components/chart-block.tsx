@@ -43,6 +43,7 @@ export type ChartBlockProps = {
   centerLabel: string;
   backgroundColor: string;
   containerBorder: string;
+  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
 };
 
 // Sample data for Studio preview
@@ -206,6 +207,16 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         { label: 'No', value: 'false' },
       ],
     },
+    pageBreakBehavior: {
+      type: 'select',
+      label: 'Page Break',
+      options: [
+        { label: 'Auto', value: 'auto' },
+        { label: 'Avoid Split', value: 'avoid' },
+        { label: 'Break Before', value: 'before' },
+        { label: 'Break After', value: 'after' },
+      ],
+    },
   },
   defaultProps: {
     chartType: 'bar',
@@ -227,6 +238,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     centerLabel: '',
     backgroundColor: '',
     containerBorder: 'false',
+    pageBreakBehavior: 'avoid',
   },
   render: ({
     chartType,
@@ -248,7 +260,17 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     centerLabel,
     backgroundColor,
     containerBorder,
+    pageBreakBehavior,
   }) => {
+    const pageBreakStyle: React.CSSProperties = {};
+    if (pageBreakBehavior === 'avoid') {
+      pageBreakStyle.pageBreakInside = 'avoid';
+    } else if (pageBreakBehavior === 'before') {
+      pageBreakStyle.pageBreakBefore = 'always';
+    } else if (pageBreakBehavior === 'after') {
+      pageBreakStyle.pageBreakAfter = 'always';
+    }
+
     // Parse series JSON string safely
     let seriesConfig: SeriesConfig[] = [];
     try {
@@ -327,6 +349,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
       border: shouldShowBorder ? '1px solid #d1d5db' : 'none',
       padding: shouldShowBorder || backgroundColor ? '16px' : '0',
       borderRadius: shouldShowBorder ? '8px' : '0',
+      ...pageBreakStyle,
     };
 
     // Render title if provided

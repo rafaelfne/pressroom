@@ -3,6 +3,7 @@ import type { ComponentConfig } from '@puckeditor/core';
 export type ReportFooterProps = {
   text: string;
   showPageNumber: string;
+  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
 };
 
 /**
@@ -22,15 +23,37 @@ export const ReportFooter: ComponentConfig<ReportFooterProps> = {
         { label: 'No', value: 'false' },
       ],
     },
+    pageBreakBehavior: {
+      type: 'select',
+      label: 'Page Break',
+      options: [
+        { label: 'Auto', value: 'auto' },
+        { label: 'Avoid Split', value: 'avoid' },
+        { label: 'Break Before', value: 'before' },
+        { label: 'Break After', value: 'after' },
+      ],
+    },
   },
   defaultProps: {
     text: '© Company Name',
     showPageNumber: 'true',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ text, showPageNumber }) => (
-    <div className="flex items-center justify-between p-4 border-t text-sm text-gray-500">
-      <span>{text}</span>
-      {showPageNumber === 'true' && <span className="page-number">Page</span>}
-    </div>
-  ),
+  render: ({ text, showPageNumber, pageBreakBehavior }) => {
+    const pageBreakStyle: React.CSSProperties = {};
+    if (pageBreakBehavior === 'avoid') {
+      pageBreakStyle.pageBreakInside = 'avoid';
+    } else if (pageBreakBehavior === 'before') {
+      pageBreakStyle.pageBreakBefore = 'always';
+    } else if (pageBreakBehavior === 'after') {
+      pageBreakStyle.pageBreakAfter = 'always';
+    }
+
+    return (
+      <div className="flex items-center justify-between p-4 border-t text-sm text-gray-500" style={pageBreakStyle}>
+        <span>{text}</span>
+        {showPageNumber === 'true' && <span className="page-number">Page</span>}
+      </div>
+    );
+  },
 };

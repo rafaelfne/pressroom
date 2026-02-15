@@ -9,6 +9,7 @@ export type ContainerProps = {
   backgroundColor: string;
   shadow: 'none' | 'sm' | 'md' | 'lg';
   minHeight: string;
+  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
 };
 
 const shadowMap: Record<ContainerProps['shadow'], string> = {
@@ -55,6 +56,16 @@ export const Container: ComponentConfig<ContainerProps> = {
       type: 'text',
       label: 'Min Height (px)',
     },
+    pageBreakBehavior: {
+      type: 'select',
+      label: 'Page Break',
+      options: [
+        { label: 'Auto', value: 'auto' },
+        { label: 'Avoid Split', value: 'avoid' },
+        { label: 'Break Before', value: 'before' },
+        { label: 'Break After', value: 'after' },
+      ],
+    },
   },
   defaultProps: {
     padding: '16',
@@ -64,21 +75,34 @@ export const Container: ComponentConfig<ContainerProps> = {
     backgroundColor: 'transparent',
     shadow: 'none',
     minHeight: '40',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, id = 'container' }) => (
-    <div
-      style={{
-        padding: `${padding}px`,
-        borderWidth: `${borderWidth}px`,
-        borderStyle: borderWidth !== '0' ? 'solid' : 'none',
-        borderColor,
-        borderRadius: `${borderRadius}px`,
-        backgroundColor,
-        boxShadow: shadowMap[shadow],
-        minHeight: `${minHeight}px`,
-      }}
-    >
-      <DropZone zone={`${id}-content`} minEmptyHeight={40} />
-    </div>
-  ),
+  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, pageBreakBehavior, id = 'container' }) => {
+    const pageBreakStyle: React.CSSProperties = {};
+    if (pageBreakBehavior === 'avoid') {
+      pageBreakStyle.pageBreakInside = 'avoid';
+    } else if (pageBreakBehavior === 'before') {
+      pageBreakStyle.pageBreakBefore = 'always';
+    } else if (pageBreakBehavior === 'after') {
+      pageBreakStyle.pageBreakAfter = 'always';
+    }
+
+    return (
+      <div
+        style={{
+          padding: `${padding}px`,
+          borderWidth: `${borderWidth}px`,
+          borderStyle: borderWidth !== '0' ? 'solid' : 'none',
+          borderColor,
+          borderRadius: `${borderRadius}px`,
+          backgroundColor,
+          boxShadow: shadowMap[shadow],
+          minHeight: `${minHeight}px`,
+          ...pageBreakStyle,
+        }}
+      >
+        <DropZone zone={`${id}-content`} minEmptyHeight={40} />
+      </div>
+    );
+  },
 };

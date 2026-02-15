@@ -5,6 +5,7 @@ export type GridRowProps = {
   columns: '2-equal' | '3-equal' | '4-equal' | '1-3_2-3' | '2-3_1-3' | 'custom';
   customColumns: string;
   gap: string;
+  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
 };
 
 type ColumnConfig = {
@@ -43,13 +44,33 @@ export const GridRow: ComponentConfig<GridRowProps> = {
       type: 'text',
       label: 'Gap (px)',
     },
+    pageBreakBehavior: {
+      type: 'select',
+      label: 'Page Break',
+      options: [
+        { label: 'Auto', value: 'auto' },
+        { label: 'Avoid Split', value: 'avoid' },
+        { label: 'Break Before', value: 'before' },
+        { label: 'Break After', value: 'after' },
+      ],
+    },
   },
   defaultProps: {
     columns: '2-equal',
     customColumns: '',
     gap: '16',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ columns, customColumns, gap, id = 'grid-row' }) => {
+  render: ({ columns, customColumns, gap, pageBreakBehavior, id = 'grid-row' }) => {
+    const pageBreakStyle: React.CSSProperties = {};
+    if (pageBreakBehavior === 'avoid') {
+      pageBreakStyle.pageBreakInside = 'avoid';
+    } else if (pageBreakBehavior === 'before') {
+      pageBreakStyle.pageBreakBefore = 'always';
+    } else if (pageBreakBehavior === 'after') {
+      pageBreakStyle.pageBreakAfter = 'always';
+    }
+
     let template: string;
     let count: number;
 
@@ -80,6 +101,7 @@ export const GridRow: ComponentConfig<GridRowProps> = {
           display: 'grid',
           gridTemplateColumns: template,
           gap: `${gap}px`,
+          ...pageBreakStyle,
         }}
       >
         {Array.from({ length: count }, (_, i) => (

@@ -6,6 +6,7 @@ export type SectionProps = {
   showDivider: 'true' | 'false';
   backgroundColor: string;
   padding: string;
+  pageBreakBehavior: 'auto' | 'avoid' | 'before' | 'after';
 };
 
 export const Section: ComponentConfig<SectionProps> = {
@@ -31,46 +32,70 @@ export const Section: ComponentConfig<SectionProps> = {
       type: 'text',
       label: 'Padding (px)',
     },
+    pageBreakBehavior: {
+      type: 'select',
+      label: 'Page Break',
+      options: [
+        { label: 'Auto', value: 'auto' },
+        { label: 'Avoid Split', value: 'avoid' },
+        { label: 'Break Before', value: 'before' },
+        { label: 'Break After', value: 'after' },
+      ],
+    },
   },
   defaultProps: {
     title: 'Section Title',
     showDivider: 'true',
     backgroundColor: 'transparent',
     padding: '16',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ title, showDivider, backgroundColor, padding, id = 'section' }) => (
-    <div
-      role="region"
-      aria-label={title}
-      style={{
-        backgroundColor,
-        padding: `${padding}px`,
-      }}
-    >
-      {/* h2 is used as the default section heading level for report structure.
-          For nested sections, consider document hierarchy or use Container instead. */}
-      <h2
+  render: ({ title, showDivider, backgroundColor, padding, pageBreakBehavior, id = 'section' }) => {
+    const pageBreakStyle: React.CSSProperties = {};
+    if (pageBreakBehavior === 'avoid') {
+      pageBreakStyle.pageBreakInside = 'avoid';
+    } else if (pageBreakBehavior === 'before') {
+      pageBreakStyle.pageBreakBefore = 'always';
+    } else if (pageBreakBehavior === 'after') {
+      pageBreakStyle.pageBreakAfter = 'always';
+    }
+
+    return (
+      <div
+        role="region"
+        aria-label={title}
         style={{
-          fontSize: '1.25rem',
-          fontWeight: 600,
-          marginBottom: '8px',
+          backgroundColor,
+          padding: `${padding}px`,
+          ...pageBreakStyle,
         }}
       >
-        {title}
-      </h2>
-      {showDivider === 'true' && (
-        <hr
+        {/* h2 is used as the default section heading level for report structure.
+            For nested sections, consider document hierarchy or use Container instead. */}
+        <h2
           style={{
-            borderTop: '1px solid #e5e7eb',
-            borderBottom: 'none',
-            borderLeft: 'none',
-            borderRight: 'none',
-            marginBottom: '12px',
-            marginTop: 0,
+            fontSize: '1.25rem',
+            fontWeight: 600,
+            marginBottom: '8px',
+            pageBreakAfter: 'avoid',
           }}
-        />
-      )}
-      <DropZone zone={`${id}-content`} minEmptyHeight={40} />
-    </div>
-  ),
+        >
+          {title}
+        </h2>
+        {showDivider === 'true' && (
+          <hr
+            style={{
+              borderTop: '1px solid #e5e7eb',
+              borderBottom: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
+              marginBottom: '12px',
+              marginTop: 0,
+            }}
+          />
+        )}
+        <DropZone zone={`${id}-content`} minEmptyHeight={40} />
+      </div>
+    );
+  },
 };
