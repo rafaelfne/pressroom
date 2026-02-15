@@ -182,3 +182,27 @@ export function mergePageConfig(
     customHeight: override.customHeight ?? base.customHeight,
   };
 }
+
+/**
+ * Parse a stored page config (from database JSON) into a valid PageConfig.
+ * Merges the stored partial config with DEFAULT_PAGE_CONFIG defaults.
+ * Returns DEFAULT_PAGE_CONFIG if stored is null/undefined/not an object.
+ */
+export function parseStoredPageConfig(
+  stored: unknown,
+): PageConfig {
+  if (!stored || typeof stored !== 'object') {
+    return DEFAULT_PAGE_CONFIG;
+  }
+
+  const data = stored as Record<string, unknown>;
+  return mergePageConfig(DEFAULT_PAGE_CONFIG, {
+    paperSize: typeof data.paperSize === 'string' ? data.paperSize as PaperSize : undefined,
+    orientation: typeof data.orientation === 'string' ? data.orientation as Orientation : undefined,
+    margins: data.margins && typeof data.margins === 'object'
+      ? data.margins as Partial<PageMargins>
+      : undefined,
+    customWidth: typeof data.customWidth === 'number' ? data.customWidth : undefined,
+    customHeight: typeof data.customHeight === 'number' ? data.customHeight : undefined,
+  });
+}

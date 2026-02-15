@@ -147,9 +147,10 @@ export function PageConfigDialog({
                     type="number"
                     min={1}
                     value={localConfig.customWidth ?? 210}
-                    onChange={(e) =>
-                      handleCustomDimensionChange('customWidth', parseFloat(e.target.value) || 210)
-                    }
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      handleCustomDimensionChange('customWidth', isNaN(val) ? 210 : val);
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -162,9 +163,10 @@ export function PageConfigDialog({
                     type="number"
                     min={1}
                     value={localConfig.customHeight ?? 297}
-                    onChange={(e) =>
-                      handleCustomDimensionChange('customHeight', parseFloat(e.target.value) || 297)
-                    }
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      handleCustomDimensionChange('customHeight', isNaN(val) ? 297 : val);
+                    }}
                   />
                 </div>
               </div>
@@ -244,9 +246,10 @@ export function PageConfigDialog({
                   min={0}
                   step="0.1"
                   value={localConfig.margins.top}
-                  onChange={(e) =>
-                    handleMarginChange('top', parseFloat(e.target.value) || 0)
-                  }
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    handleMarginChange('top', isNaN(val) ? 0 : val);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -260,9 +263,10 @@ export function PageConfigDialog({
                   min={0}
                   step="0.1"
                   value={localConfig.margins.right}
-                  onChange={(e) =>
-                    handleMarginChange('right', parseFloat(e.target.value) || 0)
-                  }
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    handleMarginChange('right', isNaN(val) ? 0 : val);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -276,9 +280,10 @@ export function PageConfigDialog({
                   min={0}
                   step="0.1"
                   value={localConfig.margins.bottom}
-                  onChange={(e) =>
-                    handleMarginChange('bottom', parseFloat(e.target.value) || 0)
-                  }
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    handleMarginChange('bottom', isNaN(val) ? 0 : val);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -292,9 +297,10 @@ export function PageConfigDialog({
                   min={0}
                   step="0.1"
                   value={localConfig.margins.left}
-                  onChange={(e) =>
-                    handleMarginChange('left', parseFloat(e.target.value) || 0)
-                  }
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    handleMarginChange('left', isNaN(val) ? 0 : val);
+                  }}
                 />
               </div>
             </div>

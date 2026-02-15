@@ -11,7 +11,7 @@ import { PageNavigator, type PageItem } from '@/components/studio/page-navigator
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
 import { PageConfigDialog } from '@/components/studio/page-config-dialog';
-import { DEFAULT_PAGE_CONFIG, type PageConfig } from '@/lib/types/page-config';
+import { DEFAULT_PAGE_CONFIG, parseStoredPageConfig, type PageConfig } from '@/lib/types/page-config';
 
 const EMPTY_DATA: Data = { content: [], root: {} };
 
@@ -120,15 +120,8 @@ export default function StudioPage() {
             setSampleData(loaded);
             sampleDataRef.current = loaded;
           }
-          if (template.pageConfig && typeof template.pageConfig === 'object') {
-            const loadedConfig = {
-              ...DEFAULT_PAGE_CONFIG,
-              ...(template.pageConfig as Record<string, unknown>),
-              margins: {
-                ...DEFAULT_PAGE_CONFIG.margins,
-                ...((template.pageConfig as Record<string, unknown>).margins as Record<string, number> | undefined),
-              },
-            } as PageConfig;
+          if (template.pageConfig) {
+            const loadedConfig = parseStoredPageConfig(template.pageConfig);
             setPageConfig(loadedConfig);
             pageConfigRef.current = loadedConfig;
           }

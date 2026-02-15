@@ -7,6 +7,7 @@ import {
   detectMarginPreset,
   pageConfigToRenderOptions,
   mergePageConfig,
+  parseStoredPageConfig,
   type PageConfig,
 } from '@/lib/types/page-config';
 
@@ -318,5 +319,69 @@ describe('mergePageConfig', () => {
     expect(result.paperSize).toBe('Letter');
     expect(result.orientation).toBe('landscape');
     expect(result.margins).toEqual({ top: 10, right: 10, bottom: 10, left: 10 });
+  });
+});
+
+describe('parseStoredPageConfig', () => {
+  it('returns DEFAULT_PAGE_CONFIG for null', () => {
+    expect(parseStoredPageConfig(null)).toEqual(DEFAULT_PAGE_CONFIG);
+  });
+
+  it('returns DEFAULT_PAGE_CONFIG for undefined', () => {
+    expect(parseStoredPageConfig(undefined)).toEqual(DEFAULT_PAGE_CONFIG);
+  });
+
+  it('returns DEFAULT_PAGE_CONFIG for non-object', () => {
+    expect(parseStoredPageConfig('string')).toEqual(DEFAULT_PAGE_CONFIG);
+    expect(parseStoredPageConfig(42)).toEqual(DEFAULT_PAGE_CONFIG);
+  });
+
+  it('parses a stored config with paperSize', () => {
+    const stored = { paperSize: 'Letter', orientation: 'landscape' };
+    const result = parseStoredPageConfig(stored);
+    expect(result.paperSize).toBe('Letter');
+    expect(result.orientation).toBe('landscape');
+    expect(result.margins).toEqual(DEFAULT_PAGE_CONFIG.margins);
+  });
+
+  it('parses stored config with margins', () => {
+    const stored = {
+      paperSize: 'A4',
+      margins: { top: 10, right: 15, bottom: 10, left: 15 },
+    };
+    const result = parseStoredPageConfig(stored);
+    expect(result.margins).toEqual({ top: 10, right: 15, bottom: 10, left: 15 });
+  });
+
+  it('fills in defaults for missing fields', () => {
+    const stored = { paperSize: 'A3' };
+    const result = parseStoredPageConfig(stored);
+    expect(result.paperSize).toBe('A3');
+    expect(result.orientation).toBe('portrait');
+    expect(result.margins).toEqual(DEFAULT_PAGE_CONFIG.margins);
+  });
+
+  it('parses stored config with custom dimensions', () => {
+    const stored = {
+      paperSize: 'Custom',
+      customWidth: 150,
+      customHeight: 200,
+    };
+    const result = parseStoredPageConfig(stored);
+    expect(result.paperSize).toBe('Custom');
+    expect(result.customWidth).toBe(150);
+    expect(result.customHeight).toBe(200);
+  });
+
+  it('ignores non-string paperSize', () => {
+    const stored = { paperSize: 123 };
+    const result = parseStoredPageConfig(stored);
+    expect(result.paperSize).toBe('A4');
+  });
+
+  it('ignores non-string orientation', () => {
+    const stored = { orientation: true };
+    const result = parseStoredPageConfig(stored);
+    expect(result.orientation).toBe('portrait');
   });
 });

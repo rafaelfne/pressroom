@@ -156,24 +156,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Build page config: request pageConfig takes precedence, then stored template config
-    const { pageConfigToRenderOptions, DEFAULT_PAGE_CONFIG } = await import('@/lib/types/page-config');
-    type PageConfigType = import('@/lib/types/page-config').PageConfig;
+    const { pageConfigToRenderOptions, parseStoredPageConfig } = await import('@/lib/types/page-config');
 
-    // Determine if we have a structured PageConfig (with paperSize field) from stored template
-    let templatePageConfig: PageConfigType | undefined;
-    if (!pageConfig && storedPageConfig && 'paperSize' in storedPageConfig) {
-      templatePageConfig = {
-        ...DEFAULT_PAGE_CONFIG,
-        ...storedPageConfig,
-        margins: {
-          ...DEFAULT_PAGE_CONFIG.margins,
-          ...(storedPageConfig.margins as Record<string, number> | undefined),
-        },
-      } as PageConfigType;
+    // Resolve effective PDF render options: explicit request config overrides stored template config
+    let effectivePageConfig = pageConfig;
+    if (!effectivePageConfig && storedPageConfig) {
+      const templatePageConfig = parseStoredPageConfig(storedPageConfig);
+      effectivePageConfig = pageConfigToRenderOptions(templatePageConfig);
     }
-
-    // Resolve effective PDF render options
-    const effectivePageConfig = pageConfig ?? (templatePageConfig ? pageConfigToRenderOptions(templatePageConfig) : undefined);
 
     // 6. Render report with timeout - dynamic import to avoid bundling react-dom/server
     const { renderReport } = await import('@/lib/rendering/render-report');
