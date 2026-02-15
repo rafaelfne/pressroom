@@ -8,8 +8,15 @@ import { puckConfig } from '@/lib/puck/config';
 import { Button } from '@/components/ui/button';
 import { SampleDataPanel } from '@/components/studio/sample-data-panel';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
+import { StudioHeader } from '@/components/studio/studio-header';
 
 const EMPTY_DATA: Data = { content: [], root: {} };
+
+type UserSession = {
+  name?: string | null;
+  email?: string | null;
+  id?: string;
+};
 
 export default function StudioPage() {
   const params = useParams<{ templateId: string }>();
@@ -18,6 +25,8 @@ export default function StudioPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [sampleData, setSampleData] = useState<Record<string, unknown>>(DEFAULT_SAMPLE_DATA);
+  const [templateName, setTemplateName] = useState<string>('Untitled Template');
+  const [user, setUser] = useState<UserSession | null>(null);
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
 
   useEffect(() => {
@@ -32,6 +41,9 @@ export default function StudioPage() {
           const template = await response.json();
           const templateData = template.templateData as Data;
           setInitialData(templateData && templateData.content ? templateData : EMPTY_DATA);
+          if (template.name) {
+            setTemplateName(template.name);
+          }
           if (template.sampleData && typeof template.sampleData === 'object') {
             const loaded = template.sampleData as Record<string, unknown>;
             setSampleData(loaded);
@@ -44,7 +56,27 @@ export default function StudioPage() {
         setInitialData(EMPTY_DATA);
       }
     }
+
+    async function loadUser() {
+      try {
+        const response = await fetch('/api/auth/session');
+        if (response.ok) {
+          const session = await response.json();
+          if (session?.user) {
+            setUser({
+              name: session.user.name,
+              email: session.user.email,
+              id: session.user.id,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('[Studio] Failed to load user session:', error);
+      }
+    }
+
     loadTemplate();
+    loadUser();
   }, [templateId]);
 
   // Auto-hide error after 5 seconds
@@ -119,6 +151,28 @@ export default function StudioPage() {
     setSampleData(data);
   }, []);
 
+  const handleTemplateNameChange = useCallback(
+    async (newName: string) => {
+      const previousName = templateName;
+      setTemplateName(newName);
+      try {
+        const response = await fetch(`/api/templates/${templateId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName }),
+        });
+        if (!response.ok) {
+          setTemplateName(previousName);
+          setSaveError('Failed to rename template');
+        }
+      } catch {
+        setTemplateName(previousName);
+        setSaveError('Failed to rename template');
+      }
+    },
+    [templateId, templateName],
+  );
+
   if (!initialData) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -127,9 +181,18 @@ export default function StudioPage() {
     );
   }
 
+  // If user hasn't loaded yet, show a minimal fallback
+  const displayUser = user || { name: 'User', email: null, id: 'loading' };
+
   return (
-    <div className="h-screen" data-testid="studio-editor">
-      <Puck
+    <div className="flex h-screen flex-col" data-testid="studio-editor">
+      <StudioHeader
+        templateName={templateName}
+        onTemplateNameChange={handleTemplateNameChange}
+        user={displayUser}
+      />
+      <div className="flex-1 overflow-hidden">
+        <Puck
         config={puckConfig}
         data={initialData}
         onPublish={handlePublish}
@@ -166,7 +229,8 @@ export default function StudioPage() {
             </>
           ),
         }}
-      />
+        />
+      </div>
     </div>
   );
 }
