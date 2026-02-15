@@ -218,9 +218,7 @@ describe('renderReport', () => {
       // Reset binding mock to not throw
       vi.mocked(resolveBindings).mockImplementation((template) => template);
       
-      vi.mocked(generateHtml).mockImplementation(() => {
-        throw new Error('HTML generation error');
-      });
+      vi.mocked(generateHtml).mockRejectedValue(new Error('HTML generation error'));
 
       await expect(
         renderReport({
@@ -232,7 +230,7 @@ describe('renderReport', () => {
     it('propagates PDF rendering errors', async () => {
       // Reset mocks to not throw
       vi.mocked(resolveBindings).mockImplementation((template) => template);
-      vi.mocked(generateHtml).mockReturnValue('<html><body>Test</body></html>');
+      vi.mocked(generateHtml).mockResolvedValue('<html><body>Test</body></html>');
       
       vi.mocked(renderPdf).mockRejectedValue(new Error('PDF rendering error'));
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import type { Data } from '@puckeditor/core';
+import type { RequestInit } from 'next/dist/server/web/spec-extension/request';
 
 // Mock auth
 vi.mock('@/lib/auth', () => ({
@@ -34,12 +35,12 @@ function createRequest(
   url: string,
   body?: Record<string, unknown>,
 ): NextRequest {
-  const init: Record<string, unknown> = { method };
+  const init: RequestInit = { method };
   if (body) {
     init.body = JSON.stringify(body);
     init.headers = { 'Content-Type': 'application/json' };
   }
-  return new NextRequest(new URL(url, 'http://localhost:3000'), init as RequestInit);
+  return new NextRequest(new URL(url, 'http://localhost:3000'), init);
 }
 
 const mockSession = {
@@ -65,7 +66,7 @@ describe('POST /api/reports/render', () => {
   });
 
   it('returns 401 when not authenticated', async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as never);
 
     const { POST } = await import('@/app/api/reports/render/route');
     const request = createRequest('POST', '/api/reports/render', {
