@@ -35,7 +35,13 @@ export function TemplateCard({ template }: TemplateCardProps) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${template.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.json`;
+    // Sanitize filename: replace non-alphanumeric with hyphens, remove consecutive hyphens, trim hyphens
+    const sanitized = template.name
+      .replace(/[^a-z0-9]/gi, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase();
+    link.download = `${sanitized || 'template'}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

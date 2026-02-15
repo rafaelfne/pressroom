@@ -32,7 +32,7 @@ export async function createTemplate(formData: FormData) {
   const name = formData.get('name') as string;
 
   if (!name || typeof name !== 'string') {
-    throw new Error('Template name is required');
+    throw new Error('Failed to create template: name is required');
   }
 
   const template = await prisma.template.create({
@@ -66,7 +66,7 @@ export async function duplicateTemplate(id: string) {
   });
 
   if (!original) {
-    throw new Error('Template not found');
+    throw new Error(`Template not found: ${id}`);
   }
 
   await prisma.template.create({
