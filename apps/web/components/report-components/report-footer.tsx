@@ -5,8 +5,13 @@ export type ReportFooterProps = {
   showPageNumber: string;
 };
 
+/**
+ * @deprecated Use template-level footer configuration instead.
+ * This component is kept for backward compatibility with existing templates.
+ * New templates should use the HeaderFooterConfig in template settings.
+ */
 export const ReportFooter: ComponentConfig<ReportFooterProps> = {
-  label: 'Report Footer',
+  label: 'Report Footer (Legacy)',
   fields: {
     text: { type: 'text', label: 'Footer Text' },
     showPageNumber: {

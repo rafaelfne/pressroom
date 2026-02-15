@@ -6,8 +6,13 @@ export type ReportHeaderProps = {
   date: string;
 };
 
+/**
+ * @deprecated Use template-level header configuration instead.
+ * This component is kept for backward compatibility with existing templates.
+ * New templates should use the HeaderFooterConfig in template settings.
+ */
 export const ReportHeader: ComponentConfig<ReportHeaderProps> = {
-  label: 'Report Header',
+  label: 'Report Header (Legacy)',
   fields: {
     logoSrc: { type: 'text', label: 'Logo URL' },
     title: { type: 'text', label: 'Report Title' },

@@ -34,7 +34,7 @@ export const puckConfig: Config<PuckComponents> = {
       components: ['TextBlock', 'HeadingBlock', 'ImageBlock'],
     },
     header_footer: {
-      title: 'Header & Footer',
+      title: 'Header & Footer (Legacy)',
       components: ['ReportHeader', 'ReportFooter'],
     },
     data: {
