@@ -25,7 +25,7 @@ describe('TextBlock component', () => {
   it('renders custom text with style', () => {
     const Component = puckConfig.components.TextBlock.render;
     const { container } = render(
-      <Component text="Hello World" fontSize="1.5rem" color="#ff0000" alignment="left" bold="false" italic="false" id="test-text" puck={mockPuckContext} />,
+      <Component text="Hello World" fontSize="1.5rem" color="#ff0000" alignment="left" bold="false" italic="false" pageBreakBehavior="auto" id="test-text" puck={mockPuckContext} />,
     );
     const element = screen.getByText('Hello World');
     expect(element).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('TextBlock component', () => {
   it('applies alignment, bold, and italic styles', () => {
     const Component = puckConfig.components.TextBlock.render;
     const { container } = render(
-      <Component text="Styled Text" fontSize="1rem" color="#000000" alignment="center" bold="true" italic="true" id="test-text" puck={mockPuckContext} />,
+      <Component text="Styled Text" fontSize="1rem" color="#000000" alignment="center" bold="true" italic="true" pageBreakBehavior="auto" id="test-text" puck={mockPuckContext} />,
     );
     const element = container.firstChild as HTMLElement;
     expect(element).toHaveStyle({ textAlign: 'center', fontWeight: 'bold', fontStyle: 'italic' });
@@ -59,7 +59,7 @@ describe('HeadingBlock component', () => {
   it('renders custom level (h3)', () => {
     const Component = puckConfig.components.HeadingBlock.render;
     const { container } = render(
-      <Component text="Custom Heading" level="h3" color="#000000" id="test-heading" puck={mockPuckContext} />,
+      <Component text="Custom Heading" level="h3" color="#000000" pageBreakBehavior="auto" id="test-heading" puck={mockPuckContext} />,
     );
     const heading = container.querySelector('h3');
     expect(heading).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('HeadingBlock component', () => {
   it('renders with custom color', () => {
     const Component = puckConfig.components.HeadingBlock.render;
     const { container } = render(
-      <Component text="Colored Heading" level="h2" color="#ff0000" id="test-heading" puck={mockPuckContext} />,
+      <Component text="Colored Heading" level="h2" color="#ff0000" pageBreakBehavior="auto" id="test-heading" puck={mockPuckContext} />,
     );
     const heading = container.querySelector('h2');
     expect(heading).toHaveStyle({ color: '#ff0000' });
@@ -91,7 +91,7 @@ describe('ImageBlock component', () => {
   it('renders image with src', () => {
     const Component = puckConfig.components.ImageBlock.render;
     render(
-      <Component src="https://example.com/image.png" alt="Test Image" width="200px" height="100px" id="test-image" puck={mockPuckContext} />,
+      <Component src="https://example.com/image.png" alt="Test Image" width="200px" height="100px" pageBreakBehavior="auto" id="test-image" puck={mockPuckContext} />,
     );
     const img = screen.getByAltText('Test Image');
     expect(img).toBeInTheDocument();
@@ -114,14 +114,14 @@ describe('Spacer component', () => {
 
   it('renders with custom height', () => {
     const Component = puckConfig.components.Spacer.render;
-    const { container } = render(<Component height="64" id="test-spacer" puck={mockPuckContext} />);
+    const { container } = render(<Component height="64" pageBreakBehavior="auto" id="test-spacer" puck={mockPuckContext} />);
     const spacer = container.firstChild as HTMLElement;
     expect(spacer).toHaveStyle({ height: '64px' });
   });
 
   it('has aria-hidden attribute', () => {
     const Component = puckConfig.components.Spacer.render;
-    const { container } = render(<Component height="32" id="test-spacer" puck={mockPuckContext} />);
+    const { container } = render(<Component height="32" pageBreakBehavior="auto" id="test-spacer" puck={mockPuckContext} />);
     const spacer = container.firstChild as HTMLElement;
     expect(spacer).toHaveAttribute('aria-hidden', 'true');
   });
@@ -143,7 +143,7 @@ describe('Divider component', () => {
   it('renders with custom color, thickness, and style', () => {
     const Component = puckConfig.components.Divider.render;
     const { container } = render(
-      <Component color="#ff0000" thickness="2" lineStyle="dashed" id="test-divider" puck={mockPuckContext} />,
+      <Component color="#ff0000" thickness="2" lineStyle="dashed" pageBreakBehavior="auto" id="test-divider" puck={mockPuckContext} />,
     );
     const hr = container.querySelector('hr');
     expect(hr).toHaveStyle({ borderTop: '2px dashed #ff0000' });
@@ -185,7 +185,7 @@ describe('ReportHeader component', () => {
   it('renders with logo', () => {
     const Component = puckConfig.components.ReportHeader.render;
     render(
-      <Component logoSrc="https://example.com/logo.png" title="My Report" date="2024-01-01" id="test-header" puck={mockPuckContext} />,
+      <Component logoSrc="https://example.com/logo.png" title="My Report" date="2024-01-01" pageBreakBehavior="auto" id="test-header" puck={mockPuckContext} />,
     );
     const logo = screen.getByAltText('Logo');
     expect(logo).toBeInTheDocument();
@@ -195,7 +195,7 @@ describe('ReportHeader component', () => {
   it('renders date', () => {
     const Component = puckConfig.components.ReportHeader.render;
     render(
-      <Component logoSrc="" title="My Report" date="2024-01-01" id="test-header" puck={mockPuckContext} />,
+      <Component logoSrc="" title="My Report" date="2024-01-01" pageBreakBehavior="auto" id="test-header" puck={mockPuckContext} />,
     );
     expect(screen.getByText('2024-01-01')).toBeInTheDocument();
   });
@@ -216,7 +216,7 @@ describe('ReportFooter component', () => {
   it('shows page number when enabled', () => {
     const Component = puckConfig.components.ReportFooter.render;
     render(
-      <Component text="Footer" showPageNumber="true" id="test-footer" puck={mockPuckContext} />,
+      <Component text="Footer" showPageNumber="true" pageBreakBehavior="auto" id="test-footer" puck={mockPuckContext} />,
     );
     expect(screen.getByText('Page')).toBeInTheDocument();
   });
@@ -224,7 +224,7 @@ describe('ReportFooter component', () => {
   it('hides page number when disabled', () => {
     const Component = puckConfig.components.ReportFooter.render;
     render(
-      <Component text="Footer" showPageNumber="false" id="test-footer" puck={mockPuckContext} />,
+      <Component text="Footer" showPageNumber="false" pageBreakBehavior="auto" id="test-footer" puck={mockPuckContext} />,
     );
     expect(screen.queryByText('Page')).not.toBeInTheDocument();
   });

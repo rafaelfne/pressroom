@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type DataTableColumn = {
   field: string;
@@ -16,6 +17,7 @@ export type DataTableProps = {
   compact: string;
   headerBgColor: string;
   headerTextColor: string;
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 // Sample data for Studio preview
@@ -167,6 +169,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       type: 'text',
       label: 'Header Text Color',
     },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     dataExpression: '{{data.items}}',
@@ -181,6 +184,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     compact: 'false',
     headerBgColor: '#f3f4f6',
     headerTextColor: '#111827',
+    pageBreakBehavior: 'auto',
   },
   render: ({
     dataExpression,
@@ -190,7 +194,10 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     compact,
     headerBgColor,
     headerTextColor,
+    pageBreakBehavior,
   }) => {
+    const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
+
     // Use sample data for preview (in real rendering, binding resolution will replace this)
     const data = SAMPLE_DATA;
 
@@ -238,6 +245,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     const containerStyle: React.CSSProperties = {
       maxWidth: '100%',
       overflowX: 'auto',
+      ...pageBreakStyle,
     };
 
     // Table styles
@@ -269,7 +277,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     return (
       <div style={containerStyle}>
         <table style={tableStyle}>
-          <thead>
+          <thead style={{ display: 'table-header-group' }}>
             <tr>
               {columns.map((column, index) => (
                 <th

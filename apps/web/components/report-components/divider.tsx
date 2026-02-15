@@ -1,9 +1,11 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type DividerProps = {
   color: string;
   thickness: string;
   lineStyle: 'solid' | 'dashed' | 'dotted';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 export const Divider: ComponentConfig<DividerProps> = {
@@ -20,19 +22,22 @@ export const Divider: ComponentConfig<DividerProps> = {
         { label: 'Dotted', value: 'dotted' },
       ],
     },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     color: '#e5e7eb',
     thickness: '1',
     lineStyle: 'solid',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ color, thickness, lineStyle }) => (
+  render: ({ color, thickness, lineStyle, pageBreakBehavior }) => (
     <hr
       style={{
         borderTop: `${thickness}px ${lineStyle} ${color}`,
         borderBottom: 'none',
         borderLeft: 'none',
         borderRight: 'none',
+        ...getPageBreakStyle(pageBreakBehavior),
       }}
       className="my-2"
     />

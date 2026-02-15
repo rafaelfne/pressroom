@@ -1,9 +1,11 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type HeadingBlockProps = {
   text: string;
   level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   color: string;
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
@@ -23,14 +25,16 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
       ],
     },
     color: { type: 'text', label: 'Text Color' },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     text: 'Heading',
     level: 'h2',
     color: '#000000',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ text, level, color }) => {
+  render: ({ text, level, color, pageBreakBehavior }) => {
     const Tag = level;
-    return <Tag style={{ color }} className="p-2">{text}</Tag>;
+    return <Tag style={{ color, ...getPageBreakStyle(pageBreakBehavior) }} className="p-2">{text}</Tag>;
   },
 };

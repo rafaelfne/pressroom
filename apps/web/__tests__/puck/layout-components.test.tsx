@@ -56,6 +56,7 @@ describe('Container component', () => {
         backgroundColor="#ffffff"
         shadow="none"
         minHeight="100"
+        pageBreakBehavior="auto"
         id="test-container"
         puck={mockPuckContext}
       />,
@@ -82,6 +83,7 @@ describe('Container component', () => {
         backgroundColor="transparent"
         shadow="md"
         minHeight="40"
+        pageBreakBehavior="auto"
         id="test-container"
         puck={mockPuckContext}
       />,
@@ -115,7 +117,7 @@ describe('GridRow component', () => {
   it('renders 3 equal columns', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="3-equal" customColumns="" gap="8" id="test-grid" puck={mockPuckContext} />,
+      <Component columns="3-equal" customColumns="" gap="8" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 1fr 1fr' });
@@ -127,7 +129,7 @@ describe('GridRow component', () => {
   it('renders 4 equal columns', () => {
     const Component = puckConfig.components.GridRow.render;
     render(
-      <Component columns="4-equal" customColumns="" gap="16" id="test-grid" puck={mockPuckContext} />,
+      <Component columns="4-equal" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
     );
     expect(screen.getByTestId('dropzone-test-grid-column-0')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-1')).toBeInTheDocument();
@@ -138,7 +140,7 @@ describe('GridRow component', () => {
   it('renders asymmetric columns (1/3 + 2/3)', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="1-3_2-3" customColumns="" gap="16" id="test-grid" puck={mockPuckContext} />,
+      <Component columns="1-3_2-3" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 2fr' });
@@ -147,7 +149,7 @@ describe('GridRow component', () => {
   it('renders asymmetric columns (2/3 + 1/3)', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="2-3_1-3" customColumns="" gap="16" id="test-grid" puck={mockPuckContext} />,
+      <Component columns="2-3_1-3" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '2fr 1fr' });
@@ -156,7 +158,7 @@ describe('GridRow component', () => {
   it('supports custom column template', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="custom" customColumns="1fr 2fr 1fr" gap="12" id="test-grid" puck={mockPuckContext} />,
+      <Component columns="custom" customColumns="1fr 2fr 1fr" gap="12" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 2fr 1fr', gap: '12px' });
@@ -168,7 +170,7 @@ describe('GridRow component', () => {
   it('falls back to 1fr 1fr when custom is empty', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="custom" customColumns="" gap="16" id="test-grid" puck={mockPuckContext} />,
+      <Component columns="custom" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 1fr' });
@@ -177,7 +179,7 @@ describe('GridRow component', () => {
   it('parses repeat() syntax for column count', () => {
     const Component = puckConfig.components.GridRow.render;
     render(
-      <Component columns="custom" customColumns="repeat(3, 1fr)" gap="16" id="test-grid" puck={mockPuckContext} />,
+      <Component columns="custom" customColumns="repeat(3, 1fr)" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
     );
     expect(screen.getByTestId('dropzone-test-grid-column-0')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-1')).toBeInTheDocument();
@@ -222,6 +224,7 @@ describe('GridColumn component', () => {
         borderWidth="0"
         borderColor="#e5e7eb"
         verticalAlign="center"
+        pageBreakBehavior="auto"
         id="test-col"
         puck={mockPuckContext}
       />,
@@ -239,6 +242,7 @@ describe('GridColumn component', () => {
         borderWidth="0"
         borderColor="#e5e7eb"
         verticalAlign="bottom"
+        pageBreakBehavior="auto"
         id="test-col"
         puck={mockPuckContext}
       />,
@@ -256,6 +260,7 @@ describe('GridColumn component', () => {
         borderWidth="1"
         borderColor="#ccc"
         verticalAlign="top"
+        pageBreakBehavior="auto"
         id="test-col"
         puck={mockPuckContext}
       />,
@@ -301,6 +306,7 @@ describe('Section component', () => {
         showDivider="true"
         backgroundColor="transparent"
         padding="16"
+        pageBreakBehavior="auto"
         id="test-section"
         puck={mockPuckContext}
       />,
@@ -317,6 +323,7 @@ describe('Section component', () => {
         showDivider="false"
         backgroundColor="transparent"
         padding="16"
+        pageBreakBehavior="auto"
         id="test-section"
         puck={mockPuckContext}
       />,
@@ -333,6 +340,7 @@ describe('Section component', () => {
         showDivider="true"
         backgroundColor="transparent"
         padding="16"
+        pageBreakBehavior="auto"
         id="test-section"
         puck={mockPuckContext}
       />,
@@ -349,6 +357,7 @@ describe('Section component', () => {
         showDivider="false"
         backgroundColor="#f5f5f5"
         padding="24"
+        pageBreakBehavior="auto"
         id="test-section"
         puck={mockPuckContext}
       />,

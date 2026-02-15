@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 import {
   BarChart,
   Bar,
@@ -43,6 +44,7 @@ export type ChartBlockProps = {
   centerLabel: string;
   backgroundColor: string;
   containerBorder: string;
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 // Sample data for Studio preview
@@ -206,6 +208,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         { label: 'No', value: 'false' },
       ],
     },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     chartType: 'bar',
@@ -227,6 +230,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     centerLabel: '',
     backgroundColor: '',
     containerBorder: 'false',
+    pageBreakBehavior: 'avoid',
   },
   render: ({
     chartType,
@@ -248,7 +252,10 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     centerLabel,
     backgroundColor,
     containerBorder,
+    pageBreakBehavior,
   }) => {
+    const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
+
     // Parse series JSON string safely
     let seriesConfig: SeriesConfig[] = [];
     try {
@@ -327,6 +334,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
       border: shouldShowBorder ? '1px solid #d1d5db' : 'none',
       padding: shouldShowBorder || backgroundColor ? '16px' : '0',
       borderRadius: shouldShowBorder ? '8px' : '0',
+      ...pageBreakStyle,
     };
 
     // Render title if provided

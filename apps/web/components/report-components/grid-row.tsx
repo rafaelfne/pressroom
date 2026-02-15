@@ -1,10 +1,12 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { DropZone } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type GridRowProps = {
   columns: '2-equal' | '3-equal' | '4-equal' | '1-3_2-3' | '2-3_1-3' | 'custom';
   customColumns: string;
   gap: string;
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 type ColumnConfig = {
@@ -43,13 +45,15 @@ export const GridRow: ComponentConfig<GridRowProps> = {
       type: 'text',
       label: 'Gap (px)',
     },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     columns: '2-equal',
     customColumns: '',
     gap: '16',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ columns, customColumns, gap, id = 'grid-row' }) => {
+  render: ({ columns, customColumns, gap, pageBreakBehavior, id = 'grid-row' }) => {
     let template: string;
     let count: number;
 
@@ -80,6 +84,7 @@ export const GridRow: ComponentConfig<GridRowProps> = {
           display: 'grid',
           gridTemplateColumns: template,
           gap: `${gap}px`,
+          ...getPageBreakStyle(pageBreakBehavior),
         }}
       >
         {Array.from({ length: count }, (_, i) => (

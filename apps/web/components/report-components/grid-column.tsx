@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { DropZone } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type GridColumnProps = {
   backgroundColor: string;
@@ -7,6 +8,7 @@ export type GridColumnProps = {
   borderWidth: string;
   borderColor: string;
   verticalAlign: 'top' | 'center' | 'bottom';
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 const verticalAlignMap: Record<GridColumnProps['verticalAlign'], string> = {
@@ -43,6 +45,7 @@ export const GridColumn: ComponentConfig<GridColumnProps> = {
         { label: 'Bottom', value: 'bottom' },
       ],
     },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     backgroundColor: 'transparent',
@@ -50,8 +53,9 @@ export const GridColumn: ComponentConfig<GridColumnProps> = {
     borderWidth: '0',
     borderColor: '#e5e7eb',
     verticalAlign: 'top',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign, id = 'grid-column' }) => (
+  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign, pageBreakBehavior, id = 'grid-column' }) => (
     <div
       style={{
         display: 'flex',
@@ -62,6 +66,7 @@ export const GridColumn: ComponentConfig<GridColumnProps> = {
         borderWidth: `${borderWidth}px`,
         borderStyle: borderWidth !== '0' ? 'solid' : 'none',
         borderColor,
+        ...getPageBreakStyle(pageBreakBehavior),
       }}
     >
       <DropZone zone={`${id}-content`} minEmptyHeight={40} />

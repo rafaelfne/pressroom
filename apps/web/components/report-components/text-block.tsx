@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type TextBlockProps = {
   text: string;
@@ -7,6 +8,7 @@ export type TextBlockProps = {
   alignment: 'left' | 'center' | 'right' | 'justify';
   bold: string;
   italic: string;
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 export const TextBlock: ComponentConfig<TextBlockProps> = {
@@ -50,6 +52,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
         { label: 'No', value: 'false' },
       ],
     },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     text: 'Enter your text here',
@@ -58,8 +61,9 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
     alignment: 'left',
     bold: 'false',
     italic: 'false',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ text, fontSize, color, alignment, bold, italic }) => (
+  render: ({ text, fontSize, color, alignment, bold, italic, pageBreakBehavior }) => (
     <div
       style={{
         fontSize,
@@ -67,6 +71,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
         textAlign: alignment,
         fontWeight: bold === 'true' ? 'bold' : 'normal',
         fontStyle: italic === 'true' ? 'italic' : 'normal',
+        ...getPageBreakStyle(pageBreakBehavior),
       }}
       className="p-2"
     >

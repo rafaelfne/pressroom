@@ -1,9 +1,11 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type ReportHeaderProps = {
   logoSrc: string;
   title: string;
   date: string;
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 /**
@@ -17,14 +19,16 @@ export const ReportHeader: ComponentConfig<ReportHeaderProps> = {
     logoSrc: { type: 'text', label: 'Logo URL' },
     title: { type: 'text', label: 'Report Title' },
     date: { type: 'text', label: 'Date' },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     logoSrc: '',
     title: 'Report Title',
     date: '',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ logoSrc, title, date }) => (
-    <div className="flex items-center justify-between p-4 border-b">
+  render: ({ logoSrc, title, date, pageBreakBehavior }) => (
+    <div className="flex items-center justify-between p-4 border-b" style={getPageBreakStyle(pageBreakBehavior)}>
       <div className="flex items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {logoSrc && <img src={logoSrc} alt="Logo" style={{ height: '40px', width: 'auto' }} />}

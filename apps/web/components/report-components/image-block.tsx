@@ -1,10 +1,12 @@
 import type { ComponentConfig } from '@puckeditor/core';
+import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type ImageBlockProps = {
   src: string;
   alt: string;
   width: string;
   height: string;
+  pageBreakBehavior: PageBreakBehavior;
 };
 
 export const ImageBlock: ComponentConfig<ImageBlockProps> = {
@@ -14,15 +16,17 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
     alt: { type: 'text', label: 'Alt Text' },
     width: { type: 'text', label: 'Width (e.g. 200px)' },
     height: { type: 'text', label: 'Height (e.g. auto)' },
+    pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     src: '',
     alt: 'Image',
     width: '100%',
     height: 'auto',
+    pageBreakBehavior: 'auto',
   },
-  render: ({ src, alt, width, height }) => (
-    <div className="p-2">
+  render: ({ src, alt, width, height, pageBreakBehavior }) => (
+    <div className="p-2" style={getPageBreakStyle(pageBreakBehavior)}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt={alt} style={{ width, height, display: 'block' }} />
