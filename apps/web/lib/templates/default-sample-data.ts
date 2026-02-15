@@ -13,7 +13,7 @@ export const DEFAULT_SAMPLE_DATA: Record<string, unknown> = {
   },
   report: {
     title: 'Monthly Report',
-    date: new Date().toISOString().split('T')[0],
+    date: '2025-01-15',
     author: 'John Doe',
   },
   items: [
