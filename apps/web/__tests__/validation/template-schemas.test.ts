@@ -48,6 +48,41 @@ describe('templateCreateSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('accepts valid pages array', () => {
+    const result = templateCreateSchema.safeParse({
+      name: 'Multi Page',
+      pages: [
+        { id: 'p1', name: 'Page 1', content: { content: [], root: {} } },
+        { id: 'p2', name: 'Page 2', content: { content: [], root: {} } },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects pages with empty array', () => {
+    const result = templateCreateSchema.safeParse({
+      name: 'Test',
+      pages: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects page with missing id', () => {
+    const result = templateCreateSchema.safeParse({
+      name: 'Test',
+      pages: [{ name: 'Page 1', content: { content: [], root: {} } }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects page with missing content', () => {
+    const result = templateCreateSchema.safeParse({
+      name: 'Test',
+      pages: [{ id: 'p1', name: 'Page 1' }],
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('templateUpdateSchema', () => {
@@ -94,6 +129,15 @@ describe('templateUpdateSchema', () => {
   it('accepts update with pageConfig', () => {
     const result = templateUpdateSchema.safeParse({
       pageConfig: { orientation: 'landscape', margin: { top: 10 } },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts update with pages', () => {
+    const result = templateUpdateSchema.safeParse({
+      pages: [
+        { id: 'p1', name: 'Summary', content: { content: [], root: {} } },
+      ],
     });
     expect(result.success).toBe(true);
   });
