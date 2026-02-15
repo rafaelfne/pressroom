@@ -35,7 +35,7 @@ export default async function TemplatesPage(props: {
   const { templates, totalCount } = await getTemplates({
     search: params.search,
     tags: params.tags,
-    page: params.page ? parseInt(params.page, 10) : 1,
+    page: params.page ? parseInt(params.page, 10) || 1 : 1,
     sortBy: params.sortBy,
     sortOrder: params.sortOrder,
   });

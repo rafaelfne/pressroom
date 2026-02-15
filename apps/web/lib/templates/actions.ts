@@ -29,7 +29,7 @@ type GetTemplatesResult = {
 };
 
 export async function createTemplate(formData: FormData) {
-  const name = formData.get('name') as string;
+  const name = formData.get('name');
 
   if (!name || typeof name !== 'string') {
     throw new Error('Failed to create template: name is required');
