@@ -35,6 +35,7 @@ pnpm-debug.log*
 # Misc
 .DS_Store
 *.pem
+package-lock.json
 
 # Prisma
 apps/web/prisma/*.db

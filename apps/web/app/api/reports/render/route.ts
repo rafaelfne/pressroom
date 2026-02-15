@@ -100,13 +100,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { templateId, templateData: inlineTemplateData, data, format, pageConfig } = parsed.data;
+  const { templateId, templateData: inlineTemplateData, pages: inlinePages, data, format, pageConfig } = parsed.data;
 
   try {
     // 4. Resolve template data
-    let templateData: Data;
+    let templateData: Data | undefined;
+    let pages: Array<{ id: string; name: string; content: Data }> | undefined;
 
-    if (inlineTemplateData) {
+    if (inlinePages) {
+      pages = inlinePages as Array<{ id: string; name: string; content: Data }>;
+    } else if (inlineTemplateData) {
       templateData = inlineTemplateData as Data;
     } else if (templateId) {
       // Fetch user's org
@@ -132,10 +135,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Template not found' }, { status: 404 });
       }
 
-      templateData = template.templateData as Data;
+      // Check if template uses multi-page format
+      const storedData = template.templateData as Record<string, unknown>;
+      if (storedData && Array.isArray(storedData.pages)) {
+        pages = storedData.pages as Array<{ id: string; name: string; content: Data }>;
+      } else {
+        templateData = template.templateData as Data;
+      }
     } else {
       return NextResponse.json(
-        { error: 'Either templateId or templateData must be provided' },
+        { error: 'Either templateId, templateData, or pages must be provided' },
         { status: 400 },
       );
     }
@@ -144,6 +153,7 @@ export async function POST(request: NextRequest) {
     const { renderReport } = await import('@/lib/rendering/render-report');
     const renderPromise = renderReport({
       templateData,
+      pages,
       data,
       format,
       pageConfig,

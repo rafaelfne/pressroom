@@ -35,6 +35,44 @@ export async function generateHtml(
 }
 
 /**
+ * Generate a full HTML document from multiple Puck template pages.
+ * Each page is rendered and separated by CSS page breaks.
+ */
+export async function generateMultiPageHtml(
+  pages: Data[],
+  options: HtmlGeneratorOptions = {},
+): Promise<string> {
+  const { createElement } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { Render } = await import('@puckeditor/core');
+  const { puckConfig } = await import('@/lib/puck/config');
+
+  const { title = 'Report', cssStyles = '' } = options;
+
+  const bodyParts: string[] = [];
+  for (let i = 0; i < pages.length; i++) {
+    const element = createElement(Render, {
+      config: puckConfig,
+      data: pages[i],
+    });
+    const pageHtml = renderToStaticMarkup(element);
+    bodyParts.push(pageHtml);
+  }
+
+  // Join pages with page-break divs (not after the last page)
+  const bodyHtml = bodyParts
+    .map((html, i) => {
+      if (i < bodyParts.length - 1) {
+        return `<div style="page-break-after: always;">${html}</div>`;
+      }
+      return `<div>${html}</div>`;
+    })
+    .join('\n');
+
+  return buildHtmlDocument(bodyHtml, title, cssStyles);
+}
+
+/**
  * Build a complete HTML document with styling
  */
 function buildHtmlDocument(

@@ -7,6 +7,7 @@ import '@puckeditor/core/puck.css';
 import { puckConfig } from '@/lib/puck/config';
 import { Button } from '@/components/ui/button';
 import { SampleDataPanel } from '@/components/studio/sample-data-panel';
+import { PageNavigator, type PageItem } from '@/components/studio/page-navigator';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
 
@@ -18,20 +19,80 @@ type UserSession = {
   id?: string;
 };
 
+let pageIdCounter = 0;
+function generatePageId(): string {
+  pageIdCounter++;
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `page-${crypto.randomUUID()}`;
+  }
+  return `page-${Date.now()}-${pageIdCounter}`;
+}
+
+function createDefaultPage(name: string): PageItem {
+  return {
+    id: generatePageId(),
+    name,
+    content: { ...EMPTY_DATA },
+  };
+}
+
+/**
+ * Detect if stored templateData uses multi-page format.
+ * Multi-page format: { pages: [{ id, name, content }] }
+ * Single-page format: { content: [...], root: {...} }
+ */
+function parseTemplateData(templateData: unknown): PageItem[] {
+  if (!templateData || typeof templateData !== 'object') {
+    return [createDefaultPage('Page 1')];
+  }
+
+  const data = templateData as Record<string, unknown>;
+
+  // Multi-page format
+  if (Array.isArray(data.pages) && data.pages.length > 0) {
+    return (data.pages as Array<Record<string, unknown>>).map((page, index) => ({
+      id: (page.id as string) || generatePageId(),
+      name: (page.name as string) || `Page ${index + 1}`,
+      content: (page.content as Data) || { ...EMPTY_DATA },
+    }));
+  }
+
+  // Single-page format (backward compatible)
+  if (Array.isArray(data.content)) {
+    return [
+      {
+        id: generatePageId(),
+        name: 'Page 1',
+        content: templateData as Data,
+      },
+    ];
+  }
+
+  return [createDefaultPage('Page 1')];
+}
+
 export default function StudioPage() {
   const params = useParams<{ templateId: string }>();
   const templateId = params.templateId;
-  const [initialData, setInitialData] = useState<Data | null>(null);
+  const [pages, setPages] = useState<PageItem[] | null>(null);
+  const [activePageId, setActivePageId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [sampleData, setSampleData] = useState<Record<string, unknown>>(DEFAULT_SAMPLE_DATA);
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
+  const pagesRef = useRef<PageItem[]>([]);
 
   useEffect(() => {
     sampleDataRef.current = sampleData;
   }, [sampleData]);
+
+  useEffect(() => {
+    if (pages) {
+      pagesRef.current = pages;
+    }
+  }, [pages]);
 
   useEffect(() => {
     async function loadTemplate() {
@@ -39,8 +100,9 @@ export default function StudioPage() {
         const response = await fetch(`/api/templates/${templateId}`);
         if (response.ok) {
           const template = await response.json();
-          const templateData = template.templateData as Data;
-          setInitialData(templateData && templateData.content ? templateData : EMPTY_DATA);
+          const loadedPages = parseTemplateData(template.templateData);
+          setPages(loadedPages);
+          setActivePageId(loadedPages[0].id);
           if (template.name) {
             setTemplateName(template.name);
           }
@@ -50,10 +112,14 @@ export default function StudioPage() {
             sampleDataRef.current = loaded;
           }
         } else {
-          setInitialData(EMPTY_DATA);
+          const defaultPages = [createDefaultPage('Page 1')];
+          setPages(defaultPages);
+          setActivePageId(defaultPages[0].id);
         }
       } catch {
-        setInitialData(EMPTY_DATA);
+        const defaultPages = [createDefaultPage('Page 1')];
+        setPages(defaultPages);
+        setActivePageId(defaultPages[0].id);
       }
     }
 
@@ -89,16 +155,31 @@ export default function StudioPage() {
     }
   }, [saveError]);
 
+  // Save the current page's content when Puck publishes
   const handlePublish = useCallback(
     async (data: Data) => {
+      // Update the active page's content in pages state
+      const updatedPages = pagesRef.current.map((page) =>
+        page.id === activePageId ? { ...page, content: data } : page,
+      );
+      setPages(updatedPages);
+      pagesRef.current = updatedPages;
+
       setIsSaving(true);
       setSaveError(null);
       try {
+        // Save as multi-page format
+        const pagesPayload = updatedPages.map((p) => ({
+          id: p.id,
+          name: p.name,
+          content: p.content,
+        }));
+
         const response = await fetch(`/api/templates/${templateId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            templateData: data,
+            pages: pagesPayload,
             sampleData: sampleDataRef.current,
           }),
         });
@@ -112,7 +193,7 @@ export default function StudioPage() {
         setIsSaving(false);
       }
     },
-    [templateId],
+    [templateId, activePageId],
   );
 
   const handlePreview = useCallback(() => {
@@ -173,7 +254,75 @@ export default function StudioPage() {
     [templateId, templateName],
   );
 
-  if (!initialData) {
+  // Page management callbacks
+  const handleSelectPage = useCallback(
+    (pageId: string) => {
+      if (pageId !== activePageId) {
+        setActivePageId(pageId);
+      }
+    },
+    [activePageId],
+  );
+
+  const handleAddPage = useCallback(() => {
+    const newPage = createDefaultPage(`Page ${pagesRef.current.length + 1}`);
+    const updated = [...pagesRef.current, newPage];
+    setPages(updated);
+    pagesRef.current = updated;
+    setActivePageId(newPage.id);
+  }, []);
+
+  const handleDeletePage = useCallback(
+    (pageId: string) => {
+      if (pagesRef.current.length <= 1) return;
+      const idx = pagesRef.current.findIndex((p) => p.id === pageId);
+      const updated = pagesRef.current.filter((p) => p.id !== pageId);
+      setPages(updated);
+      pagesRef.current = updated;
+      if (activePageId === pageId) {
+        const newIdx = Math.min(idx, updated.length - 1);
+        setActivePageId(updated[newIdx].id);
+      }
+    },
+    [activePageId],
+  );
+
+  const handleDuplicatePage = useCallback((pageId: string) => {
+    const source = pagesRef.current.find((p) => p.id === pageId);
+    if (!source) return;
+    const idx = pagesRef.current.findIndex((p) => p.id === pageId);
+    const duplicate: PageItem = {
+      id: generatePageId(),
+      name: `${source.name} (Copy)`,
+      content: JSON.parse(JSON.stringify(source.content)) as Data,
+    };
+    const updated = [...pagesRef.current];
+    updated.splice(idx + 1, 0, duplicate);
+    setPages(updated);
+    pagesRef.current = updated;
+    setActivePageId(duplicate.id);
+  }, []);
+
+  const handleRenamePage = useCallback((pageId: string, newName: string) => {
+    const updated = pagesRef.current.map((p) =>
+      p.id === pageId ? { ...p, name: newName } : p,
+    );
+    setPages(updated);
+    pagesRef.current = updated;
+  }, []);
+
+  const handleReorderPage = useCallback((pageId: string, direction: 'up' | 'down') => {
+    const idx = pagesRef.current.findIndex((p) => p.id === pageId);
+    if (idx === -1) return;
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= pagesRef.current.length) return;
+    const updated = [...pagesRef.current];
+    [updated[idx], updated[newIdx]] = [updated[newIdx], updated[idx]];
+    setPages(updated);
+    pagesRef.current = updated;
+  }, []);
+
+  if (!pages) {
     return (
       <div className="flex h-screen items-center justify-center">
         <p className="text-muted-foreground">Loading studio...</p>
@@ -181,7 +330,7 @@ export default function StudioPage() {
     );
   }
 
-  // If user hasn't loaded yet, show a minimal fallback
+  const activePage = pages.find((p) => p.id === activePageId) ?? pages[0];
   const displayUser = user || { name: 'User', email: null, id: 'loading' };
 
   return (
@@ -191,45 +340,58 @@ export default function StudioPage() {
         onTemplateNameChange={handleTemplateNameChange}
         user={displayUser}
       />
-      <div className="flex-1 overflow-hidden">
-        <Puck
-        config={puckConfig}
-        data={initialData}
-        onPublish={handlePublish}
-        overrides={{
-          headerActions: ({ children }) => (
-            <>
-              {saveError && (
-                <div className="flex items-center gap-2 mr-2" role="alert">
-                  <span className="text-sm text-destructive">{saveError}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={dismissError}
-                    className="h-6 px-2"
-                  >
-                    ×
-                  </Button>
-                </div>
-              )}
-              {isSaving && (
-                <span className="text-sm text-muted-foreground mr-2">Saving...</span>
-              )}
-              <SampleDataPanel
-                sampleData={sampleData}
-                onSampleDataChange={handleSampleDataChange}
-              />
-              <Button variant="outline" size="sm" onClick={handlePreviewPdf}>
-                Preview PDF
-              </Button>
-              <Button variant="outline" size="sm" onClick={handlePreview}>
-                Preview
-              </Button>
-              {children}
-            </>
-          ),
-        }}
+      <div className="flex flex-1 overflow-hidden">
+        <PageNavigator
+          pages={pages}
+          activePageId={activePage.id}
+          onSelectPage={handleSelectPage}
+          onAddPage={handleAddPage}
+          onDeletePage={handleDeletePage}
+          onDuplicatePage={handleDuplicatePage}
+          onRenamePage={handleRenamePage}
+          onReorderPage={handleReorderPage}
         />
+        <div className="flex-1 overflow-hidden">
+          <Puck
+            key={activePage.id}
+            config={puckConfig}
+            data={activePage.content}
+            onPublish={handlePublish}
+            overrides={{
+              headerActions: ({ children }) => (
+                <>
+                  {saveError && (
+                    <div className="flex items-center gap-2 mr-2" role="alert">
+                      <span className="text-sm text-destructive">{saveError}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={dismissError}
+                        className="h-6 px-2"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  )}
+                  {isSaving && (
+                    <span className="text-sm text-muted-foreground mr-2">Saving...</span>
+                  )}
+                  <SampleDataPanel
+                    sampleData={sampleData}
+                    onSampleDataChange={handleSampleDataChange}
+                  />
+                  <Button variant="outline" size="sm" onClick={handlePreviewPdf}>
+                    Preview PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handlePreview}>
+                    Preview
+                  </Button>
+                  {children}
+                </>
+              ),
+            }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ vi.mock('@/lib/binding', () => ({
 
 vi.mock('@/lib/rendering/html-generator', () => ({
   generateHtml: vi.fn(() => Promise.resolve('<html><body>Test</body></html>')),
+  generateMultiPageHtml: vi.fn(() => Promise.resolve('<html><body>Multi-page Test</body></html>')),
 }));
 
 vi.mock('@/lib/rendering/pdf-renderer', () => ({
@@ -15,9 +16,9 @@ vi.mock('@/lib/rendering/pdf-renderer', () => ({
 }));
 
 import { resolveBindings } from '@/lib/binding';
-import { generateHtml } from '@/lib/rendering/html-generator';
+import { generateHtml, generateMultiPageHtml } from '@/lib/rendering/html-generator';
 import { renderPdf } from '@/lib/rendering/pdf-renderer';
-import { renderReport } from '@/lib/rendering/render-report';
+import { renderReport, type TemplatePage } from '@/lib/rendering/render-report';
 
 describe('renderReport', () => {
   const mockTemplateData: Data = {
@@ -240,6 +241,143 @@ describe('renderReport', () => {
           format: 'pdf',
         }),
       ).rejects.toThrow('PDF rendering error');
+    });
+
+    it('throws error when neither templateData nor pages provided', async () => {
+      await expect(
+        renderReport({
+          format: 'pdf',
+        }),
+      ).rejects.toThrow('Either templateData or pages must be provided');
+    });
+  });
+
+  describe('multi-page rendering', () => {
+    const mockPages: TemplatePage[] = [
+      {
+        id: 'page-1',
+        name: 'Cover Page',
+        content: {
+          content: [
+            {
+              type: 'TextBlock',
+              props: {
+                id: 'text-1',
+                text: 'Cover',
+                fontSize: 'base',
+                fontWeight: 'normal',
+                alignment: 'left',
+              },
+            },
+          ],
+          root: {},
+        },
+      },
+      {
+        id: 'page-2',
+        name: 'Details',
+        content: {
+          content: [
+            {
+              type: 'TextBlock',
+              props: {
+                id: 'text-2',
+                text: '{{details}}',
+                fontSize: 'base',
+                fontWeight: 'normal',
+                alignment: 'left',
+              },
+            },
+          ],
+          root: {},
+        },
+      },
+    ];
+
+    beforeEach(() => {
+      vi.mocked(resolveBindings).mockImplementation((template) => template);
+      vi.mocked(renderPdf).mockResolvedValue(Buffer.from('mock-pdf'));
+      vi.mocked(generateMultiPageHtml).mockResolvedValue('<html><body>Multi-page Test</body></html>');
+    });
+
+    it('renders multiple pages to PDF', async () => {
+      const result = await renderReport({
+        pages: mockPages,
+        data: { details: 'Page content' },
+        format: 'pdf',
+      });
+
+      expect(resolveBindings).toHaveBeenCalledTimes(2);
+      expect(generateMultiPageHtml).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          title: 'Report',
+          cssStyles: '',
+        }
+      );
+      expect(renderPdf).toHaveBeenCalledWith('<html><body>Multi-page Test</body></html>', {});
+      expect(result.content).toBeInstanceOf(Buffer);
+      expect(result.contentType).toBe('application/pdf');
+    });
+
+    it('renders multiple pages to HTML', async () => {
+      const result = await renderReport({
+        pages: mockPages,
+        format: 'html',
+      });
+
+      expect(resolveBindings).toHaveBeenCalledTimes(2);
+      expect(generateMultiPageHtml).toHaveBeenCalled();
+      expect(renderPdf).not.toHaveBeenCalled();
+      expect(result.content).toBe('<html><body>Multi-page Test</body></html>');
+      expect(result.contentType).toBe('text/html');
+    });
+
+    it('resolves bindings for each page', async () => {
+      const data = { details: 'Page content' };
+      await renderReport({
+        pages: mockPages,
+        data,
+      });
+
+      expect(resolveBindings).toHaveBeenCalledWith(mockPages[0].content, data);
+      expect(resolveBindings).toHaveBeenCalledWith(mockPages[1].content, data);
+    });
+
+    it('passes custom title and CSS for multi-page rendering', async () => {
+      const customCss = '.page { margin: 20px; }';
+      await renderReport({
+        pages: mockPages,
+        title: 'Multi-page Report',
+        cssStyles: customCss,
+      });
+
+      expect(generateMultiPageHtml).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          title: 'Multi-page Report',
+          cssStyles: customCss,
+        }
+      );
+    });
+
+    it('handles empty pages array by falling back to error', async () => {
+      await expect(
+        renderReport({
+          pages: [],
+        }),
+      ).rejects.toThrow('Either templateData or pages must be provided');
+    });
+
+    it('uses multi-page rendering when both templateData and pages are provided', async () => {
+      // When both are provided, pages takes precedence
+      await renderReport({
+        templateData: mockTemplateData,
+        pages: mockPages,
+      });
+
+      expect(generateMultiPageHtml).toHaveBeenCalled();
+      expect(generateHtml).not.toHaveBeenCalled();
     });
   });
 });

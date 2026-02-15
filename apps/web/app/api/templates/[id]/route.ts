@@ -89,7 +89,11 @@ export async function PUT(
       updateData.description = parsed.data.description;
     }
 
-    if (parsed.data.templateData !== undefined) {
+    if (parsed.data.pages !== undefined) {
+      // Multi-page templates store pages inside templateData
+      updateData.templateData = { pages: parsed.data.pages } as unknown as Prisma.InputJsonValue;
+      updateData.version = existing.version + 1;
+    } else if (parsed.data.templateData !== undefined) {
       updateData.templateData = parsed.data.templateData as Prisma.InputJsonValue;
       updateData.version = existing.version + 1;
     }

@@ -4,11 +4,19 @@ import { z } from 'zod';
 // Puck component items have dynamic shapes determined by registered components,
 // so we validate the top-level structure (content array, root object, optional zones)
 // while allowing component-specific fields to pass through.
-const puckDataSchema = z.object({
+export const puckDataSchema = z.object({
   content: z.array(z.record(z.string(), z.unknown())),
   root: z.record(z.string(), z.unknown()),
   zones: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))).optional(),
 });
+
+const pageSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  content: puckDataSchema,
+});
+
+const pagesSchema = z.array(pageSchema).min(1);
 
 const pageConfigSchema = z.object({
   width: z.number().optional(),
@@ -26,6 +34,7 @@ export const templateCreateSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
   templateData: puckDataSchema.optional(),
+  pages: pagesSchema.optional(),
   sampleData: z.record(z.string(), z.unknown()).optional(),
   pageConfig: pageConfigSchema.optional(),
   tags: z.array(z.string()).optional(),
@@ -35,6 +44,7 @@ export const templateUpdateSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   description: z.string().optional(),
   templateData: puckDataSchema.optional(),
+  pages: pagesSchema.optional(),
   sampleData: z.record(z.string(), z.unknown()).optional(),
   pageConfig: pageConfigSchema.optional(),
   tags: z.array(z.string()).optional(),
@@ -52,3 +62,4 @@ export const templateListQuerySchema = z.object({
 export type TemplateCreateInput = z.infer<typeof templateCreateSchema>;
 export type TemplateUpdateInput = z.infer<typeof templateUpdateSchema>;
 export type TemplateListQuery = z.infer<typeof templateListQuerySchema>;
+export type TemplatePage = z.infer<typeof pageSchema>;

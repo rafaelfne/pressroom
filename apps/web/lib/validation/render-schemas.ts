@@ -7,6 +7,15 @@ export const renderRequestSchema = z.object({
     root: z.record(z.string(), z.unknown()),
     zones: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))).optional(),
   }).optional(),
+  pages: z.array(z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    content: z.object({
+      content: z.array(z.record(z.string(), z.unknown())),
+      root: z.record(z.string(), z.unknown()),
+      zones: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))).optional(),
+    }),
+  })).min(1).optional(),
   data: z.record(z.string(), z.unknown()).optional(),
   format: z.enum(['pdf', 'html']).default('pdf'),
   pageConfig: z.object({
@@ -25,8 +34,8 @@ export const renderRequestSchema = z.object({
     displayHeaderFooter: z.boolean().optional(),
   }).optional(),
 }).refine(
-  (data) => data.templateId || data.templateData,
-  { message: 'Either templateId or templateData must be provided' },
+  (data) => data.templateId || data.templateData || data.pages,
+  { message: 'Either templateId, templateData, or pages must be provided' },
 );
 
 export type RenderRequest = z.infer<typeof renderRequestSchema>;
