@@ -80,7 +80,7 @@ export function StudioHeader({ templateName, onTemplateNameChange, user }: Studi
         </div>
 
         {/* Center: Template name (editable) */}
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex flex-1 items-center justify-center px-4">
           {isEditing ? (
             <input
               ref={inputRef}

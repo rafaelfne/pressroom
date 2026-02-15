@@ -167,7 +167,7 @@ export default function StudioPage() {
     [templateId],
   );
 
-  if (!initialData || !user) {
+  if (!initialData) {
     return (
       <div className="flex h-screen items-center justify-center">
         <p className="text-muted-foreground">Loading studio...</p>
@@ -175,12 +175,15 @@ export default function StudioPage() {
     );
   }
 
+  // If user hasn't loaded yet, show a minimal fallback
+  const displayUser = user || { name: 'User', email: null, id: 'loading' };
+
   return (
     <div className="flex h-screen flex-col" data-testid="studio-editor">
       <StudioHeader
         templateName={templateName}
         onTemplateNameChange={handleTemplateNameChange}
-        user={user}
+        user={displayUser}
       />
       <div className="flex-1 overflow-hidden">
         <Puck
