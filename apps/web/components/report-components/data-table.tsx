@@ -7,6 +7,9 @@ export type DataTableColumn = {
   width: string;
   align: 'left' | 'center' | 'right';
   format: 'text' | 'number' | 'currency' | 'date';
+  bold: string;
+  italic: string;
+  fontColor: string;
 };
 
 export type DataTableProps = {
@@ -14,17 +17,28 @@ export type DataTableProps = {
   columns: DataTableColumn[];
   striped: string;
   bordered: string;
-  compact: string;
+  density: 'dense' | 'compact' | 'normal';
   headerBgColor: string;
   headerTextColor: string;
+  groupHeaderBgColor: string;
+  groupHeaderTextColor: string;
+  showFooterRow: string;
+  footerLabel: string;
+  footerBgColor: string;
+  footerTextColor: string;
+  evenRowColor: string;
+  oddRowColor: string;
+  verticalBorders: string;
   pageBreakBehavior: PageBreakBehavior;
 };
 
 // Sample data for Studio preview
 const SAMPLE_DATA = [
-  { name: 'Sample Item 1', quantity: 10, price: 29.99, date: '2024-01-15' },
-  { name: 'Sample Item 2', quantity: 5, price: 49.99, date: '2024-02-20' },
-  { name: 'Sample Item 3', quantity: 8, price: 19.99, date: '2024-03-10' },
+  { _isGroupHeader: true, _groupLabel: 'Onshore (R$)', name: 'Onshore (R$)' },
+  { name: 'Treasury Bond IPCA+', quantity: 10, price: 29.99, date: '2024-01-15' },
+  { name: '  CDB Bank XYZ', quantity: 5, price: 49.99, date: '2024-02-20', _indent: 1 },
+  { _isGroupHeader: true, _groupLabel: 'Offshore (USD)', name: 'Offshore (USD)' },
+  { name: 'S&P 500 ETF', quantity: 8, price: 19.99, date: '2024-03-10' },
 ];
 
 /**
@@ -128,6 +142,26 @@ export const DataTable: ComponentConfig<DataTableProps> = {
             { label: 'Date', value: 'date' },
           ],
         },
+        bold: {
+          type: 'radio',
+          label: 'Bold',
+          options: [
+            { label: 'Yes', value: 'true' },
+            { label: 'No', value: 'false' },
+          ],
+        },
+        italic: {
+          type: 'radio',
+          label: 'Italic',
+          options: [
+            { label: 'Yes', value: 'true' },
+            { label: 'No', value: 'false' },
+          ],
+        },
+        fontColor: {
+          type: 'text',
+          label: 'Text Color',
+        },
       },
       defaultItemProps: {
         field: 'field',
@@ -135,6 +169,9 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         width: 'auto',
         align: 'left' as const,
         format: 'text' as const,
+        bold: 'false',
+        italic: 'false',
+        fontColor: '',
       },
     },
     striped: {
@@ -153,12 +190,13 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         { label: 'No', value: 'false' },
       ],
     },
-    compact: {
-      type: 'radio',
-      label: 'Compact Mode',
+    density: {
+      type: 'select',
+      label: 'Density',
       options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
+        { label: 'Dense', value: 'dense' },
+        { label: 'Compact', value: 'compact' },
+        { label: 'Normal', value: 'normal' },
       ],
     },
     headerBgColor: {
@@ -169,21 +207,74 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       type: 'text',
       label: 'Header Text Color',
     },
+    groupHeaderBgColor: {
+      type: 'text',
+      label: 'Group Header Background Color',
+    },
+    groupHeaderTextColor: {
+      type: 'text',
+      label: 'Group Header Text Color',
+    },
+    showFooterRow: {
+      type: 'radio',
+      label: 'Show Footer Row',
+      options: [
+        { label: 'Yes', value: 'true' },
+        { label: 'No', value: 'false' },
+      ],
+    },
+    footerLabel: {
+      type: 'text',
+      label: 'Footer Label',
+    },
+    footerBgColor: {
+      type: 'text',
+      label: 'Footer Background Color',
+    },
+    footerTextColor: {
+      type: 'text',
+      label: 'Footer Text Color',
+    },
+    evenRowColor: {
+      type: 'text',
+      label: 'Even Row Color',
+    },
+    oddRowColor: {
+      type: 'text',
+      label: 'Odd Row Color',
+    },
+    verticalBorders: {
+      type: 'radio',
+      label: 'Vertical Borders',
+      options: [
+        { label: 'Yes', value: 'true' },
+        { label: 'No', value: 'false' },
+      ],
+    },
     pageBreakBehavior: pageBreakField,
   },
   defaultProps: {
     dataExpression: '{{data.items}}',
     columns: [
-      { field: 'name', header: 'Name', width: 'auto', align: 'left', format: 'text' },
-      { field: 'quantity', header: 'Quantity', width: '100px', align: 'center', format: 'number' },
-      { field: 'price', header: 'Price', width: '120px', align: 'right', format: 'currency' },
-      { field: 'date', header: 'Date', width: '120px', align: 'center', format: 'date' },
+      { field: 'name', header: 'Name', width: 'auto', align: 'left', format: 'text', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'quantity', header: 'Quantity', width: '100px', align: 'center', format: 'number', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'price', header: 'Price', width: '120px', align: 'right', format: 'currency', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'date', header: 'Date', width: '120px', align: 'center', format: 'date', bold: 'false', italic: 'false', fontColor: '' },
     ],
     striped: 'true',
     bordered: 'true',
-    compact: 'false',
+    density: 'normal',
     headerBgColor: '#f3f4f6',
     headerTextColor: '#111827',
+    groupHeaderBgColor: '#1a5632',
+    groupHeaderTextColor: '#ffffff',
+    showFooterRow: 'false',
+    footerLabel: 'Total',
+    footerBgColor: '#f3f4f6',
+    footerTextColor: '#111827',
+    evenRowColor: 'transparent',
+    oddRowColor: '#f9fafb',
+    verticalBorders: 'false',
     pageBreakBehavior: 'auto',
   },
   render: ({
@@ -191,9 +282,18 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     columns,
     striped,
     bordered,
-    compact,
+    density,
     headerBgColor,
     headerTextColor,
+    groupHeaderBgColor,
+    groupHeaderTextColor,
+    showFooterRow,
+    footerLabel,
+    footerBgColor,
+    footerTextColor,
+    evenRowColor,
+    oddRowColor,
+    verticalBorders,
     pageBreakBehavior,
   }) => {
     const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
@@ -239,7 +339,36 @@ export const DataTable: ComponentConfig<DataTableProps> = {
 
     const isStriped = striped === 'true';
     const isBordered = bordered === 'true';
-    const isCompact = compact === 'true';
+    const hasVerticalBorders = verticalBorders === 'true';
+    const shouldShowFooter = showFooterRow === 'true';
+
+    // Density-based styles
+    let fontSize: string;
+    let lineHeight: string;
+    let bodyCellPadding: string;
+    let headerCellPadding: string;
+
+    switch (density) {
+      case 'dense':
+        fontSize = '11px';
+        lineHeight = '1.2';
+        bodyCellPadding = '2px 6px';
+        headerCellPadding = '4px 6px';
+        break;
+      case 'compact':
+        fontSize = '12px';
+        lineHeight = '1.4';
+        bodyCellPadding = '4px 8px';
+        headerCellPadding = '6px 8px';
+        break;
+      case 'normal':
+      default:
+        fontSize = '14px';
+        lineHeight = '1.5';
+        bodyCellPadding = '8px 12px';
+        headerCellPadding = '10px 12px';
+        break;
+    }
 
     // Table container styles
     const containerStyle: React.CSSProperties = {
@@ -252,8 +381,8 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     const tableStyle: React.CSSProperties = {
       width: '100%',
       borderCollapse: 'collapse',
-      fontSize: isCompact ? '12px' : '14px',
-      lineHeight: isCompact ? '1.4' : '1.5',
+      fontSize,
+      lineHeight,
     };
 
     // Header cell styles
@@ -261,18 +390,21 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       backgroundColor: headerBgColor || '#f3f4f6',
       color: headerTextColor || '#111827',
       fontWeight: 600,
-      padding: isCompact ? '8px 12px' : '12px 16px',
+      padding: headerCellPadding,
       textAlign: 'left',
       borderBottom: isBordered ? '2px solid #d1d5db' : 'none',
-      borderRight: isBordered ? '1px solid #e5e7eb' : 'none',
+      borderRight: (isBordered || hasVerticalBorders) ? '1px solid #e5e7eb' : 'none',
     };
 
     // Body cell styles
     const tdStyle: React.CSSProperties = {
-      padding: isCompact ? '6px 12px' : '10px 16px',
+      padding: bodyCellPadding,
       borderBottom: isBordered ? '1px solid #e5e7eb' : 'none',
-      borderRight: isBordered ? '1px solid #e5e7eb' : 'none',
+      borderRight: (isBordered || hasVerticalBorders) ? '1px solid #e5e7eb' : 'none',
     };
+
+    // Count only data rows (not group headers) for striping
+    let dataRowIndex = 0;
 
     return (
       <div style={containerStyle}>
@@ -286,7 +418,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                     ...thStyle,
                     width: column.width || 'auto',
                     textAlign: column.align || 'left',
-                    borderRight: isBordered && index === columns.length - 1 ? 'none' : thStyle.borderRight,
+                    borderRight: ((isBordered || hasVerticalBorders) && index === columns.length - 1) ? 'none' : thStyle.borderRight,
                   }}
                 >
                   {column.header}
@@ -295,34 +427,138 @@ export const DataTable: ComponentConfig<DataTableProps> = {
             </tr>
           </thead>
           <tbody>
-            {data.map((row, rowIndex) => (
-              <tr
-                key={`row-${rowIndex}`}
-                style={{
-                  backgroundColor:
-                    isStriped && rowIndex % 2 === 1 ? '#f9fafb' : 'transparent',
-                }}
-              >
-                {columns.map((column, colIndex) => {
-                  const value = getNestedValue(row, column.field);
-                  const formattedValue = formatValue(value, column.format);
+            {data.map((row, rowIndex) => {
+              const rowData = row as Record<string, unknown>;
+              const isGroupHeader = rowData._isGroupHeader === true;
 
-                  return (
+              // If it's a group header row, render spanning cell
+              if (isGroupHeader) {
+                const groupLabel = (rowData._groupLabel || getNestedValue(row, columns[0].field)) as string;
+                return (
+                  <tr key={`row-${rowIndex}`}>
                     <td
-                      key={`cell-${rowIndex}-${colIndex}`}
+                      colSpan={columns.length}
                       style={{
                         ...tdStyle,
-                        textAlign: column.align || 'left',
-                        borderRight: isBordered && colIndex === columns.length - 1 ? 'none' : tdStyle.borderRight,
+                        fontWeight: 'bold',
+                        backgroundColor: groupHeaderBgColor || '#1a5632',
+                        color: groupHeaderTextColor || '#ffffff',
+                        borderRight: 'none',
                       }}
                     >
-                      {formattedValue}
+                      {groupLabel}
                     </td>
-                  );
-                })}
-              </tr>
-            ))}
+                  </tr>
+                );
+              }
+
+              // Regular data row - apply striping
+              const currentDataRowIndex = dataRowIndex;
+              dataRowIndex++;
+
+              const rowBgColor = isStriped
+                ? currentDataRowIndex % 2 === 0
+                  ? evenRowColor || 'transparent'
+                  : oddRowColor || '#f9fafb'
+                : 'transparent';
+
+              return (
+                <tr
+                  key={`row-${rowIndex}`}
+                  style={{
+                    backgroundColor: rowBgColor,
+                  }}
+                >
+                  {columns.map((column, colIndex) => {
+                    const value = getNestedValue(row, column.field);
+                    const formattedValue = formatValue(value, column.format);
+                    const indent = (rowData._indent as number) || 0;
+
+                    // Apply column-level styling
+                    const cellStyle: React.CSSProperties = {
+                      ...tdStyle,
+                      textAlign: column.align || 'left',
+                      borderRight: ((isBordered || hasVerticalBorders) && colIndex === columns.length - 1) ? 'none' : tdStyle.borderRight,
+                    };
+
+                    // Apply bold if specified
+                    if (column.bold === 'true') {
+                      cellStyle.fontWeight = 'bold';
+                    }
+
+                    // Apply italic if specified
+                    if (column.italic === 'true') {
+                      cellStyle.fontStyle = 'italic';
+                    }
+
+                    // Apply font color if specified
+                    if (column.fontColor && column.fontColor.trim() !== '') {
+                      cellStyle.color = column.fontColor;
+                    }
+
+                    // Apply indentation to first column
+                    if (colIndex === 0 && indent > 0) {
+                      const currentPadding = bodyCellPadding.split(' ');
+                      const verticalPadding = currentPadding[0];
+                      const horizontalPadding = currentPadding[1] || currentPadding[0];
+                      const additionalIndent = indent * 12;
+                      
+                      // Parse the horizontal padding and add indent
+                      const paddingValue = parseInt(horizontalPadding, 10);
+                      const totalPaddingLeft = paddingValue + additionalIndent;
+                      
+                      cellStyle.paddingLeft = `${totalPaddingLeft}px`;
+                      cellStyle.paddingRight = horizontalPadding;
+                      cellStyle.paddingTop = verticalPadding;
+                      cellStyle.paddingBottom = verticalPadding;
+                    }
+
+                    return (
+                      <td
+                        key={`cell-${rowIndex}-${colIndex}`}
+                        style={cellStyle}
+                      >
+                        {formattedValue}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
+          {shouldShowFooter && (
+            <tfoot>
+              <tr
+                style={{
+                  backgroundColor: footerBgColor || '#f3f4f6',
+                  color: footerTextColor || '#111827',
+                  fontWeight: 'bold',
+                  borderTop: '2px solid #d1d5db',
+                }}
+              >
+                <td
+                  style={{
+                    ...tdStyle,
+                    borderRight: ((isBordered || hasVerticalBorders) && columns.length === 1) ? 'none' : tdStyle.borderRight,
+                  }}
+                >
+                  {footerLabel || 'Total'}
+                </td>
+                {columns.slice(1).map((column, index) => (
+                  <td
+                    key={`footer-${index}`}
+                    style={{
+                      ...tdStyle,
+                      textAlign: column.align || 'left',
+                      borderRight: ((isBordered || hasVerticalBorders) && index === columns.length - 2) ? 'none' : tdStyle.borderRight,
+                    }}
+                  >
+                    {/* Empty cells - binding engine fills these at render time */}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     );
