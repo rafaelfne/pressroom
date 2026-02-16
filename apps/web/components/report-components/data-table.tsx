@@ -32,11 +32,14 @@ export type DataTableProps = {
   pageBreakBehavior: PageBreakBehavior;
 };
 
+/** Pixels added per indent level for sub-item rows */
+const INDENT_STEP_PX = 12;
+
 // Sample data for Studio preview
 const SAMPLE_DATA = [
   { _isGroupHeader: true, _groupLabel: 'Onshore (R$)', name: 'Onshore (R$)' },
   { name: 'Treasury Bond IPCA+', quantity: 10, price: 29.99, date: '2024-01-15' },
-  { name: '  CDB Bank XYZ', quantity: 5, price: 49.99, date: '2024-02-20', _indent: 1 },
+  { name: 'CDB Bank XYZ', quantity: 5, price: 49.99, date: '2024-02-20', _indent: 1 },
   { _isGroupHeader: true, _groupLabel: 'Offshore (USD)', name: 'Offshore (USD)' },
   { name: 'S&P 500 ETF', quantity: 8, price: 19.99, date: '2024-03-10' },
 ];
@@ -501,7 +504,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                       const currentPadding = bodyCellPadding.split(' ');
                       const verticalPadding = currentPadding[0];
                       const horizontalPadding = currentPadding[1] || currentPadding[0];
-                      const additionalIndent = indent * 12;
+                      const additionalIndent = indent * INDENT_STEP_PX;
                       
                       // Parse the horizontal padding and add indent
                       const paddingValue = parseInt(horizontalPadding, 10);

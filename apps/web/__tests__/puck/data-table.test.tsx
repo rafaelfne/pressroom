@@ -43,6 +43,7 @@ describe('DataTable component', () => {
       <Component {...defaultProps} id="test-table" puck={mockPuckContext} />,
     );
     const rows = container.querySelectorAll('tbody tr');
+    // 5 rows = 2 group headers + 3 data rows from SAMPLE_DATA
     expect(rows.length).toBe(5);
   });
 
