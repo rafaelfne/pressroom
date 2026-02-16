@@ -36,10 +36,13 @@ export function BlockFieldsPanel({
     dispatch({ type: 'setUi', ui: { itemSelector: null } });
   };
 
-  // Format component type for display (e.g., "ChartBlock" -> "Chart Block")
+  // Format component type for display (e.g., "ChartBlock" -> "Chart Block", "PDFChart" -> "PDF Chart")
   const formatComponentType = (type: string): string => {
-    // Split camelCase/PascalCase into words
-    const words = type.replace(/([A-Z])/g, ' $1').trim();
+    // Handle acronyms and camelCase/PascalCase properly
+    const words = type
+      .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+      .replace(/([a-z\d])([A-Z])/g, '$1 $2')
+      .trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
   };
 

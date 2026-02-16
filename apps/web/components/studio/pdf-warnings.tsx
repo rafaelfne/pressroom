@@ -40,7 +40,10 @@ export function PdfWarnings({ componentType, componentProps = {} }: PdfWarningsP
   // Image warnings
   if (componentType.toLowerCase().includes('image')) {
     const src = componentProps.src;
-    if (typeof src === 'string' && (src.startsWith('http://') || src.startsWith('https://'))) {
+    if (
+      typeof src === 'string' &&
+      (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//'))
+    ) {
       warnings.push('External images are converted to base64 in PDF');
     }
   }
