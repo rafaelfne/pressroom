@@ -4,6 +4,12 @@ import { useCallback, useRef } from 'react';
 import { PageConfig, getPageDimensionsPx, mmToPx, ZOOM_LEVELS } from '@/lib/types/page-config';
 import { Button } from '@/components/ui/button';
 
+const MIN_ZOOM = 50;
+const MAX_ZOOM = 150;
+const SCROLL_ZOOM_STEP = 25;
+const FIT_ZOOM_ROUNDING = 5;
+const FIT_PADDING_PX = 64;
+
 export interface PaperCanvasProps {
   pageConfig: PageConfig;
   zoom: number;
@@ -21,8 +27,10 @@ export function PaperCanvas({ pageConfig, zoom, onZoomChange, children }: PaperC
     if (!workspaceRef.current) return;
 
     const containerWidth = workspaceRef.current.clientWidth;
-    const fitZoom = ((containerWidth - 64) / paperDimensions.width) * 100;
-    const clampedZoom = Math.round(Math.max(50, Math.min(150, fitZoom)) / 5) * 5;
+    const fitZoom = ((containerWidth - FIT_PADDING_PX) / paperDimensions.width) * 100;
+    const clampedZoom =
+      Math.round(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, fitZoom)) / FIT_ZOOM_ROUNDING) *
+      FIT_ZOOM_ROUNDING;
 
     onZoomChange(clampedZoom);
   }, [paperDimensions.width, onZoomChange]);
@@ -33,8 +41,8 @@ export function PaperCanvas({ pageConfig, zoom, onZoomChange, children }: PaperC
       if (e.ctrlKey) {
         e.preventDefault();
 
-        const delta = e.deltaY > 0 ? -25 : 25;
-        const newZoom = Math.max(50, Math.min(150, zoom + delta));
+        const delta = e.deltaY > 0 ? -SCROLL_ZOOM_STEP : SCROLL_ZOOM_STEP;
+        const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom + delta));
 
         onZoomChange(newZoom);
       }
