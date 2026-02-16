@@ -9,12 +9,17 @@ import { SampleDataPanel } from '@/components/studio/sample-data-panel';
 import { PageNavigator, type PageItem } from '@/components/studio/page-navigator';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
-import { PageConfigPanel } from '@/components/studio/page-config-panel';
+import { RightPanel } from '@/components/studio/right-panel';
 import {
   DEFAULT_PAGE_CONFIG,
   parseStoredPageConfig,
   type PageConfig,
 } from '@/lib/types/page-config';
+import {
+  DEFAULT_HEADER_FOOTER_CONFIG,
+  parseStoredHeaderFooterConfig,
+  type HeaderFooterConfig,
+} from '@/lib/types/header-footer-config';
 import { Toaster, toast } from 'sonner';
 
 const usePuck = createUsePuck();
@@ -111,31 +116,6 @@ function parseTemplateData(templateData: unknown): PageItem[] {
 }
 
 /**
- * Wrapper component that shows PageConfigPanel only when no component is selected.
- * Uses usePuck hook to detect selection state.
- */
-function PageConfigPanelWrapper({
-  config,
-  onConfigChange,
-}: {
-  config: PageConfig;
-  onConfigChange: (config: PageConfig) => void;
-}) {
-  const selectedItem = usePuck((s) => s.selectedItem);
-
-  // Only show when no component is selected (i.e., viewing page-level settings)
-  if (selectedItem) {
-    return null;
-  }
-
-  return (
-    <div className="border-t border-border mt-4 pt-4">
-      <PageConfigPanel config={config} onConfigChange={onConfigChange} />
-    </div>
-  );
-}
-
-/**
  * Sanitize a string for use as a filename by removing characters
  * that are invalid on common operating systems.
  */
@@ -155,6 +135,9 @@ export default function StudioPage() {
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
   const [pageConfig, setPageConfig] = useState<PageConfig>(DEFAULT_PAGE_CONFIG);
+  const [headerFooterConfig, setHeaderFooterConfig] = useState<HeaderFooterConfig>(
+    DEFAULT_HEADER_FOOTER_CONFIG,
+  );
   
   // History state for undo/redo
   const [canUndo, setCanUndo] = useState(false);
@@ -168,11 +151,16 @@ export default function StudioPage() {
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
   const pagesRef = useRef<PageItem[]>([]);
   const pageConfigRef = useRef<PageConfig>(pageConfig);
+  const headerFooterConfigRef = useRef<HeaderFooterConfig>(headerFooterConfig);
   const puckDataRef = useRef<Data>(EMPTY_DATA);
 
   useEffect(() => {
     pageConfigRef.current = pageConfig;
   }, [pageConfig]);
+
+  useEffect(() => {
+    headerFooterConfigRef.current = headerFooterConfig;
+  }, [headerFooterConfig]);
 
   useEffect(() => {
     sampleDataRef.current = sampleData;
@@ -205,6 +193,13 @@ export default function StudioPage() {
             const loadedConfig = parseStoredPageConfig(template.pageConfig);
             setPageConfig(loadedConfig);
             pageConfigRef.current = loadedConfig;
+          }
+          if (template.headerFooterConfig) {
+            const loadedHeaderFooterConfig = parseStoredHeaderFooterConfig(
+              template.headerFooterConfig,
+            );
+            setHeaderFooterConfig(loadedHeaderFooterConfig);
+            headerFooterConfigRef.current = loadedHeaderFooterConfig;
           }
         } else {
           const defaultPages = [createDefaultPage('Page 1')];
@@ -317,6 +312,7 @@ export default function StudioPage() {
             pages: pagesPayload,
             sampleData: sampleDataRef.current,
             pageConfig: pageConfigRef.current,
+            headerFooterConfig: headerFooterConfigRef.current,
           }),
         });
         if (!response.ok) {
@@ -379,6 +375,11 @@ export default function StudioPage() {
   const handlePageConfigChange = useCallback((config: PageConfig) => {
     setPageConfig(config);
     pageConfigRef.current = config;
+  }, []);
+
+  const handleHeaderFooterConfigChange = useCallback((config: HeaderFooterConfig) => {
+    setHeaderFooterConfig(config);
+    headerFooterConfigRef.current = config;
   }, []);
 
   const handleTemplateNameChange = useCallback(
@@ -526,15 +527,18 @@ export default function StudioPage() {
                 </>
               ),
               fields: ({ children, isLoading }) => (
-                <div className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-20">
+                <RightPanel
+                  usePuck={usePuck}
+                  config={pageConfig}
+                  onConfigChange={handlePageConfigChange}
+                  pageTitle={activePage.name}
+                  onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
+                  headerFooterConfig={headerFooterConfig}
+                  onHeaderFooterConfigChange={handleHeaderFooterConfigChange}
+                  isLoading={isLoading ?? false}
+                >
                   {children}
-                  {!isLoading && (
-                    <PageConfigPanelWrapper
-                      config={pageConfig}
-                      onConfigChange={handlePageConfigChange}
-                    />
-                  )}
-                </div>
+                </RightPanel>
               ),
             }}
           />
