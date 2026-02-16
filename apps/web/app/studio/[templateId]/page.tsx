@@ -256,7 +256,7 @@ export default function StudioPage() {
 
   // Keyboard shortcuts
   useEffect(() => {
-    const handleKeyboard = (e: globalThis.KeyboardEvent) => {
+    const handleKeyboardShortcuts = (e: globalThis.KeyboardEvent) => {
       // Ctrl+Shift+D — Sample Data
       if (e.ctrlKey && e.shiftKey && e.key === 'D') {
         e.preventDefault();
@@ -268,8 +268,8 @@ export default function StudioPage() {
         handlePreview();
       }
     };
-    window.addEventListener('keydown', handleKeyboard);
-    return () => window.removeEventListener('keydown', handleKeyboard);
+    window.addEventListener('keydown', handleKeyboardShortcuts);
+    return () => window.removeEventListener('keydown', handleKeyboardShortcuts);
   }, [handlePreview]);
 
   // History callbacks
