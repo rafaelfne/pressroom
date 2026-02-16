@@ -5,14 +5,16 @@ import { useParams } from 'next/navigation';
 import { Puck, createUsePuck, type Data } from '@puckeditor/core';
 import '@puckeditor/core/puck.css';
 import { puckConfig } from '@/lib/puck/config';
-import { Button } from '@/components/ui/button';
 import { SampleDataPanel } from '@/components/studio/sample-data-panel';
 import { PageNavigator, type PageItem } from '@/components/studio/page-navigator';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
 import { PageConfigPanel } from '@/components/studio/page-config-panel';
-import { DEFAULT_PAGE_CONFIG, parseStoredPageConfig, type PageConfig } from '@/lib/types/page-config';
-import { Loader2, Download } from 'lucide-react';
+import {
+  DEFAULT_PAGE_CONFIG,
+  parseStoredPageConfig,
+  type PageConfig,
+} from '@/lib/types/page-config';
 import { Toaster, toast } from 'sonner';
 
 const usePuck = createUsePuck();
@@ -24,6 +26,37 @@ type UserSession = {
   email?: string | null;
   id?: string;
 };
+
+/**
+ * Bridge component that extracts Puck's internal state (history and data)
+ * and makes it available to the parent component. Must be rendered inside
+ * Puck's component tree to access the usePuck hook.
+ */
+function PuckBridge({
+  onHistoryChange,
+  dataRef,
+}: {
+  onHistoryChange: (
+    canUndo: boolean,
+    canRedo: boolean,
+    undo: () => void,
+    redo: () => void,
+  ) => void;
+  dataRef: React.MutableRefObject<Data>;
+}) {
+  const appState = usePuck((s) => s.appState);
+  const history = usePuck((s) => s.history);
+
+  useEffect(() => {
+    dataRef.current = appState.data;
+  }, [appState.data, dataRef]);
+
+  useEffect(() => {
+    onHistoryChange(history.hasPast, history.hasFuture, history.back, history.forward);
+  }, [history.hasPast, history.hasFuture, history.back, history.forward, onHistoryChange]);
+
+  return null;
+}
 
 let pageIdCounter = 0;
 function generatePageId(): string {
@@ -122,9 +155,20 @@ export default function StudioPage() {
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
   const [pageConfig, setPageConfig] = useState<PageConfig>(DEFAULT_PAGE_CONFIG);
+  
+  // History state for undo/redo
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const undoRef = useRef<(() => void) | null>(null);
+  const redoRef = useRef<(() => void) | null>(null);
+  
+  // Sample data panel state
+  const [isSampleDataOpen, setIsSampleDataOpen] = useState(false);
+  
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
   const pagesRef = useRef<PageItem[]>([]);
   const pageConfigRef = useRef<PageConfig>(pageConfig);
+  const puckDataRef = useRef<Data>(EMPTY_DATA);
 
   useEffect(() => {
     pageConfigRef.current = pageConfig;
@@ -206,6 +250,46 @@ export default function StudioPage() {
     }
   }, [saveError]);
 
+  const handlePreview = useCallback(() => {
+    window.open(`/studio/${templateId}/preview`, '_blank');
+  }, [templateId]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyboard = (e: globalThis.KeyboardEvent) => {
+      // Ctrl+Shift+D — Sample Data
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        setIsSampleDataOpen((prev) => !prev);
+      }
+      // Ctrl+Shift+P — Preview
+      if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        handlePreview();
+      }
+    };
+    window.addEventListener('keydown', handleKeyboard);
+    return () => window.removeEventListener('keydown', handleKeyboard);
+  }, [handlePreview]);
+
+  // History callbacks
+  const handleHistoryChange = useCallback(
+    (canUndoVal: boolean, canRedoVal: boolean, undo: () => void, redo: () => void) => {
+      setCanUndo(canUndoVal);
+      setCanRedo(canRedoVal);
+      undoRef.current = undo;
+      redoRef.current = redo;
+    },
+    [],
+  );
+
+  const handleUndo = useCallback(() => undoRef.current?.(), []);
+  const handleRedo = useCallback(() => redoRef.current?.(), []);
+
+  const handleToggleSampleData = useCallback(() => {
+    setIsSampleDataOpen((prev) => !prev);
+  }, []);
+
   // Save the current page's content when Puck publishes
   const handlePublish = useCallback(
     async (data: Data) => {
@@ -248,9 +332,10 @@ export default function StudioPage() {
     [templateId, activePageId],
   );
 
-  const handlePreview = useCallback(() => {
-    window.open(`/studio/${templateId}/preview`, '_blank');
-  }, [templateId]);
+  // Publish from header button using current Puck data
+  const handlePublishFromHeader = useCallback(() => {
+    handlePublish(puckDataRef.current);
+  }, [handlePublish]);
 
   const handleDownloadPdf = useCallback(async () => {
     setIsDownloadingPdf(true);
@@ -286,10 +371,6 @@ export default function StudioPage() {
       setIsDownloadingPdf(false);
     }
   }, [templateId, templateName]);
-
-  const dismissError = useCallback(() => {
-    setSaveError(null);
-  }, []);
 
   const handleSampleDataChange = useCallback((data: Record<string, unknown>) => {
     setSampleData(data);
@@ -408,6 +489,16 @@ export default function StudioPage() {
         templateName={templateName}
         onTemplateNameChange={handleTemplateNameChange}
         user={displayUser}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onToggleSampleData={handleToggleSampleData}
+        onDownloadPdf={handleDownloadPdf}
+        isDownloadingPdf={isDownloadingPdf}
+        onPreview={handlePreview}
+        onPublish={handlePublishFromHeader}
+        isSaving={isSaving}
       />
       <div className="flex flex-1 overflow-hidden">
         <PageNavigator
@@ -420,52 +511,17 @@ export default function StudioPage() {
           onRenamePage={handleRenamePage}
           onReorderPage={handleReorderPage}
         />
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative">
           <Puck
             key={activePage.id}
             config={puckConfig}
             data={activePage.content}
             onPublish={handlePublish}
             overrides={{
-              headerActions: ({ children }) => (
+              header: () => <></>,
+              puck: ({ children }) => (
                 <>
-                  {saveError && (
-                    <div className="flex items-center gap-2 mr-2" role="alert">
-                      <span className="text-sm text-destructive">{saveError}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={dismissError}
-                        className="h-6 px-2"
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  )}
-                  {isSaving && (
-                    <span className="text-sm text-muted-foreground mr-2">Saving...</span>
-                  )}
-                  <SampleDataPanel
-                    sampleData={sampleData}
-                    onSampleDataChange={handleSampleDataChange}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadPdf}
-                    disabled={isDownloadingPdf}
-                    data-testid="download-pdf-button"
-                  >
-                    {isDownloadingPdf ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="mr-2 h-4 w-4" />
-                    )}
-                    {isDownloadingPdf ? 'Generating…' : 'Download PDF'}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handlePreview}>
-                    Preview
-                  </Button>
+                  <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
                   {children}
                 </>
               ),
@@ -482,6 +538,17 @@ export default function StudioPage() {
               ),
             }}
           />
+          {/* Sample Data Panel as slide-over */}
+          {isSampleDataOpen && (
+            <div className="absolute right-0 top-0 z-50 h-full">
+              <SampleDataPanel
+                sampleData={sampleData}
+                onSampleDataChange={handleSampleDataChange}
+                isOpen={isSampleDataOpen}
+                onToggle={handleToggleSampleData}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
