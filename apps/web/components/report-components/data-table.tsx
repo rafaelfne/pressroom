@@ -505,12 +505,16 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                       
                       // Parse the horizontal padding and add indent
                       const paddingValue = parseInt(horizontalPadding, 10);
-                      const totalPaddingLeft = paddingValue + additionalIndent;
                       
-                      cellStyle.paddingLeft = `${totalPaddingLeft}px`;
-                      cellStyle.paddingRight = horizontalPadding;
-                      cellStyle.paddingTop = verticalPadding;
-                      cellStyle.paddingBottom = verticalPadding;
+                      // Only apply indentation if padding value is valid
+                      if (!isNaN(paddingValue)) {
+                        const totalPaddingLeft = paddingValue + additionalIndent;
+                        
+                        cellStyle.paddingLeft = `${totalPaddingLeft}px`;
+                        cellStyle.paddingRight = horizontalPadding;
+                        cellStyle.paddingTop = verticalPadding;
+                        cellStyle.paddingBottom = verticalPadding;
+                      }
                     }
 
                     return (
@@ -550,7 +554,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                     style={{
                       ...tdStyle,
                       textAlign: column.align || 'left',
-                      borderRight: ((isBordered || hasVerticalBorders) && index === columns.length - 2) ? 'none' : tdStyle.borderRight,
+                      borderRight: ((isBordered || hasVerticalBorders) && index === columns.slice(1).length - 1) ? 'none' : tdStyle.borderRight,
                     }}
                   >
                     {/* Empty cells - binding engine fills these at render time */}
