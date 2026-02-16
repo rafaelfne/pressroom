@@ -26,8 +26,8 @@ export function BlockFieldsPanel({
 }: BlockFieldsPanelProps) {
   const dispatch = usePuck((s) => s.dispatch);
 
-  // TODO: Page break behavior is not persisted yet. State resets on component unmount.
-  // This is intentional for MVP - persistence will be added in a future enhancement.
+  // Page break behavior state is local to this component for MVP.
+  // Persistence will be added when page break behavior is stored in Puck component props.
   const [pageBreakBehavior, setPageBreakBehavior] = React.useState<
     'auto' | 'avoid' | 'before' | 'after'
   >('auto');

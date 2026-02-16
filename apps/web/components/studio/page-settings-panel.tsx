@@ -17,6 +17,10 @@ import {
   detectMarginPreset,
 } from '@/lib/types/page-config';
 import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
+import {
+  DEFAULT_HEADER_CONFIG,
+  DEFAULT_FOOTER_CONFIG,
+} from '@/lib/types/header-footer-config';
 
 export interface PageSettingsPanelProps {
   config: PageConfig;
@@ -79,8 +83,7 @@ export function PageSettingsPanel({
   };
 
   const handleHeaderEnabledChange = (enabled: boolean) => {
-    const header = headerFooterConfig.header;
-    if (!header) return;
+    const header = headerFooterConfig.header ?? DEFAULT_HEADER_CONFIG;
     
     onHeaderFooterConfigChange({
       ...headerFooterConfig,
@@ -92,8 +95,7 @@ export function PageSettingsPanel({
   };
 
   const handleFooterEnabledChange = (enabled: boolean) => {
-    const footer = headerFooterConfig.footer;
-    if (!footer) return;
+    const footer = headerFooterConfig.footer ?? DEFAULT_FOOTER_CONFIG;
     
     onHeaderFooterConfigChange({
       ...headerFooterConfig,
