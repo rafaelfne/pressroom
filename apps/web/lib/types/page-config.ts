@@ -212,3 +212,46 @@ export function parseStoredPageConfig(
     customHeight: typeof data.customHeight === 'number' ? data.customHeight : undefined,
   });
 }
+
+// ============================================================================
+// MM to PX Conversion (96 DPI)
+// ============================================================================
+
+/**
+ * Conversion factor from millimeters to pixels at 96 DPI.
+ * 96 DPI = 96 pixels per inch, 1 inch = 25.4 mm
+ * Therefore: 1 mm = 96 / 25.4 = 3.7795275591 px
+ */
+export const MM_TO_PX = 3.7795275591;
+
+/**
+ * Converts millimeters to pixels at 96 DPI, rounded to the nearest integer.
+ */
+export function mmToPx(mm: number): number {
+  return Math.round(mm * MM_TO_PX);
+}
+
+/**
+ * Returns page dimensions in pixels (at 96 DPI) for a given PageConfig.
+ * Uses getPageDimensions to get mm dimensions, then converts to px.
+ */
+export function getPageDimensionsPx(config: PageConfig): {
+  width: number;
+  height: number;
+} {
+  const { width, height } = getPageDimensions(config);
+  return {
+    width: mmToPx(width),
+    height: mmToPx(height),
+  };
+}
+
+/**
+ * Available zoom levels for page preview (in percentage).
+ */
+export const ZOOM_LEVELS = [50, 75, 100, 125, 150] as const;
+
+/**
+ * Type representing a valid zoom level.
+ */
+export type ZoomLevel = typeof ZOOM_LEVELS[number];
