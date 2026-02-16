@@ -271,7 +271,7 @@ export function StudioHeader({
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Download PDF (Ctrl+Shift+P)</TooltipContent>
+              <TooltipContent>Download PDF</TooltipContent>
             </Tooltip>
 
             {/* Preview */}
