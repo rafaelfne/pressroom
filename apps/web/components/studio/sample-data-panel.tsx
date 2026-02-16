@@ -7,20 +7,31 @@ import { SampleDataEditor } from './sample-data-editor';
 export interface SampleDataPanelProps {
   sampleData: Record<string, unknown>;
   onSampleDataChange: (data: Record<string, unknown>) => void;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 export function SampleDataPanel({
   sampleData,
   onSampleDataChange,
+  isOpen: externalIsOpen,
+  onToggle: externalOnToggle,
 }: SampleDataPanelProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  
+  // Use external state if provided, otherwise use internal state
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const [jsonText, setJsonText] = useState(() =>
     JSON.stringify(sampleData, null, 2),
   );
 
   const handleToggle = useCallback(() => {
-    setIsOpen((prev) => !prev);
-  }, []);
+    if (externalOnToggle) {
+      externalOnToggle();
+    } else {
+      setInternalIsOpen((prev) => !prev);
+    }
+  }, [externalOnToggle]);
 
   const handleJsonChange = useCallback((text: string) => {
     setJsonText(text);
