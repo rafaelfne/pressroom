@@ -6,7 +6,9 @@ import { Puck, createUsePuck, type Data } from '@puckeditor/core';
 import '@puckeditor/core/puck.css';
 import { puckConfig } from '@/lib/puck/config';
 import { SampleDataPanel } from '@/components/studio/sample-data-panel';
-import { PageNavigator, type PageItem } from '@/components/studio/page-navigator';
+import { type PageItem } from '@/components/studio/page-navigator';
+import { PageTabBar } from '@/components/studio/page-tab-bar';
+import { PaperCanvas } from '@/components/studio/paper-canvas';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
 import { RightPanel } from '@/components/studio/right-panel';
@@ -147,6 +149,9 @@ export default function StudioPage() {
 
   // Sample data panel state
   const [isSampleDataOpen, setIsSampleDataOpen] = useState(false);
+
+  // Canvas zoom state
+  const [zoom, setZoom] = useState(100);
 
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
   const pagesRef = useRef<PageItem[]>([]);
@@ -502,17 +507,7 @@ export default function StudioPage() {
         isSaving={isSaving}
       />
       <div className="flex flex-1 overflow-hidden">
-        <PageNavigator
-          pages={pages}
-          activePageId={activePage.id}
-          onSelectPage={handleSelectPage}
-          onAddPage={handleAddPage}
-          onDeletePage={handleDeletePage}
-          onDuplicatePage={handleDuplicatePage}
-          onRenamePage={handleRenamePage}
-          onReorderPage={handleReorderPage}
-        />
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex flex-1 flex-col overflow-hidden relative">
           <Puck
             key={activePage.id}
             config={puckConfig}
@@ -525,6 +520,13 @@ export default function StudioPage() {
                   <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
                   {children}
                 </>
+              ),
+              preview: () => (
+                <PaperCanvas pageConfig={pageConfig} zoom={zoom} onZoomChange={setZoom}>
+                  <div style={{ width: '100%', height: '100%' }}>
+                    <Puck.Preview />
+                  </div>
+                </PaperCanvas>
               ),
               fields: ({ children }) => (
                 <RightPanel
@@ -540,6 +542,17 @@ export default function StudioPage() {
                 </RightPanel>
               ),
             }}
+          />
+          {/* Page Tab Bar at bottom of canvas */}
+          <PageTabBar
+            pages={pages}
+            activePageId={activePage.id}
+            onSelectPage={handleSelectPage}
+            onAddPage={handleAddPage}
+            onDeletePage={handleDeletePage}
+            onDuplicatePage={handleDuplicatePage}
+            onRenamePage={handleRenamePage}
+            onReorderPage={handleReorderPage}
           />
           {/* Sample Data Panel as slide-over */}
           {isSampleDataOpen && (
