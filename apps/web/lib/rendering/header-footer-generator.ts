@@ -9,6 +9,7 @@
  */
 
 import { resolveBindings } from '../binding';
+import { pxToMm } from '../types/page-config';
 import type {
   HeaderConfig,
   FooterConfig,
@@ -152,7 +153,7 @@ function buildTemplateHtml(
   ];
 
   if (options.height) {
-    wrapperStyles.push(`height: ${options.height}mm`);
+    wrapperStyles.push(`height: ${pxToMm(options.height).toFixed(2)}mm`);
   }
 
   if (options.backgroundColor) {

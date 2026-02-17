@@ -16,11 +16,12 @@ import {
   MARGIN_PRESETS,
   detectMarginPreset,
 } from '@/lib/types/page-config';
-import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
+import type { HeaderFooterConfig, HeaderConfig, FooterConfig } from '@/lib/types/header-footer-config';
 import {
   DEFAULT_HEADER_CONFIG,
   DEFAULT_FOOTER_CONFIG,
 } from '@/lib/types/header-footer-config';
+import { HeaderFooterConfigDialog } from './header-footer-config-dialog';
 
 export interface PageSettingsPanelProps {
   config: PageConfig;
@@ -43,6 +44,33 @@ export function PageSettingsPanel({
   headerFooterConfig,
   onHeaderFooterConfigChange,
 }: PageSettingsPanelProps) {
+  // Local state for text inputs to prevent focus loss during typing
+  const [localPageTitle, setLocalPageTitle] = React.useState(pageTitle);
+  const [localMargins, setLocalMargins] = React.useState(config.margins);
+  const [localCustomWidth, setLocalCustomWidth] = React.useState(config.customWidth ?? 595);
+  const [localCustomHeight, setLocalCustomHeight] = React.useState(config.customHeight ?? 842);
+
+  // Dialog state for header/footer configuration
+  const [headerDialogOpen, setHeaderDialogOpen] = React.useState(false);
+  const [footerDialogOpen, setFooterDialogOpen] = React.useState(false);
+
+  // Sync local state when props change from external sources
+  React.useEffect(() => {
+    setLocalPageTitle(pageTitle);
+  }, [pageTitle]);
+
+  React.useEffect(() => {
+    setLocalMargins(config.margins);
+  }, [config.margins]);
+
+  React.useEffect(() => {
+    setLocalCustomWidth(config.customWidth ?? 595);
+  }, [config.customWidth]);
+
+  React.useEffect(() => {
+    setLocalCustomHeight(config.customHeight ?? 842);
+  }, [config.customHeight]);
+
   // Detect current margin preset
   const currentMarginPreset = React.useMemo(
     () => detectMarginPreset(config.margins),
@@ -84,7 +112,7 @@ export function PageSettingsPanel({
 
   const handleHeaderEnabledChange = (enabled: boolean) => {
     const header = headerFooterConfig.header ?? DEFAULT_HEADER_CONFIG;
-    
+
     onHeaderFooterConfigChange({
       ...headerFooterConfig,
       header: {
@@ -96,7 +124,7 @@ export function PageSettingsPanel({
 
   const handleFooterEnabledChange = (enabled: boolean) => {
     const footer = headerFooterConfig.footer ?? DEFAULT_FOOTER_CONFIG;
-    
+
     onHeaderFooterConfigChange({
       ...headerFooterConfig,
       footer: {
@@ -122,8 +150,13 @@ export function PageSettingsPanel({
           id="page-title"
           data-testid="page-title-input"
           type="text"
-          value={pageTitle}
-          onChange={(e) => onPageTitleChange(e.target.value)}
+          value={localPageTitle}
+          onChange={(e) => setLocalPageTitle(e.target.value)}
+          onBlur={() => {
+            if (localPageTitle !== pageTitle) {
+              onPageTitleChange(localPageTitle);
+            }
+          }}
           placeholder="Page name"
         />
       </div>
@@ -159,33 +192,43 @@ export function PageSettingsPanel({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="custom-width" className="text-xs">
-                Width (mm)
+                Width (px)
               </Label>
               <Input
                 id="custom-width"
                 data-testid="custom-width"
                 type="number"
                 min={1}
-                value={config.customWidth ?? 210}
+                value={localCustomWidth}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
-                  handleCustomDimensionChange('customWidth', isNaN(val) ? 210 : val);
+                  setLocalCustomWidth(isNaN(val) ? 595 : val);
+                }}
+                onBlur={() => {
+                  if (localCustomWidth !== (config.customWidth ?? 595)) {
+                    handleCustomDimensionChange('customWidth', localCustomWidth);
+                  }
                 }}
               />
             </div>
             <div className="space-y-1">
               <Label htmlFor="custom-height" className="text-xs">
-                Height (mm)
+                Height (px)
               </Label>
               <Input
                 id="custom-height"
                 data-testid="custom-height"
                 type="number"
                 min={1}
-                value={config.customHeight ?? 297}
+                value={localCustomHeight}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
-                  handleCustomDimensionChange('customHeight', isNaN(val) ? 297 : val);
+                  setLocalCustomHeight(isNaN(val) ? 842 : val);
+                }}
+                onBlur={() => {
+                  if (localCustomHeight !== (config.customHeight ?? 842)) {
+                    handleCustomDimensionChange('customHeight', localCustomHeight);
+                  }
                 }}
               />
             </div>
@@ -257,69 +300,89 @@ export function PageSettingsPanel({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="margin-top" className="text-xs">
-              Top (mm)
+              Top (px)
             </Label>
             <Input
               id="margin-top"
               data-testid="margin-top"
               type="number"
               min={0}
-              step="0.1"
-              value={config.margins.top}
+              step="1"
+              value={localMargins.top}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                handleMarginChange('top', isNaN(val) ? 0 : val);
+                setLocalMargins((prev) => ({ ...prev, top: isNaN(val) ? 0 : val }));
+              }}
+              onBlur={() => {
+                if (localMargins.top !== config.margins.top) {
+                  handleMarginChange('top', localMargins.top);
+                }
               }}
             />
           </div>
           <div className="space-y-1">
             <Label htmlFor="margin-right" className="text-xs">
-              Right (mm)
+              Right (px)
             </Label>
             <Input
               id="margin-right"
               data-testid="margin-right"
               type="number"
               min={0}
-              step="0.1"
-              value={config.margins.right}
+              step="1"
+              value={localMargins.right}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                handleMarginChange('right', isNaN(val) ? 0 : val);
+                setLocalMargins((prev) => ({ ...prev, right: isNaN(val) ? 0 : val }));
+              }}
+              onBlur={() => {
+                if (localMargins.right !== config.margins.right) {
+                  handleMarginChange('right', localMargins.right);
+                }
               }}
             />
           </div>
           <div className="space-y-1">
             <Label htmlFor="margin-bottom" className="text-xs">
-              Bottom (mm)
+              Bottom (px)
             </Label>
             <Input
               id="margin-bottom"
               data-testid="margin-bottom"
               type="number"
               min={0}
-              step="0.1"
-              value={config.margins.bottom}
+              step="1"
+              value={localMargins.bottom}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                handleMarginChange('bottom', isNaN(val) ? 0 : val);
+                setLocalMargins((prev) => ({ ...prev, bottom: isNaN(val) ? 0 : val }));
+              }}
+              onBlur={() => {
+                if (localMargins.bottom !== config.margins.bottom) {
+                  handleMarginChange('bottom', localMargins.bottom);
+                }
               }}
             />
           </div>
           <div className="space-y-1">
             <Label htmlFor="margin-left" className="text-xs">
-              Left (mm)
+              Left (px)
             </Label>
             <Input
               id="margin-left"
               data-testid="margin-left"
               type="number"
               min={0}
-              step="0.1"
-              value={config.margins.left}
+              step="1"
+              value={localMargins.left}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                handleMarginChange('left', isNaN(val) ? 0 : val);
+                setLocalMargins((prev) => ({ ...prev, left: isNaN(val) ? 0 : val }));
+              }}
+              onBlur={() => {
+                if (localMargins.left !== config.margins.left) {
+                  handleMarginChange('left', localMargins.left);
+                }
               }}
             />
           </div>
@@ -350,11 +413,23 @@ export function PageSettingsPanel({
           <button
             type="button"
             data-testid="configure-header-link"
-            className="text-xs text-blue-600 hover:underline cursor-not-allowed opacity-50"
-            disabled
+            className="text-xs text-blue-600 hover:underline"
+            onClick={() => setHeaderDialogOpen(true)}
           >
             Configure Header →
           </button>
+          <HeaderFooterConfigDialog
+            type="header"
+            open={headerDialogOpen}
+            onOpenChange={setHeaderDialogOpen}
+            config={headerFooterConfig.header}
+            onSave={(newConfig) => {
+              onHeaderFooterConfigChange({
+                ...headerFooterConfig,
+                header: newConfig,
+              });
+            }}
+          />
         </div>
 
         {/* Footer */}
@@ -375,11 +450,23 @@ export function PageSettingsPanel({
           <button
             type="button"
             data-testid="configure-footer-link"
-            className="text-xs text-blue-600 hover:underline cursor-not-allowed opacity-50"
-            disabled
+            className="text-xs text-blue-600 hover:underline"
+            onClick={() => setFooterDialogOpen(true)}
           >
             Configure Footer →
           </button>
+          <HeaderFooterConfigDialog
+            type="footer"
+            open={footerDialogOpen}
+            onOpenChange={setFooterDialogOpen}
+            config={headerFooterConfig.footer}
+            onSave={(newConfig) => {
+              onHeaderFooterConfigChange({
+                ...headerFooterConfig,
+                footer: newConfig,
+              });
+            }}
+          />
         </div>
       </div>
     </div>

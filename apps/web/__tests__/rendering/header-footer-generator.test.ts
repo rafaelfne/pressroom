@@ -260,10 +260,10 @@ describe('generateHeaderHtml', () => {
     expect(html).toContain('-webkit-print-color-adjust: exact');
   });
 
-  it('sets height in mm', () => {
+  it('converts height from pixels to mm', () => {
     const config: HeaderConfig = {
       enabled: true,
-      height: 20,
+      height: 57, // 57px at 72 DPI ≈ 20.11mm
       zones: {
         left: { type: 'empty' },
         center: { type: 'empty' },
@@ -271,7 +271,7 @@ describe('generateHeaderHtml', () => {
       },
     };
     const html = generateHeaderHtml(config);
-    expect(html).toContain('height: 20mm');
+    expect(html).toContain('height: 20.11mm');
   });
 
   it('escapes HTML in text values', () => {

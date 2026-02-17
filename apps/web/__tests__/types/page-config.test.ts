@@ -20,12 +20,12 @@ describe('DEFAULT_PAGE_CONFIG', () => {
     expect(DEFAULT_PAGE_CONFIG.orientation).toBe('portrait');
   });
 
-  it('has 20mm margins on all sides', () => {
+  it('has 57px margins on all sides (normal preset)', () => {
     expect(DEFAULT_PAGE_CONFIG.margins).toEqual({
-      top: 20,
-      right: 20,
-      bottom: 20,
-      left: 20,
+      top: 57,
+      right: 57,
+      bottom: 57,
+      left: 57,
     });
   });
 });
@@ -38,24 +38,24 @@ describe('PAPER_SIZES', () => {
     expect(PAPER_SIZES).toHaveProperty('A3');
   });
 
-  it('A4 is 210 × 297 mm', () => {
-    expect(PAPER_SIZES.A4.width).toBe(210);
-    expect(PAPER_SIZES.A4.height).toBe(297);
+  it('A4 is 595 × 842 px', () => {
+    expect(PAPER_SIZES.A4.width).toBe(595);
+    expect(PAPER_SIZES.A4.height).toBe(842);
   });
 
-  it('Letter is 215.9 × 279.4 mm', () => {
-    expect(PAPER_SIZES.Letter.width).toBe(215.9);
-    expect(PAPER_SIZES.Letter.height).toBe(279.4);
+  it('Letter is 612 × 792 px', () => {
+    expect(PAPER_SIZES.Letter.width).toBe(612);
+    expect(PAPER_SIZES.Letter.height).toBe(792);
   });
 
-  it('Legal is 215.9 × 355.6 mm', () => {
-    expect(PAPER_SIZES.Legal.width).toBe(215.9);
-    expect(PAPER_SIZES.Legal.height).toBe(355.6);
+  it('Legal is 612 × 1008 px', () => {
+    expect(PAPER_SIZES.Legal.width).toBe(612);
+    expect(PAPER_SIZES.Legal.height).toBe(1008);
   });
 
-  it('A3 is 297 × 420 mm', () => {
-    expect(PAPER_SIZES.A3.width).toBe(297);
-    expect(PAPER_SIZES.A3.height).toBe(420);
+  it('A3 is 842 × 1191 px', () => {
+    expect(PAPER_SIZES.A3.width).toBe(842);
+    expect(PAPER_SIZES.A3.height).toBe(1191);
   });
 
   it('all sizes have labels', () => {
@@ -73,21 +73,21 @@ describe('MARGIN_PRESETS', () => {
     expect(MARGIN_PRESETS).toHaveProperty('wide');
   });
 
-  it('normal has 20mm margins', () => {
+  it('normal has 57px margins', () => {
     expect(MARGIN_PRESETS.normal.margins).toEqual({
-      top: 20, right: 20, bottom: 20, left: 20,
+      top: 57, right: 57, bottom: 57, left: 57,
     });
   });
 
-  it('narrow has 12.7mm margins', () => {
+  it('narrow has 36px margins', () => {
     expect(MARGIN_PRESETS.narrow.margins).toEqual({
-      top: 12.7, right: 12.7, bottom: 12.7, left: 12.7,
+      top: 36, right: 36, bottom: 36, left: 36,
     });
   });
 
-  it('wide has 25.4mm margins', () => {
+  it('wide has 72px margins', () => {
     expect(MARGIN_PRESETS.wide.margins).toEqual({
-      top: 25.4, right: 25.4, bottom: 25.4, left: 25.4,
+      top: 72, right: 72, bottom: 72, left: 72,
     });
   });
 });
@@ -95,7 +95,7 @@ describe('MARGIN_PRESETS', () => {
 describe('getPageDimensions', () => {
   it('returns A4 portrait dimensions', () => {
     const dims = getPageDimensions(DEFAULT_PAGE_CONFIG);
-    expect(dims).toEqual({ width: 210, height: 297 });
+    expect(dims).toEqual({ width: 595, height: 842 });
   });
 
   it('swaps dimensions for landscape', () => {
@@ -103,7 +103,7 @@ describe('getPageDimensions', () => {
       ...DEFAULT_PAGE_CONFIG,
       orientation: 'landscape',
     });
-    expect(dims).toEqual({ width: 297, height: 210 });
+    expect(dims).toEqual({ width: 842, height: 595 });
   });
 
   it('returns Letter dimensions', () => {
@@ -111,7 +111,7 @@ describe('getPageDimensions', () => {
       ...DEFAULT_PAGE_CONFIG,
       paperSize: 'Letter',
     });
-    expect(dims).toEqual({ width: 215.9, height: 279.4 });
+    expect(dims).toEqual({ width: 612, height: 792 });
   });
 
   it('returns custom dimensions when provided', () => {
@@ -119,10 +119,10 @@ describe('getPageDimensions', () => {
       paperSize: 'Custom',
       orientation: 'portrait',
       margins: DEFAULT_PAGE_CONFIG.margins,
-      customWidth: 150,
-      customHeight: 200,
+      customWidth: 400,
+      customHeight: 600,
     });
-    expect(dims).toEqual({ width: 150, height: 200 });
+    expect(dims).toEqual({ width: 400, height: 600 });
   });
 
   it('swaps custom dimensions for landscape', () => {
@@ -130,10 +130,10 @@ describe('getPageDimensions', () => {
       paperSize: 'Custom',
       orientation: 'landscape',
       margins: DEFAULT_PAGE_CONFIG.margins,
-      customWidth: 150,
-      customHeight: 200,
+      customWidth: 400,
+      customHeight: 600,
     });
-    expect(dims).toEqual({ width: 200, height: 150 });
+    expect(dims).toEqual({ width: 600, height: 400 });
   });
 
   it('falls back to A4 for Custom without dimensions', () => {
@@ -142,21 +142,21 @@ describe('getPageDimensions', () => {
       orientation: 'portrait',
       margins: DEFAULT_PAGE_CONFIG.margins,
     });
-    expect(dims).toEqual({ width: 210, height: 297 });
+    expect(dims).toEqual({ width: 595, height: 842 });
   });
 });
 
 describe('detectMarginPreset', () => {
   it('detects normal preset', () => {
-    expect(detectMarginPreset({ top: 20, right: 20, bottom: 20, left: 20 })).toBe('normal');
+    expect(detectMarginPreset({ top: 57, right: 57, bottom: 57, left: 57 })).toBe('normal');
   });
 
   it('detects narrow preset', () => {
-    expect(detectMarginPreset({ top: 12.7, right: 12.7, bottom: 12.7, left: 12.7 })).toBe('narrow');
+    expect(detectMarginPreset({ top: 36, right: 36, bottom: 36, left: 36 })).toBe('narrow');
   });
 
   it('detects wide preset', () => {
-    expect(detectMarginPreset({ top: 25.4, right: 25.4, bottom: 25.4, left: 25.4 })).toBe('wide');
+    expect(detectMarginPreset({ top: 72, right: 72, bottom: 72, left: 72 })).toBe('wide');
   });
 
   it('returns custom for non-matching margins', () => {
@@ -164,39 +164,39 @@ describe('detectMarginPreset', () => {
   });
 
   it('returns custom when one margin differs from preset', () => {
-    expect(detectMarginPreset({ top: 20, right: 20, bottom: 20, left: 21 })).toBe('custom');
+    expect(detectMarginPreset({ top: 57, right: 57, bottom: 57, left: 58 })).toBe('custom');
   });
 });
 
 describe('pageConfigToRenderOptions', () => {
-  it('converts A4 portrait with normal margins', () => {
+  it('converts A4 portrait with normal margins (57px → mm)', () => {
     const options = pageConfigToRenderOptions(DEFAULT_PAGE_CONFIG);
     expect(options).toEqual({
       format: 'A4',
       orientation: 'portrait',
       margin: {
-        top: '20mm',
-        right: '20mm',
-        bottom: '20mm',
-        left: '20mm',
+        top: '20.11mm',
+        right: '20.11mm',
+        bottom: '20.11mm',
+        left: '20.11mm',
       },
     });
   });
 
-  it('converts Letter landscape', () => {
+  it('converts Letter landscape with narrow margins (36px → mm)', () => {
     const options = pageConfigToRenderOptions({
       paperSize: 'Letter',
       orientation: 'landscape',
-      margins: { top: 12.7, right: 12.7, bottom: 12.7, left: 12.7 },
+      margins: { top: 36, right: 36, bottom: 36, left: 36 },
     });
     expect(options).toEqual({
       format: 'Letter',
       orientation: 'landscape',
       margin: {
-        top: '12.7mm',
-        right: '12.7mm',
-        bottom: '12.7mm',
-        left: '12.7mm',
+        top: '12.70mm',
+        right: '12.70mm',
+        bottom: '12.70mm',
+        left: '12.70mm',
       },
     });
   });
@@ -219,16 +219,17 @@ describe('pageConfigToRenderOptions', () => {
     expect(options.format).toBe('Legal');
   });
 
-  it('converts Custom paper size to width/height strings', () => {
+  it('converts Custom paper size to width/height in mm', () => {
     const options = pageConfigToRenderOptions({
       paperSize: 'Custom',
       orientation: 'portrait',
-      margins: { top: 10, right: 10, bottom: 10, left: 10 },
-      customWidth: 150,
-      customHeight: 200,
+      margins: { top: 28, right: 28, bottom: 28, left: 28 },
+      customWidth: 425,
+      customHeight: 567,
     });
-    expect(options.width).toBe('150mm');
-    expect(options.height).toBe('200mm');
+    // 425px → 149.93mm, 567px → 200.02mm
+    expect(options.width).toBe('149.93mm');
+    expect(options.height).toBe('200.02mm');
     expect(options.format).toBeUndefined();
   });
 
@@ -236,10 +237,11 @@ describe('pageConfigToRenderOptions', () => {
     const options = pageConfigToRenderOptions({
       paperSize: 'Custom',
       orientation: 'portrait',
-      margins: { top: 20, right: 20, bottom: 20, left: 20 },
+      margins: { top: 57, right: 57, bottom: 57, left: 57 },
     });
-    expect(options.width).toBe('210mm');
-    expect(options.height).toBe('297mm');
+    // A4: 595px → 209.90mm, 842px → 297.04mm
+    expect(options.width).toBe('209.90mm');
+    expect(options.height).toBe('297.04mm');
   });
 });
 

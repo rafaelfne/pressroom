@@ -36,7 +36,7 @@ describe('PageConfigDialog', () => {
 
   it('shows dimensions label for named paper sizes', () => {
     render(<PageConfigDialog {...defaultProps} />);
-    const labels = screen.getAllByText(/A4 \(210 × 297 mm\)/);
+    const labels = screen.getAllByText(/A4 \(595 × 842 px\)/);
     expect(labels[0]).toBeInTheDocument();
   });
 
@@ -70,16 +70,16 @@ describe('PageConfigDialog', () => {
 
   it('displays all four margin inputs with correct values', () => {
     render(<PageConfigDialog {...defaultProps} />);
-    
+
     const topInput = screen.getAllByTestId('margin-top')[0] as HTMLInputElement;
     const rightInput = screen.getAllByTestId('margin-right')[0] as HTMLInputElement;
     const bottomInput = screen.getAllByTestId('margin-bottom')[0] as HTMLInputElement;
     const leftInput = screen.getAllByTestId('margin-left')[0] as HTMLInputElement;
 
-    expect(topInput.value).toBe('20');
-    expect(rightInput.value).toBe('20');
-    expect(bottomInput.value).toBe('20');
-    expect(leftInput.value).toBe('20');
+    expect(topInput.value).toBe('57');
+    expect(rightInput.value).toBe('57');
+    expect(bottomInput.value).toBe('57');
+    expect(leftInput.value).toBe('57');
   });
 
   it('highlights correct margin preset', () => {
@@ -93,17 +93,17 @@ describe('PageConfigDialog', () => {
     const narrowPreset = screen.getAllByTestId('margin-preset-narrow')[0];
     fireEvent.click(narrowPreset);
 
-    // Check that all margins are updated to narrow preset (12.7mm)
+    // Check that all margins are updated to narrow preset (36px)
     const topInput = screen.getAllByTestId('margin-top')[0] as HTMLInputElement;
-    expect(topInput.value).toBe('12.7');
+    expect(topInput.value).toBe('36');
   });
 
   it('updates margin inputs when values are changed', () => {
     render(<PageConfigDialog {...defaultProps} />);
     const topInput = screen.getAllByTestId('margin-top')[0];
-    
+
     fireEvent.change(topInput, { target: { value: '30' } });
-    
+
     expect((topInput as HTMLInputElement).value).toBe('30');
   });
 
@@ -117,11 +117,11 @@ describe('PageConfigDialog', () => {
 
   it('calls onConfigChange and onOpenChange when Apply button is clicked', async () => {
     render(<PageConfigDialog {...defaultProps} />);
-    
+
     // Change a value
     const landscapeBtn = screen.getAllByTestId('orientation-landscape')[0];
     fireEvent.click(landscapeBtn);
-    
+
     // Apply changes
     const applyBtn = screen.getAllByTestId('page-config-apply')[0];
     fireEvent.click(applyBtn);
@@ -150,13 +150,13 @@ describe('PageConfigDialog', () => {
 
   it('auto-detects margin preset when values match', () => {
     render(<PageConfigDialog {...defaultProps} />);
-    
-    // Set all margins to narrow preset values manually
-    fireEvent.change(screen.getAllByTestId('margin-top')[0], { target: { value: '12.7' } });
-    fireEvent.change(screen.getAllByTestId('margin-right')[0], { target: { value: '12.7' } });
-    fireEvent.change(screen.getAllByTestId('margin-bottom')[0], { target: { value: '12.7' } });
-    fireEvent.change(screen.getAllByTestId('margin-left')[0], { target: { value: '12.7' } });
-    
+
+    // Set all margins to narrow preset values manually (36px)
+    fireEvent.change(screen.getAllByTestId('margin-top')[0], { target: { value: '36' } });
+    fireEvent.change(screen.getAllByTestId('margin-right')[0], { target: { value: '36' } });
+    fireEvent.change(screen.getAllByTestId('margin-bottom')[0], { target: { value: '36' } });
+    fireEvent.change(screen.getAllByTestId('margin-left')[0], { target: { value: '36' } });
+
     // Narrow preset should be highlighted
     const narrowPreset = screen.getAllByTestId('margin-preset-narrow')[0];
     expect(narrowPreset.className).toContain('bg-primary');
@@ -164,10 +164,10 @@ describe('PageConfigDialog', () => {
 
   it('shows custom preset when margins do not match any preset', () => {
     render(<PageConfigDialog {...defaultProps} />);
-    
+
     // Set a custom value
     fireEvent.change(screen.getAllByTestId('margin-top')[0], { target: { value: '15' } });
-    
+
     // Custom preset should be highlighted
     const customPreset = screen.getAllByTestId('margin-preset-custom')[0];
     expect(customPreset.className).toContain('bg-primary');
@@ -175,7 +175,7 @@ describe('PageConfigDialog', () => {
 
   it('has proper data-testid attributes', () => {
     render(<PageConfigDialog {...defaultProps} />);
-    
+
     expect(screen.getAllByTestId('page-config-dialog')[0]).toBeInTheDocument();
     expect(screen.getAllByTestId('paper-size-select')[0]).toBeInTheDocument();
     expect(screen.getAllByTestId('orientation-portrait')[0]).toBeInTheDocument();

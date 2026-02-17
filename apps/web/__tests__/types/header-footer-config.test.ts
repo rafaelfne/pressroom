@@ -13,8 +13,8 @@ describe('DEFAULT_HEADER_CONFIG', () => {
     expect(DEFAULT_HEADER_CONFIG.enabled).toBe(false);
   });
 
-  it('has 15mm height', () => {
-    expect(DEFAULT_HEADER_CONFIG.height).toBe(15);
+  it('has 43px height', () => {
+    expect(DEFAULT_HEADER_CONFIG.height).toBe(43);
   });
 
   it('has all empty zones', () => {
@@ -35,8 +35,8 @@ describe('DEFAULT_FOOTER_CONFIG', () => {
     expect(DEFAULT_FOOTER_CONFIG.enabled).toBe(false);
   });
 
-  it('has 12mm height', () => {
-    expect(DEFAULT_FOOTER_CONFIG.height).toBe(12);
+  it('has 34px height', () => {
+    expect(DEFAULT_FOOTER_CONFIG.height).toBe(34);
   });
 
   it('has all empty zones', () => {

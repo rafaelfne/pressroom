@@ -98,33 +98,33 @@ export function PageConfigPanel({
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <Label htmlFor="custom-width" className="text-xs">
-                                Width (mm)
+                                Width (px)
                             </Label>
                             <Input
                                 id="custom-width"
                                 data-testid="custom-width"
                                 type="number"
                                 min={1}
-                                value={config.customWidth ?? 210}
+                                value={config.customWidth ?? 595}
                                 onChange={(e) => {
                                     const val = parseFloat(e.target.value);
-                                    handleCustomDimensionChange('customWidth', isNaN(val) ? 210 : val);
+                                    handleCustomDimensionChange('customWidth', isNaN(val) ? 595 : val);
                                 }}
                             />
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor="custom-height" className="text-xs">
-                                Height (mm)
+                                Height (px)
                             </Label>
                             <Input
                                 id="custom-height"
                                 data-testid="custom-height"
                                 type="number"
                                 min={1}
-                                value={config.customHeight ?? 297}
+                                value={config.customHeight ?? 842}
                                 onChange={(e) => {
                                     const val = parseFloat(e.target.value);
-                                    handleCustomDimensionChange('customHeight', isNaN(val) ? 297 : val);
+                                    handleCustomDimensionChange('customHeight', isNaN(val) ? 842 : val);
                                 }}
                             />
                         </div>
@@ -196,14 +196,14 @@ export function PageConfigPanel({
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                         <Label htmlFor="margin-top" className="text-xs">
-                            Top (mm)
+                            Top (px)
                         </Label>
                         <Input
                             id="margin-top"
                             data-testid="margin-top"
                             type="number"
                             min={0}
-                            step="0.1"
+                            step="1"
                             value={config.margins.top}
                             onChange={(e) => {
                                 const val = parseFloat(e.target.value);
@@ -213,14 +213,14 @@ export function PageConfigPanel({
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="margin-right" className="text-xs">
-                            Right (mm)
+                            Right (px)
                         </Label>
                         <Input
                             id="margin-right"
                             data-testid="margin-right"
                             type="number"
                             min={0}
-                            step="0.1"
+                            step="1"
                             value={config.margins.right}
                             onChange={(e) => {
                                 const val = parseFloat(e.target.value);
@@ -230,14 +230,14 @@ export function PageConfigPanel({
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="margin-bottom" className="text-xs">
-                            Bottom (mm)
+                            Bottom (px)
                         </Label>
                         <Input
                             id="margin-bottom"
                             data-testid="margin-bottom"
                             type="number"
                             min={0}
-                            step="0.1"
+                            step="1"
                             value={config.margins.bottom}
                             onChange={(e) => {
                                 const val = parseFloat(e.target.value);
@@ -247,14 +247,14 @@ export function PageConfigPanel({
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="margin-left" className="text-xs">
-                            Left (mm)
+                            Left (px)
                         </Label>
                         <Input
                             id="margin-left"
                             data-testid="margin-left"
                             type="number"
                             min={0}
-                            step="0.1"
+                            step="1"
                             value={config.margins.left}
                             onChange={(e) => {
                                 const val = parseFloat(e.target.value);

@@ -9,7 +9,7 @@ export type Orientation = 'portrait' | 'landscape';
 export type MarginPreset = 'normal' | 'narrow' | 'wide' | 'custom';
 
 export interface PageMargins {
-  top: number; // in mm
+  top: number; // in px (72 DPI)
   right: number;
   bottom: number;
   left: number;
@@ -19,47 +19,49 @@ export interface PageConfig {
   paperSize: PaperSize;
   orientation: Orientation;
   margins: PageMargins;
-  customWidth?: number; // in mm, only when paperSize === 'Custom'
-  customHeight?: number; // in mm, only when paperSize === 'Custom'
+  customWidth?: number; // in px (72 DPI), only when paperSize === 'Custom'
+  customHeight?: number; // in px (72 DPI), only when paperSize === 'Custom'
 }
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-// Paper size dimensions in mm (width × height in portrait)
+// Paper size dimensions in pixels at 72 DPI (width × height in portrait)
+// 72 DPI is the standard PDF/print resolution
 export const PAPER_SIZES: Record<
   Exclude<PaperSize, 'Custom'>,
   { width: number; height: number; label: string }
 > = {
-  A4: { width: 210, height: 297, label: 'A4 (210 × 297 mm)' },
-  Letter: { width: 215.9, height: 279.4, label: 'Letter (8.5 × 11 in)' },
-  Legal: { width: 215.9, height: 355.6, label: 'Legal (8.5 × 14 in)' },
-  A3: { width: 297, height: 420, label: 'A3 (297 × 420 mm)' },
+  A4: { width: 595, height: 842, label: 'A4 (595 × 842 px)' },
+  Letter: { width: 612, height: 792, label: 'Letter (612 × 792 px)' },
+  Legal: { width: 612, height: 1008, label: 'Legal (612 × 1008 px)' },
+  A3: { width: 842, height: 1191, label: 'A3 (842 × 1191 px)' },
 };
 
+// Margin presets in pixels at 72 DPI
 export const MARGIN_PRESETS: Record<
   Exclude<MarginPreset, 'custom'>,
   { margins: PageMargins; label: string }
 > = {
   normal: {
-    margins: { top: 20, right: 20, bottom: 20, left: 20 },
-    label: 'Normal (20mm)',
+    margins: { top: 16, right: 16, bottom: 16, left: 16 },
+    label: 'Normal (16px)',
   },
   narrow: {
-    margins: { top: 12.7, right: 12.7, bottom: 12.7, left: 12.7 },
-    label: 'Narrow (12.7mm)',
+    margins: { top: 8, right: 8, bottom: 8, left: 8 },
+    label: 'Narrow (8px)',
   },
   wide: {
-    margins: { top: 25.4, right: 25.4, bottom: 25.4, left: 25.4 },
-    label: 'Wide (25.4mm)',
+    margins: { top: 24, right: 24, bottom: 24, left: 24 },
+    label: 'Wide (24px)',
   },
 };
 
 export const DEFAULT_PAGE_CONFIG: PageConfig = {
   paperSize: 'A4',
   orientation: 'portrait',
-  margins: { top: 20, right: 20, bottom: 20, left: 20 },
+  margins: { top: 16, right: 16, bottom: 16, left: 16 },
 };
 
 // ============================================================================
@@ -67,7 +69,7 @@ export const DEFAULT_PAGE_CONFIG: PageConfig = {
 // ============================================================================
 
 /**
- * Returns the actual page dimensions in mm, accounting for orientation.
+ * Returns the actual page dimensions in pixels (72 DPI), accounting for orientation.
  * Swaps width/height for landscape. For Custom, uses customWidth/customHeight
  * or falls back to A4 dimensions.
  */
@@ -121,10 +123,18 @@ export function detectMarginPreset(margins: PageMargins): MarginPreset {
 }
 
 /**
+ * Converts pixels (72 DPI) to millimeters.
+ * Formula: mm = px * 25.4 / 72
+ */
+export function pxToMm(px: number): number {
+  return px * 25.4 / 72;
+}
+
+/**
  * Converts a PageConfig into PdfRenderOptions compatible with Puppeteer.
  * - Named paper sizes: set format field directly
- * - Custom paper size: set width and height as mm strings
- * - Margins: converted to mm strings
+ * - Custom paper size: converts pixels to mm strings
+ * - Margins: converts pixels to mm strings
  */
 export function pageConfigToRenderOptions(
   config: PageConfig,
@@ -132,10 +142,10 @@ export function pageConfigToRenderOptions(
   const options: PdfRenderOptions = {
     orientation: config.orientation,
     margin: {
-      top: `${config.margins.top}mm`,
-      right: `${config.margins.right}mm`,
-      bottom: `${config.margins.bottom}mm`,
-      left: `${config.margins.left}mm`,
+      top: `${pxToMm(config.margins.top).toFixed(2)}mm`,
+      right: `${pxToMm(config.margins.right).toFixed(2)}mm`,
+      bottom: `${pxToMm(config.margins.bottom).toFixed(2)}mm`,
+      left: `${pxToMm(config.margins.left).toFixed(2)}mm`,
     },
   };
 
@@ -143,8 +153,8 @@ export function pageConfigToRenderOptions(
     // Use custom dimensions or fall back to A4
     const width = config.customWidth ?? PAPER_SIZES.A4.width;
     const height = config.customHeight ?? PAPER_SIZES.A4.height;
-    options.width = `${width}mm`;
-    options.height = `${height}mm`;
+    options.width = `${pxToMm(width).toFixed(2)}mm`;
+    options.height = `${pxToMm(height).toFixed(2)}mm`;
   } else {
     // Use named format
     options.format = config.paperSize;
@@ -214,35 +224,57 @@ export function parseStoredPageConfig(
 }
 
 // ============================================================================
-// MM to PX Conversion (96 DPI)
+// Pixel Conversions (72 DPI base)
 // ============================================================================
 
 /**
- * Conversion factor from millimeters to pixels at 96 DPI.
- * 96 DPI = 96 pixels per inch, 1 inch = 25.4 mm
- * Therefore: 1 mm = 96 / 25.4 = 3.7795275591 px
+ * Pixels per inch at the base resolution (72 DPI - standard PDF/print).
  */
-export const MM_TO_PX = 3.7795275591;
+export const DPI = 72;
 
 /**
- * Converts millimeters to pixels at 96 DPI, rounded to the nearest integer.
+ * Standard screen DPI for display purposes.
+ */
+export const SCREEN_DPI = 72;
+
+/**
+ * Conversion factor from 72 DPI to 96 DPI screen pixels.
+ */
+export const DPI_TO_SCREEN = SCREEN_DPI / DPI;
+
+/**
+ * Conversion factor from millimeters to pixels at 72 DPI.
+ * 72 DPI = 72 pixels per inch, 1 inch = 25.4 mm
+ * Therefore: 1 mm = 72 / 25.4 = 2.834645669 px
+ */
+export const MM_TO_PX = 72 / 25.4;
+
+/**
+ * Converts millimeters to pixels at 72 DPI, rounded to the nearest integer.
  */
 export function mmToPx(mm: number): number {
   return Math.round(mm * MM_TO_PX);
 }
 
 /**
- * Returns page dimensions in pixels (at 96 DPI) for a given PageConfig.
- * Uses getPageDimensions to get mm dimensions, then converts to px.
+ * Converts 72 DPI pixels to 96 DPI screen pixels for display purposes.
+ */
+export function pxToScreen(px: number): number {
+  return Math.round(px * DPI_TO_SCREEN);
+}
+
+/**
+ * Returns page dimensions in screen pixels (at 96 DPI) for display in the canvas.
+ * Converts from stored 72 DPI pixels to 96 DPI screen pixels.
  */
 export function getPageDimensionsPx(config: PageConfig): {
   width: number;
   height: number;
 } {
-  const { width, height } = getPageDimensions(config);
+  const dims = getPageDimensions(config);
   return {
-    width: mmToPx(width),
-    height: mmToPx(height),
+    width: pxToScreen(dims.width),
+    height: pxToScreen(dims.height),
   };
 }
 

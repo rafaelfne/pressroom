@@ -158,6 +158,8 @@ export default function StudioPage() {
   const pageConfigRef = useRef<PageConfig>(pageConfig);
   const headerFooterConfigRef = useRef<HeaderFooterConfig>(headerFooterConfig);
   const puckDataRef = useRef<Data>(EMPTY_DATA);
+  const activePageIdRef = useRef<string>(activePageId);
+  const zoomRef = useRef<number>(zoom);
 
   useEffect(() => {
     pageConfigRef.current = pageConfig;
@@ -166,6 +168,14 @@ export default function StudioPage() {
   useEffect(() => {
     headerFooterConfigRef.current = headerFooterConfig;
   }, [headerFooterConfig]);
+
+  useEffect(() => {
+    activePageIdRef.current = activePageId;
+  }, [activePageId]);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
 
   useEffect(() => {
     sampleDataRef.current = sampleData;
@@ -513,8 +523,11 @@ export default function StudioPage() {
             config={puckConfig}
             data={activePage.content}
             onPublish={handlePublish}
+            viewports={[]}
+            iframe={{ enabled: false }}
             overrides={{
               header: () => <></>,
+              actionBar: () => <></>,
               puck: ({ children }) => (
                 <>
                   <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
@@ -522,10 +535,13 @@ export default function StudioPage() {
                 </>
               ),
               preview: () => (
-                <PaperCanvas pageConfig={pageConfig} zoom={zoom} onZoomChange={setZoom}>
-                  <div style={{ width: '100%', height: '100%' }}>
-                    <Puck.Preview />
-                  </div>
+                <PaperCanvas
+                  pageConfig={pageConfig}
+                  headerFooterConfig={headerFooterConfig}
+                  zoom={zoom}
+                  onZoomChange={setZoom}
+                >
+                  <Puck.Preview />
                 </PaperCanvas>
               ),
               fields: ({ children }) => (

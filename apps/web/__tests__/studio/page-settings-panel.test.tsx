@@ -40,11 +40,12 @@ describe('PageSettingsPanel', () => {
         expect(titleInput.value).toBe('Test Page');
     });
 
-    it('calls onPageTitleChange when title input is changed', () => {
+    it('calls onPageTitleChange when title input is blurred', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
         const titleInput = within(panel).getByTestId('page-title-input');
         fireEvent.change(titleInput, { target: { value: 'New Title' } });
+        fireEvent.blur(titleInput);
         expect(mockOnPageTitleChange).toHaveBeenCalledWith('New Title');
     });
 
@@ -57,7 +58,7 @@ describe('PageSettingsPanel', () => {
 
     it('shows dimensions label for named paper sizes', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        expect(within(container).getByText(/A4 \(210 × 297 mm\)/)).toBeInTheDocument();
+        expect(within(container).getByText(/A4 \(595 × 842 px\)/)).toBeInTheDocument();
     });
 
     it('calls onConfigChange when paper size is changed', () => {
@@ -115,10 +116,10 @@ describe('PageSettingsPanel', () => {
         const bottomInput = within(panel).getByTestId('margin-bottom') as HTMLInputElement;
         const leftInput = within(panel).getByTestId('margin-left') as HTMLInputElement;
 
-        expect(topInput.value).toBe('20');
-        expect(rightInput.value).toBe('20');
-        expect(bottomInput.value).toBe('20');
-        expect(leftInput.value).toBe('20');
+        expect(topInput.value).toBe('57');
+        expect(rightInput.value).toBe('57');
+        expect(bottomInput.value).toBe('57');
+        expect(leftInput.value).toBe('57');
     });
 
     it('highlights correct margin preset', () => {
@@ -137,21 +138,22 @@ describe('PageSettingsPanel', () => {
         expect(mockOnConfigChange).toHaveBeenCalledWith(
             expect.objectContaining({
                 margins: expect.objectContaining({
-                    top: 12.7,
-                    right: 12.7,
-                    bottom: 12.7,
-                    left: 12.7,
+                    top: 36,
+                    right: 36,
+                    bottom: 36,
+                    left: 36,
                 }),
             }),
         );
     });
 
-    it('calls onConfigChange when margin input is changed', () => {
+    it('calls onConfigChange when margin input is blurred', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
         const topInput = within(panel).getByTestId('margin-top');
 
         fireEvent.change(topInput, { target: { value: '30' } });
+        fireEvent.blur(topInput);
 
         expect(mockOnConfigChange).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -222,19 +224,19 @@ describe('PageSettingsPanel', () => {
         );
     });
 
-    it('renders configure header link (disabled)', () => {
+    it('renders configure header link (enabled)', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
         const link = within(panel).getByTestId('configure-header-link');
         expect(link).toBeInTheDocument();
-        expect(link).toBeDisabled();
+        expect(link).not.toBeDisabled();
     });
 
-    it('renders configure footer link (disabled)', () => {
+    it('renders configure footer link (enabled)', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
         const link = within(panel).getByTestId('configure-footer-link');
         expect(link).toBeInTheDocument();
-        expect(link).toBeDisabled();
+        expect(link).not.toBeDisabled();
     });
 });

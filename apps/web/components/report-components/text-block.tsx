@@ -4,6 +4,7 @@ import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib
 export type TextBlockProps = {
   text: string;
   fontSize: string;
+  customFontSize: number;
   color: string;
   alignment: 'left' | 'center' | 'right' | 'justify';
   bold: string;
@@ -23,7 +24,14 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
         { label: 'Base', value: '1rem' },
         { label: 'Large', value: '1.25rem' },
         { label: 'Extra Large', value: '1.5rem' },
+        { label: 'Custom', value: 'custom' },
       ],
+    },
+    customFontSize: {
+      type: 'number',
+      label: 'Custom Size (px)',
+      min: 8,
+      max: 200,
     },
     color: { type: 'text', label: 'Text Color' },
     alignment: {
@@ -57,25 +65,30 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
   defaultProps: {
     text: 'Enter your text here',
     fontSize: '1rem',
+    customFontSize: 16,
     color: '#000000',
     alignment: 'left',
     bold: 'false',
     italic: 'false',
     pageBreakBehavior: 'auto',
   },
-  render: ({ text, fontSize, color, alignment, bold, italic, pageBreakBehavior }) => (
-    <div
-      style={{
-        fontSize,
-        color,
-        textAlign: alignment,
-        fontWeight: bold === 'true' ? 'bold' : 'normal',
-        fontStyle: italic === 'true' ? 'italic' : 'normal',
-        ...getPageBreakStyle(pageBreakBehavior),
-      }}
-      className="p-2"
-    >
-      {text}
-    </div>
-  ),
+  render: ({ text, fontSize, customFontSize, color, alignment, bold, italic, pageBreakBehavior }) => {
+    const resolvedFontSize = fontSize === 'custom' ? `${customFontSize}px` : fontSize;
+
+    return (
+      <div
+        style={{
+          fontSize: resolvedFontSize,
+          color,
+          textAlign: alignment,
+          fontWeight: bold === 'true' ? 'bold' : 'normal',
+          fontStyle: italic === 'true' ? 'italic' : 'normal',
+          ...getPageBreakStyle(pageBreakBehavior),
+        }}
+        className="p-2"
+      >
+        {text}
+      </div>
+    );
+  },
 };

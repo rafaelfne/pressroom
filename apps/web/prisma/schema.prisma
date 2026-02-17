@@ -69,13 +69,14 @@ model Session {
 }
 
 model Template {
-  id             String        @id @default(cuid())
-  name           String
-  description    String?
-  templateData   Json          @default("{}")
-  sampleData     Json?
-  pageConfig     Json?
-  organizationId String?
+  id                 String        @id @default(cuid())
+  name               String
+  description        String?
+  templateData       Json          @default("{}")
+  sampleData         Json?
+  pageConfig         Json?
+  headerFooterConfig Json?
+  organizationId     String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
   createdById    String?
   createdBy      User?         @relation(fields: [createdById], references: [id])

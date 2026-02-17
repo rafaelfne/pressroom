@@ -302,8 +302,8 @@ export function StudioHeader({
               className={cn(
                 'h-8 px-3 text-xs font-medium transition-colors',
                 publishState === 'saved'
-                  ? 'bg-green-600 hover:bg-green-600 text-white'
-                  : 'bg-green-600 hover:bg-green-700 text-white',
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white',
               )}
             >
               {publishState === 'saving' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}

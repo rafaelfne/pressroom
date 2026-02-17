@@ -19,15 +19,15 @@ describe('PaperCanvas', () => {
     render(<PaperCanvas {...defaultProps} />);
     const workspace = screen.getByTestId('canvas-workspace');
     expect(workspace).toBeInTheDocument();
-    expect(workspace).toHaveClass('bg-[#F1F1F1]');
+    expect(workspace).toHaveClass('bg-[#f5f5f5]');
   });
 
-  it('renders paper sheet with correct dimensions for A4 portrait (794×1123 px)', () => {
+  it('renders paper sheet with correct dimensions for A4 portrait (595×842 px at 72 DPI)', () => {
     render(<PaperCanvas {...defaultProps} />);
     const paperSheet = screen.getByTestId('paper-sheet');
     expect(paperSheet).toBeInTheDocument();
-    // A4 portrait: 210mm × 297mm = 794px × 1123px at 96 DPI
-    expect(paperSheet).toHaveStyle({ width: '794px', height: '1123px' });
+    // A4 portrait: 595×842 px at 72 DPI (matches PDF output resolution)
+    expect(paperSheet).toHaveStyle({ width: '595px', height: '842px' });
   });
 
   it('renders margin guides', () => {
@@ -61,12 +61,12 @@ describe('PaperCanvas', () => {
     const onZoomChange = vi.fn();
     render(<PaperCanvas {...defaultProps} zoom={100} onZoomChange={onZoomChange} />);
     const workspace = screen.getByTestId('canvas-workspace');
-    
+
     fireEvent.wheel(workspace, {
       deltaY: -100,
       ctrlKey: true,
     });
-    
+
     expect(onZoomChange).toHaveBeenCalledWith(125);
   });
 
@@ -74,44 +74,44 @@ describe('PaperCanvas', () => {
     const onZoomChange = vi.fn();
     render(<PaperCanvas {...defaultProps} zoom={100} onZoomChange={onZoomChange} />);
     const workspace = screen.getByTestId('canvas-workspace');
-    
+
     fireEvent.wheel(workspace, {
       deltaY: 100,
       ctrlKey: true,
     });
-    
+
     expect(onZoomChange).toHaveBeenCalledWith(75);
   });
 
   it('zoom is clamped between 50 and 150', () => {
     const onZoomChange = vi.fn();
-    
+
     // Test lower bound
     const { rerender } = render(
       <PaperCanvas {...defaultProps} zoom={50} onZoomChange={onZoomChange} />,
     );
     const workspace = screen.getByTestId('canvas-workspace');
-    
+
     fireEvent.wheel(workspace, {
       deltaY: 100,
       ctrlKey: true,
     });
-    
+
     // Should stay at 50 (minimum)
     expect(onZoomChange).toHaveBeenCalledWith(50);
-    
+
     onZoomChange.mockClear();
-    
+
     // Test upper bound
     rerender(
       <PaperCanvas {...defaultProps} zoom={150} onZoomChange={onZoomChange} />,
     );
-    
+
     fireEvent.wheel(workspace, {
       deltaY: -100,
       ctrlKey: true,
     });
-    
+
     // Should stay at 150 (maximum)
     expect(onZoomChange).toHaveBeenCalledWith(150);
   });

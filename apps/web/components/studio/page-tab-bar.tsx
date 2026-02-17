@@ -273,7 +273,7 @@ export function PageTabBar({
             className={cn(
               'w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent',
               getPageIndex(contextMenu.pageId) === pages.length - 1 &&
-                'cursor-not-allowed opacity-50',
+              'cursor-not-allowed opacity-50',
             )}
             onClick={() => handleContextMenuAction('moveRight', contextMenu.pageId)}
             disabled={getPageIndex(contextMenu.pageId) === pages.length - 1}

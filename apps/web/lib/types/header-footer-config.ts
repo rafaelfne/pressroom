@@ -59,7 +59,7 @@ export interface BorderConfig {
 /** Header configuration (template-level) */
 export interface HeaderConfig {
   enabled: boolean;
-  height: number; // in mm, default 15
+  height: number; // in px at 72 DPI, default 43
   zones: {
     left: ZoneContent;
     center: ZoneContent;
@@ -72,7 +72,7 @@ export interface HeaderConfig {
 /** Footer configuration (template-level) */
 export interface FooterConfig {
   enabled: boolean;
-  height: number; // in mm, default 12
+  height: number; // in px at 72 DPI, default 34
   zones: {
     left: ZoneContent;
     center: ZoneContent;
@@ -101,7 +101,7 @@ export interface PageHeaderFooterOverride {
 /** Default header configuration */
 export const DEFAULT_HEADER_CONFIG: HeaderConfig = {
   enabled: false,
-  height: 15,
+  height: 43,
   zones: {
     left: { type: 'empty' },
     center: { type: 'empty' },
@@ -113,7 +113,7 @@ export const DEFAULT_HEADER_CONFIG: HeaderConfig = {
 /** Default footer configuration */
 export const DEFAULT_FOOTER_CONFIG: FooterConfig = {
   enabled: false,
-  height: 12,
+  height: 34,
   zones: {
     left: { type: 'empty' },
     center: { type: 'empty' },
@@ -174,7 +174,7 @@ function parseHeaderConfig(stored: unknown): HeaderConfig {
 
   return {
     enabled: typeof data.enabled === 'boolean' ? data.enabled : false,
-    height: typeof data.height === 'number' ? data.height : 15,
+    height: typeof data.height === 'number' ? data.height : 43,
     zones: parseZones(data.zones) ?? DEFAULT_HEADER_CONFIG.zones,
     bottomBorder: parseBorderConfig(data.bottomBorder),
     backgroundColor:
@@ -196,7 +196,7 @@ function parseFooterConfig(stored: unknown): FooterConfig {
 
   return {
     enabled: typeof data.enabled === 'boolean' ? data.enabled : false,
-    height: typeof data.height === 'number' ? data.height : 12,
+    height: typeof data.height === 'number' ? data.height : 34,
     zones: parseZones(data.zones) ?? DEFAULT_FOOTER_CONFIG.zones,
     topBorder: parseBorderConfig(data.topBorder),
     backgroundColor:
