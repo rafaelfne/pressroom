@@ -16,12 +16,11 @@ export interface RightPanelProps {
   headerFooterConfig: HeaderFooterConfig;
   onHeaderFooterConfigChange: (config: HeaderFooterConfig) => void;
   children?: React.ReactNode;
-  isLoading?: boolean;
 }
 
 /**
- * Context-aware right panel that switches between page settings and block fields
- * based on the selected item in the Puck editor.
+ * Context-aware right panel that shows block fields when a component is selected,
+ * or page settings when no component is selected.
  */
 export function RightPanel({
   usePuck,
@@ -32,40 +31,30 @@ export function RightPanel({
   headerFooterConfig,
   onHeaderFooterConfigChange,
   children,
-  isLoading = false,
 }: RightPanelProps) {
   const selectedItem = usePuck((s) => s.selectedItem);
 
-  const [mode, setMode] = React.useState<'page' | 'block'>('page');
-  const [isTransitioning, setIsTransitioning] = React.useState(false);
-
-  // Detect mode change and trigger transition
-  React.useEffect(() => {
-    const newMode = selectedItem ? 'block' : 'page';
-    if (newMode !== mode) {
-      setIsTransitioning(true);
-      setMode(newMode);
-      const timer = setTimeout(() => setIsTransitioning(false), 150);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedItem, mode]);
-
-  if (isLoading) {
-    return null;
-  }
+  // Show block fields panel when a component is selected
+  // Puck passes children (the fields) to this override
+  const showBlockFields = selectedItem !== null;
 
   return (
     <div
       className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-20"
       data-testid="right-panel"
     >
-      {mode === 'page' ? (
-        <div
-          className={`transition-opacity duration-150 ${
-            isTransitioning ? 'opacity-0' : 'opacity-100'
-          }`}
-          data-testid="page-settings-view"
-        >
+      {showBlockFields ? (
+        <div data-testid="block-fields-view">
+          <BlockFieldsPanel
+            usePuck={usePuck}
+            componentType={selectedItem?.type ?? ''}
+            componentProps={selectedItem?.props ?? {}}
+          >
+            {children}
+          </BlockFieldsPanel>
+        </div>
+      ) : (
+        <div data-testid="page-settings-view">
           <PageSettingsPanel
             config={config}
             onConfigChange={onConfigChange}
@@ -74,21 +63,6 @@ export function RightPanel({
             headerFooterConfig={headerFooterConfig}
             onHeaderFooterConfigChange={onHeaderFooterConfigChange}
           />
-        </div>
-      ) : (
-        <div
-          className={`transition-opacity duration-150 ${
-            isTransitioning ? 'opacity-0' : 'opacity-100'
-          }`}
-          data-testid="block-fields-view"
-        >
-          <BlockFieldsPanel
-            usePuck={usePuck}
-            componentType={selectedItem?.type ?? ''}
-            componentProps={selectedItem?.props ?? {}}
-          >
-            {children}
-          </BlockFieldsPanel>
         </div>
       )}
     </div>

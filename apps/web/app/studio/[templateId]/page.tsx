@@ -138,16 +138,16 @@ export default function StudioPage() {
   const [headerFooterConfig, setHeaderFooterConfig] = useState<HeaderFooterConfig>(
     DEFAULT_HEADER_FOOTER_CONFIG,
   );
-  
+
   // History state for undo/redo
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const undoRef = useRef<(() => void) | null>(null);
   const redoRef = useRef<(() => void) | null>(null);
-  
+
   // Sample data panel state
   const [isSampleDataOpen, setIsSampleDataOpen] = useState(false);
-  
+
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
   const pagesRef = useRef<PageItem[]>([]);
   const pageConfigRef = useRef<PageConfig>(pageConfig);
@@ -526,7 +526,7 @@ export default function StudioPage() {
                   {children}
                 </>
               ),
-              fields: ({ children, isLoading }) => (
+              fields: ({ children }) => (
                 <RightPanel
                   usePuck={usePuck}
                   config={pageConfig}
@@ -535,7 +535,6 @@ export default function StudioPage() {
                   onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
                   headerFooterConfig={headerFooterConfig}
                   onHeaderFooterConfigChange={handleHeaderFooterConfigChange}
-                  isLoading={isLoading ?? false}
                 >
                   {children}
                 </RightPanel>
