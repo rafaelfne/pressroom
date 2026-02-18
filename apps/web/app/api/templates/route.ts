@@ -21,11 +21,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true },
-    });
-
     const template = await prisma.template.create({
       data: {
         name: parsed.data.name,
@@ -36,8 +31,8 @@ export async function POST(request: NextRequest) {
         sampleData: parsed.data.sampleData ? (parsed.data.sampleData as Prisma.InputJsonValue) : undefined,
         pageConfig: parsed.data.pageConfig ? (parsed.data.pageConfig as Prisma.InputJsonValue) : undefined,
         tags: parsed.data.tags ?? [],
-        organizationId: user?.organizationId ?? null,
-        createdById: session.user.id,
+        organizationId: parsed.data.organizationId ?? null,
+        ownerId: session.user.id,
       },
     });
 
@@ -68,29 +63,36 @@ export async function GET(request: NextRequest) {
 
     const { page, limit, search, tags, sortBy, sortOrder } = parsed.data;
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true },
-    });
+    // Build the AND conditions array
+    const andConditions: Prisma.TemplateWhereInput[] = [];
 
-    const where: Prisma.TemplateWhereInput = {
-      deletedAt: null,
-      organizationId: user?.organizationId ?? null,
-    };
-
+    // Add search filter if provided
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      });
     }
 
+    // Add tags filter if provided
     if (tags) {
       const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean);
       if (tagList.length > 0) {
-        where.tags = { hasSome: tagList };
+        andConditions.push({ tags: { hasSome: tagList } });
       }
     }
+
+    // Build final where clause with access control
+    const where: Prisma.TemplateWhereInput = {
+      deletedAt: null,
+      OR: [
+        { ownerId: session.user.id },
+        { accesses: { some: { userId: session.user.id } } },
+      ],
+      ...(andConditions.length > 0 && { AND: andConditions }),
+    };
 
     const [templates, total] = await Promise.all([
       prisma.template.findMany({
@@ -98,6 +100,14 @@ export async function GET(request: NextRequest) {
         orderBy: { [sortBy]: sortOrder },
         skip: (page - 1) * limit,
         take: limit,
+        include: {
+          organization: {
+            select: { id: true, name: true },
+          },
+          owner: {
+            select: { id: true, name: true, username: true },
+          },
+        },
       }),
       prisma.template.count({ where }),
     ]);

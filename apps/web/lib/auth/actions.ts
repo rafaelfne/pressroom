@@ -14,14 +14,22 @@ export async function registerUser(
       return { error: 'Invalid input data' };
     }
 
-    const { name, email, password } = parsed.data;
+    const { name, email, username, password } = parsed.data;
 
-    const existingUser = await prisma.user.findUnique({
+    const existingEmail = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (existingUser) {
+    if (existingEmail) {
       return { error: 'User with this email already exists' };
+    }
+
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
+
+    if (existingUsername) {
+      return { error: 'Username is already taken' };
     }
 
     const hashedPassword = await hash(password, 10);
@@ -30,6 +38,7 @@ export async function registerUser(
       data: {
         name,
         email,
+        username,
         hashedPassword,
       },
     });

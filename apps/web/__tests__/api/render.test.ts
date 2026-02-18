@@ -11,9 +11,6 @@ vi.mock('@/lib/auth', () => ({
 // Mock prisma
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    user: {
-      findUnique: vi.fn(),
-    },
     template: {
       findFirst: vi.fn(),
     },
@@ -54,8 +51,6 @@ const mockSession = {
   expires: new Date(Date.now() + 86400000).toISOString(),
 };
 
-const mockUser = { organizationId: 'org-1' };
-
 const mockTemplate = {
   id: 'tpl-1',
   name: 'Test Template',
@@ -63,7 +58,7 @@ const mockTemplate = {
     content: [],
     root: {},
   } as Data,
-  organizationId: 'org-1',
+  ownerId: 'user-1',
 };
 
 describe('POST /api/reports/render', () => {
@@ -124,7 +119,6 @@ describe('POST /api/reports/render', () => {
 
   it('renders with templateId successfully', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(mockTemplate as never);
     vi.mocked(renderReport).mockResolvedValue({
       content: Buffer.from('mock-pdf'),
@@ -203,24 +197,8 @@ describe('POST /api/reports/render', () => {
     expect(text).toBe('<html><body>Test</body></html>');
   });
 
-  it('returns 403 when user has no organization', async () => {
-    vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ organizationId: null } as never);
-
-    const { POST } = await import('@/app/api/reports/render/route');
-    const request = createRequest('POST', '/api/reports/render', {
-      templateId: 'tpl-1',
-    });
-    const response = await POST(request);
-
-    expect(response.status).toBe(403);
-    const data = await response.json();
-    expect(data.error).toBe('User has no organization');
-  });
-
   it('returns 404 when template not found', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(null);
 
     const { POST } = await import('@/app/api/reports/render/route');
@@ -292,7 +270,6 @@ describe('POST /api/reports/render', () => {
 
   it('queries template with correct filters', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(mockTemplate as never);
     vi.mocked(renderReport).mockResolvedValue({
       content: Buffer.from('mock-pdf'),
@@ -308,7 +285,10 @@ describe('POST /api/reports/render', () => {
     expect(prisma.template.findFirst).toHaveBeenCalledWith({
       where: {
         id: 'tpl-1',
-        organizationId: 'org-1',
+        OR: [
+          { ownerId: 'user-1' },
+          { accesses: { some: { userId: 'user-1' } } },
+        ],
         deletedAt: null,
       },
     });
