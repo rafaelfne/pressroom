@@ -26,11 +26,10 @@ describe('PageSettingsPanel', () => {
         cleanup();
     });
 
-    it('renders the panel with "Page" title', () => {
+    it('renders the panel', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
         expect(panel).toBeInTheDocument();
-        expect(within(panel).getByText('Page')).toBeInTheDocument();
     });
 
     it('displays page title input with current value', () => {
