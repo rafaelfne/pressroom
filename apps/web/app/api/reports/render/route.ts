@@ -100,13 +100,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { templateId, templateData: inlineTemplateData, pages: inlinePages, data, format, pageConfig } = parsed.data;
+  const { templateId, templateData: inlineTemplateData, pages: inlinePages, data, format, pageConfig, headerFooterConfig: requestHeaderFooterConfig } = parsed.data;
 
   try {
     // 4. Resolve template data
     let templateData: Data | undefined;
     let pages: Array<{ id: string; name: string; content: Data }> | undefined;
     let storedPageConfig: Record<string, unknown> | undefined;
+    let storedHeaderFooterConfigRaw: unknown;
 
     if (inlinePages) {
       pages = inlinePages as Array<{ id: string; name: string; content: Data }>;
@@ -141,6 +142,11 @@ export async function POST(request: NextRequest) {
       if (template.pageConfig && typeof template.pageConfig === 'object') {
         storedPageConfig = template.pageConfig as Record<string, unknown>;
       }
+
+      // Use stored header/footer config from template (request config overrides it)
+      if (template.headerFooterConfig) {
+        storedHeaderFooterConfigRaw = template.headerFooterConfig;
+      }
     } else {
       return NextResponse.json(
         { error: 'Either templateId, templateData, or pages must be provided' },
@@ -158,6 +164,11 @@ export async function POST(request: NextRequest) {
       effectivePageConfig = pageConfigToRenderOptions(templatePageConfig);
     }
 
+    // Resolve effective header/footer config: explicit request config overrides stored template config
+    const { parseStoredHeaderFooterConfig } = await import('@/lib/types/header-footer-config');
+    const effectiveHeaderFooterConfig =
+      requestHeaderFooterConfig ?? (storedHeaderFooterConfigRaw ? parseStoredHeaderFooterConfig(storedHeaderFooterConfigRaw) : undefined);
+
     // 6. Render report with timeout - dynamic import to avoid bundling react-dom/server
     const { renderReport } = await import('@/lib/rendering/render-report');
     const renderPromise = renderReport({
@@ -166,6 +177,7 @@ export async function POST(request: NextRequest) {
       data,
       format,
       pageConfig: effectivePageConfig,
+      headerFooterConfig: effectiveHeaderFooterConfig,
     });
 
     const result = await withTimeout(renderPromise, getRenderTimeout());

@@ -1,9 +1,33 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { PageConfig, getPageDimensionsPx, pxToScreen, ZOOM_LEVELS } from '@/lib/types/page-config';
-import { HeaderFooterConfig } from '@/lib/types/header-footer-config';
+import { HeaderFooterConfig, type ZoneContent } from '@/lib/types/header-footer-config';
 import { Button } from '@/components/ui/button';
+
+function ImageZonePreview({ src, alt }: { src: string; alt?: string }) {
+  const [errored, setErrored] = useState(false);
+  if (errored) return <span className="truncate italic opacity-60">[img]</span>;
+  return (
+    <img
+      src={src}
+      alt={alt ?? ''}
+      style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', verticalAlign: 'middle' }}
+      onError={() => setErrored(true)}
+    />
+  );
+}
+
+function ZonePreview({ zone }: { zone: ZoneContent }) {
+  if (zone.type === 'empty') return null;
+  if (zone.type === 'text') return <span className="truncate">{zone.value || '…'}</span>;
+  if (zone.type === 'pageNumber') return <span className="truncate">{zone.format.replace('{page}', '1').replace('{total}', '1')}</span>;
+  if (zone.type === 'image') {
+    if (!zone.src) return <span className="truncate italic opacity-60">[img]</span>;
+    return <ImageZonePreview src={zone.src} alt={zone.alt} />;
+  }
+  return null;
+}
 
 const MIN_ZOOM = 50;
 const MAX_ZOOM = 150;
@@ -138,7 +162,7 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
           {/* Header area */}
           {headerEnabled && (
             <div
-              className="absolute flex items-center justify-between px-2 border-b"
+              className="absolute flex items-center px-2 border-b text-xs text-muted-foreground"
               style={{
                 top: `${marginTop}px`,
                 left: `${marginLeft}px`,
@@ -151,7 +175,15 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
               }}
               data-testid="header-area"
             >
-              <div className="text-xs text-muted-foreground">Header</div>
+              <div className="flex-1 flex items-center justify-start overflow-hidden">
+                <ZonePreview zone={headerFooterConfig!.header!.zones.left} />
+              </div>
+              <div className="flex-1 flex items-center justify-center overflow-hidden">
+                <ZonePreview zone={headerFooterConfig!.header!.zones.center} />
+              </div>
+              <div className="flex-1 flex items-center justify-end overflow-hidden">
+                <ZonePreview zone={headerFooterConfig!.header!.zones.right} />
+              </div>
             </div>
           )}
 
@@ -172,7 +204,7 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
           {/* Footer area */}
           {footerEnabled && (
             <div
-              className="absolute flex items-center justify-between px-2 border-t"
+              className="absolute flex items-center px-2 border-t text-xs text-muted-foreground"
               style={{
                 bottom: `${marginBottom}px`,
                 left: `${marginLeft}px`,
@@ -185,7 +217,15 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
               }}
               data-testid="footer-area"
             >
-              <div className="text-xs text-muted-foreground">Footer</div>
+              <div className="flex-1 flex items-center justify-start overflow-hidden">
+                <ZonePreview zone={headerFooterConfig!.footer!.zones.left} />
+              </div>
+              <div className="flex-1 flex items-center justify-center overflow-hidden">
+                <ZonePreview zone={headerFooterConfig!.footer!.zones.center} />
+              </div>
+              <div className="flex-1 flex items-center justify-end overflow-hidden">
+                <ZonePreview zone={headerFooterConfig!.footer!.zones.right} />
+              </div>
             </div>
           )}
         </div>

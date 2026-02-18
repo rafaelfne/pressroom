@@ -190,7 +190,7 @@ export function StudioHeader({
                 className={cn(
                   'rounded border border-input bg-background px-3 py-1 text-sm font-medium',
                   'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                  'max-w-[300px] w-full',
+                  'max-w-75 w-full',
                 )}
                 data-testid="template-name-input"
               />
@@ -199,7 +199,7 @@ export function StudioHeader({
                 onClick={handleStartEditing}
                 className={cn(
                   'group flex items-center gap-1.5 rounded px-3 py-1 text-sm font-medium',
-                  'hover:bg-accent truncate max-w-[300px]',
+                  'hover:bg-accent truncate max-w-75',
                 )}
                 data-testid="template-name-display"
               >

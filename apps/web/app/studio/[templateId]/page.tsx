@@ -372,6 +372,7 @@ export default function StudioPage() {
           data: sampleDataRef.current,
           format: 'pdf',
           pageConfig: pageConfigToRenderOptions(pageConfigRef.current),
+          headerFooterConfig: headerFooterConfigRef.current,
         }),
       });
       if (response.ok) {
