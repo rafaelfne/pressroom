@@ -63,35 +63,36 @@ export async function GET(request: NextRequest) {
 
     const { page, limit, search, tags, sortBy, sortOrder } = parsed.data;
 
+    // Build the AND conditions array
+    const andConditions: Prisma.TemplateWhereInput[] = [];
+
+    // Add search filter if provided
+    if (search) {
+      andConditions.push({
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    // Add tags filter if provided
+    if (tags) {
+      const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean);
+      if (tagList.length > 0) {
+        andConditions.push({ tags: { hasSome: tagList } });
+      }
+    }
+
+    // Build final where clause with access control
     const where: Prisma.TemplateWhereInput = {
       deletedAt: null,
       OR: [
         { ownerId: session.user.id },
         { accesses: { some: { userId: session.user.id } } },
       ],
+      ...(andConditions.length > 0 && { AND: andConditions }),
     };
-
-    if (search) {
-      where.AND = [
-        {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-          ],
-        },
-      ];
-    }
-
-    if (tags) {
-      const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean);
-      if (tagList.length > 0) {
-        if (where.AND) {
-          (where.AND as Prisma.TemplateWhereInput[]).push({ tags: { hasSome: tagList } });
-        } else {
-          where.AND = [{ tags: { hasSome: tagList } }];
-        }
-      }
-    }
 
     const [templates, total] = await Promise.all([
       prisma.template.findMany({
