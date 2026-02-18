@@ -56,6 +56,7 @@ describe('Auth Schemas', () => {
     it('validates correct registration input', () => {
       const validInput = {
         name: 'John Doe',
+        username: 'johndoe',
         email: 'john@example.com',
         password: 'password123',
       };
@@ -70,6 +71,7 @@ describe('Auth Schemas', () => {
     it('rejects invalid email', () => {
       const invalidInput = {
         name: 'John Doe',
+        username: 'johndoe',
         email: 'not-an-email',
         password: 'password123',
       };
@@ -84,6 +86,7 @@ describe('Auth Schemas', () => {
     it('rejects name that is too short', () => {
       const invalidInput = {
         name: 'J',
+        username: 'johndoe',
         email: 'john@example.com',
         password: 'password123',
       };
@@ -98,6 +101,7 @@ describe('Auth Schemas', () => {
     it('rejects password that is too short', () => {
       const invalidInput = {
         name: 'John Doe',
+        username: 'johndoe',
         email: 'john@example.com',
         password: 'pass',
       };

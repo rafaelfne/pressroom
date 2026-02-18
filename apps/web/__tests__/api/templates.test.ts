@@ -9,9 +9,6 @@ vi.mock('@/lib/auth', () => ({
 // Mock prisma
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    user: {
-      findUnique: vi.fn(),
-    },
     template: {
       create: vi.fn(),
       findMany: vi.fn(),
@@ -46,8 +43,6 @@ const mockSession = {
   expires: new Date(Date.now() + 86400000).toISOString(),
 };
 
-const mockUser = { organizationId: 'org-1' };
-
 const mockTemplate = {
   id: 'tpl-1',
   name: 'Test Template',
@@ -55,8 +50,7 @@ const mockTemplate = {
   templateData: { content: [], root: {} },
   sampleData: null,
   pageConfig: null,
-  organizationId: 'org-1',
-  createdById: 'user-1',
+  ownerId: 'user-1',
   version: 1,
   tags: [],
   createdAt: new Date(),
@@ -94,7 +88,6 @@ describe('POST /api/templates', () => {
 
   it('creates template successfully', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.create).mockResolvedValue(mockTemplate as never);
 
     const { POST } = await import('@/app/api/templates/route');
@@ -111,8 +104,7 @@ describe('POST /api/templates', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           name: 'Test Template',
-          organizationId: 'org-1',
-          createdById: 'user-1',
+          ownerId: 'user-1',
         }),
       }),
     );
@@ -137,7 +129,6 @@ describe('GET /api/templates', () => {
 
   it('returns paginated templates', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findMany).mockResolvedValue([mockTemplate] as never);
     vi.mocked(prisma.template.count).mockResolvedValue(1 as never);
 
@@ -154,7 +145,6 @@ describe('GET /api/templates', () => {
 
   it('applies search filter', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findMany).mockResolvedValue([] as never);
     vi.mocked(prisma.template.count).mockResolvedValue(0 as never);
 
@@ -166,8 +156,12 @@ describe('GET /api/templates', () => {
     expect(prisma.template.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          OR: expect.arrayContaining([
-            expect.objectContaining({ name: expect.objectContaining({ contains: 'report' }) }),
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                expect.objectContaining({ name: expect.objectContaining({ contains: 'report' }) }),
+              ]),
+            }),
           ]),
         }),
       }),
@@ -193,7 +187,6 @@ describe('GET /api/templates/[id]', () => {
 
   it('returns template by id', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(mockTemplate as never);
 
     const { GET } = await import('@/app/api/templates/[id]/route');
@@ -207,7 +200,6 @@ describe('GET /api/templates/[id]', () => {
 
   it('returns 404 for non-existent template', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(null as never);
 
     const { GET } = await import('@/app/api/templates/[id]/route');
@@ -236,7 +228,6 @@ describe('PUT /api/templates/[id]', () => {
 
   it('updates template successfully', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(mockTemplate as never);
     vi.mocked(prisma.template.update).mockResolvedValue({
       ...mockTemplate,
@@ -254,7 +245,6 @@ describe('PUT /api/templates/[id]', () => {
 
   it('increments version on templateData update', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(mockTemplate as never);
     vi.mocked(prisma.template.update).mockResolvedValue({
       ...mockTemplate,
@@ -277,7 +267,6 @@ describe('PUT /api/templates/[id]', () => {
 
   it('returns 404 for non-existent template', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(null as never);
 
     const { PUT } = await import('@/app/api/templates/[id]/route');
@@ -306,7 +295,6 @@ describe('DELETE /api/templates/[id]', () => {
 
   it('soft deletes template', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(mockTemplate as never);
     vi.mocked(prisma.template.update).mockResolvedValue({
       ...mockTemplate,
@@ -327,7 +315,6 @@ describe('DELETE /api/templates/[id]', () => {
 
   it('returns 404 for non-existent template', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(null as never);
 
     const { DELETE } = await import('@/app/api/templates/[id]/route');
@@ -356,7 +343,6 @@ describe('POST /api/templates/[id]/duplicate', () => {
 
   it('duplicates template successfully', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(mockTemplate as never);
     vi.mocked(prisma.template.create).mockResolvedValue({
       ...mockTemplate,
@@ -375,7 +361,7 @@ describe('POST /api/templates/[id]/duplicate', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           name: 'Test Template (Copy)',
-          createdById: 'user-1',
+          ownerId: 'user-1',
         }),
       }),
     );
@@ -383,7 +369,6 @@ describe('POST /api/templates/[id]/duplicate', () => {
 
   it('returns 404 for non-existent template', async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
     vi.mocked(prisma.template.findFirst).mockResolvedValue(null as never);
 
     const { POST } = await import('@/app/api/templates/[id]/duplicate/route');
