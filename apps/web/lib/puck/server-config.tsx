@@ -67,7 +67,7 @@ const verticalAlignMap: Record<GridColumnProps['verticalAlign'], string> = {
  */
 const serverGridRow: ComponentConfig<GridRowProps> = {
   ...puckConfig.components.GridRow,
-  render: ({ columns, customColumns, gap, pageBreakBehavior, puck }) => {
+  render: ({ columns, customColumns, gap, pageBreakBehavior, puck, id = 'grid-row' }) => {
     let template: string;
     let count: number;
 
@@ -103,7 +103,7 @@ const serverGridRow: ComponentConfig<GridRowProps> = {
       >
         {Array.from({ length: count }, (_, i) => (
           <div key={i} style={{ minHeight: '40px' }}>
-            {puck.renderDropZone({ zone: `${puck.id}-column-${i}` })}
+            {puck.renderDropZone({ zone: `${id}-column-${i}` })}
           </div>
         ))}
       </div>
@@ -117,7 +117,7 @@ const serverGridRow: ComponentConfig<GridRowProps> = {
  */
 const serverGridColumn: ComponentConfig<GridColumnProps> = {
   ...puckConfig.components.GridColumn,
-  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign, pageBreakBehavior, puck }) => (
+  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign, pageBreakBehavior, puck, id = 'grid-column' }) => (
     <div
       style={{
         display: 'flex',
@@ -131,7 +131,7 @@ const serverGridColumn: ComponentConfig<GridColumnProps> = {
         ...getPageBreakStyle(pageBreakBehavior),
       }}
     >
-      {puck.renderDropZone({ zone: `${puck.id}-content` })}
+      {puck.renderDropZone({ zone: `${id}-content` })}
     </div>
   ),
 };
@@ -142,7 +142,7 @@ const serverGridColumn: ComponentConfig<GridColumnProps> = {
  */
 const serverContainer: ComponentConfig<ContainerProps> = {
   ...puckConfig.components.Container,
-  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, pageBreakBehavior, puck }) => (
+  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, pageBreakBehavior, puck, id = 'container' }) => (
     <div
       style={{
         padding: `${padding}px`,
@@ -156,7 +156,7 @@ const serverContainer: ComponentConfig<ContainerProps> = {
         ...getPageBreakStyle(pageBreakBehavior),
       }}
     >
-      {puck.renderDropZone({ zone: `${puck.id}-content` })}
+      {puck.renderDropZone({ zone: `${id}-content` })}
     </div>
   ),
 };
@@ -167,7 +167,7 @@ const serverContainer: ComponentConfig<ContainerProps> = {
  */
 const serverSection: ComponentConfig<SectionProps> = {
   ...puckConfig.components.Section,
-  render: ({ title, showDivider, backgroundColor, padding, pageBreakBehavior, puck }) => (
+  render: ({ title, showDivider, backgroundColor, padding, pageBreakBehavior, puck, id = 'section' }) => (
     <div
       role="region"
       aria-label={title}
@@ -199,7 +199,7 @@ const serverSection: ComponentConfig<SectionProps> = {
           }}
         />
       )}
-      {puck.renderDropZone({ zone: `${puck.id}-content` })}
+      {puck.renderDropZone({ zone: `${id}-content` })}
     </div>
   ),
 };

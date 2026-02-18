@@ -12,7 +12,7 @@ describe('generateHtml', () => {
     const html = await generateHtml(templateData);
 
     expect(html).toContain('<!DOCTYPE html>');
-    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('<html lang="en" class="light">');
     expect(html).toContain('<head>');
     expect(html).toContain('<body>');
     expect(html).toContain('</html>');
@@ -281,7 +281,7 @@ describe('generateMultiPageHtml', () => {
     const html = await generateMultiPageHtml(pages);
 
     expect(html).toContain('<!DOCTYPE html>');
-    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('<html lang="en" class="light">');
     expect(html).toContain('<head>');
     expect(html).toContain('<body>');
     expect(html).toContain('</html>');
@@ -518,5 +518,44 @@ describe('generateMultiPageHtml', () => {
     expect(html).toContain('.p-4');
     expect(html).toContain('.text-center');
     expect(html).toContain('.font-bold');
+  });
+
+  it('forces light mode with class on html element', async () => {
+    const templateData: Data = { content: [], root: {} };
+    const html = await generateHtml(templateData);
+
+    expect(html).toContain('class="light"');
+  });
+
+  it('uses border-collapse separate for print-safe tables', async () => {
+    const templateData: Data = { content: [], root: {} };
+    const html = await generateHtml(templateData);
+
+    expect(html).toContain('border-collapse: separate');
+    expect(html).toContain('border-spacing: 0');
+  });
+
+  it('includes CSS custom properties for theming', async () => {
+    const templateData: Data = { content: [], root: {} };
+    const html = await generateHtml(templateData);
+
+    expect(html).toContain('--primary-color');
+    expect(html).toContain('--border-color');
+    expect(html).toContain('--background');
+  });
+
+  it('includes overflow visible for body containers', async () => {
+    const templateData: Data = { content: [], root: {} };
+    const html = await generateHtml(templateData);
+
+    expect(html).toContain('body > div { overflow: visible; }');
+  });
+
+  it('includes recharts print styles', async () => {
+    const templateData: Data = { content: [], root: {} };
+    const html = await generateHtml(templateData);
+
+    expect(html).toContain('.recharts-wrapper');
+    expect(html).toContain('.recharts-surface');
   });
 });
