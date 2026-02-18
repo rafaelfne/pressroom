@@ -123,7 +123,9 @@ export function detectMarginPreset(margins: PageMargins): MarginPreset {
 }
 
 /**
- * Converts pixels (72 DPI) to millimeters.
+ * Converts pixels (72 DPI / PDF points) to millimeters.
+ * The studio works exclusively in pixels at 72 DPI. This function provides
+ * the precise conversion used when generating PDF output via Puppeteer.
  * Formula: mm = px * 25.4 / 72
  */
 export function pxToMm(px: number): number {
@@ -131,10 +133,12 @@ export function pxToMm(px: number): number {
 }
 
 /**
- * Converts a PageConfig into PdfRenderOptions compatible with Puppeteer.
- * - Named paper sizes: set format field directly
- * - Custom paper size: converts pixels to mm strings
- * - Margins: converts pixels to mm strings
+ * Converts a PageConfig (pixel-based, 72 DPI) into PdfRenderOptions (mm-based)
+ * compatible with Puppeteer.
+ * - Named paper sizes: set format field directly (Puppeteer handles sizing)
+ * - Custom paper size: converts 72 DPI pixels to mm strings
+ * - Margins: converts 72 DPI pixels to mm strings with 4 decimal places
+ *   to preserve precision through the rendering pipeline
  */
 export function pageConfigToRenderOptions(
   config: PageConfig,
@@ -142,10 +146,10 @@ export function pageConfigToRenderOptions(
   const options: PdfRenderOptions = {
     orientation: config.orientation,
     margin: {
-      top: `${pxToMm(config.margins.top).toFixed(2)}mm`,
-      right: `${pxToMm(config.margins.right).toFixed(2)}mm`,
-      bottom: `${pxToMm(config.margins.bottom).toFixed(2)}mm`,
-      left: `${pxToMm(config.margins.left).toFixed(2)}mm`,
+      top: `${pxToMm(config.margins.top).toFixed(4)}mm`,
+      right: `${pxToMm(config.margins.right).toFixed(4)}mm`,
+      bottom: `${pxToMm(config.margins.bottom).toFixed(4)}mm`,
+      left: `${pxToMm(config.margins.left).toFixed(4)}mm`,
     },
   };
 
@@ -153,8 +157,8 @@ export function pageConfigToRenderOptions(
     // Use custom dimensions or fall back to A4
     const width = config.customWidth ?? PAPER_SIZES.A4.width;
     const height = config.customHeight ?? PAPER_SIZES.A4.height;
-    options.width = `${pxToMm(width).toFixed(2)}mm`;
-    options.height = `${pxToMm(height).toFixed(2)}mm`;
+    options.width = `${pxToMm(width).toFixed(4)}mm`;
+    options.height = `${pxToMm(height).toFixed(4)}mm`;
   } else {
     // Use named format
     options.format = config.paperSize;

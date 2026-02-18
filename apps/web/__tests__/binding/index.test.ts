@@ -341,4 +341,29 @@ describe('resolveBindings', () => {
       });
     });
   });
+
+  describe('circular reference protection', () => {
+    it('handles deeply nested objects without stack overflow', () => {
+      // Build deeply nested object
+      let nested: Record<string, unknown> = { value: '{{name}}' };
+      for (let i = 0; i < 100; i++) {
+        nested = { child: nested };
+      }
+
+      const data = { name: 'test' };
+      // Should not throw - returns original value past max depth
+      const result = resolveBindings(nested, data);
+      expect(result).toBeDefined();
+    });
+
+    it('handles circular references gracefully', () => {
+      const obj: Record<string, unknown> = { a: '{{name}}' };
+      obj.self = obj; // circular reference
+
+      const data = { name: 'test' };
+      // Should not throw - detects circular reference via WeakSet
+      const result = resolveBindings(obj, data) as Record<string, unknown>;
+      expect(result.a).toBe('test');
+    });
+  });
 });
