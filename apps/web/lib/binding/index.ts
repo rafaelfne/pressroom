@@ -8,7 +8,12 @@
 import { parse } from './expression-parser';
 import { resolveExpression } from './resolver';
 
-/** Maximum recursion depth for resolving nested objects/arrays (F-10.5) */
+/**
+ * Maximum recursion depth for resolving nested objects/arrays.
+ * Prevents stack overflow from deeply nested template structures or circular references (F-10.5).
+ * 50 is chosen because Puck template data rarely nests beyond 20 levels, and this
+ * provides generous headroom while still protecting against pathological inputs.
+ */
 const MAX_RESOLVE_DEPTH = 50;
 
 /**

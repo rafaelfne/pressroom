@@ -51,14 +51,16 @@ function parseMarginToMm(value: string): number {
   return num;
 }
 
+/** Dots per inch — standard CSS reference pixel density */
+const DPI = 96;
+/** Millimeters per inch conversion factor */
+const MM_PER_INCH = 25.4;
+
 /**
  * Calculate the viewport width in pixels that matches the PDF content area.
  * This ensures CSS layouts render at the correct width before PDF conversion (F-6.1).
  */
 function calculateViewportWidth(options: PdfRenderOptions): number {
-  const DPI = 96;
-  const MM_PER_INCH = 25.4;
-
   let paperWidthMm: number;
 
   if (options.width) {
