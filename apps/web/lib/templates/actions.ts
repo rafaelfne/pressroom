@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
@@ -30,6 +31,11 @@ type GetTemplatesResult = {
 };
 
 export async function createTemplate(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized: Must be logged in to create a template');
+  }
+
   const name = formData.get('name');
 
   if (!name || typeof name !== 'string') {
@@ -44,6 +50,7 @@ export async function createTemplate(formData: FormData) {
       pageConfig: {},
       version: 1,
       tags: [],
+      ownerId: session.user.id,
     },
   });
 
@@ -92,6 +99,11 @@ export async function duplicateTemplate(id: string) {
 export async function getTemplates(
   params: GetTemplatesParams = {},
 ): Promise<GetTemplatesResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized: Must be logged in to view templates');
+  }
+
   const {
     search,
     tags,
@@ -101,20 +113,45 @@ export async function getTemplates(
     sortOrder = 'desc',
   } = params;
 
-  const where = {
+  const where: Prisma.TemplateWhereInput = {
     deletedAt: null,
-    ...(search && {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' as const } },
-        { description: { contains: search, mode: 'insensitive' as const } },
-      ],
-    }),
-    ...(tags && {
-      tags: {
-        hasSome: tags.split(',').map((tag) => tag.trim()),
-      },
-    }),
+    OR: [
+      { ownerId: session.user.id },
+      { accesses: { some: { userId: session.user.id } } },
+    ],
   };
+
+  if (search) {
+    where.AND = [
+      {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+        ],
+      },
+    ];
+  }
+
+  if (tags) {
+    const tagList = tags.split(',').map((tag) => tag.trim());
+    if (tagList.length > 0) {
+      if (where.AND) {
+        (where.AND as Prisma.TemplateWhereInput[]).push({
+          tags: {
+            hasSome: tagList,
+          },
+        });
+      } else {
+        where.AND = [
+          {
+            tags: {
+              hasSome: tagList,
+            },
+          },
+        ];
+      }
+    }
+  }
 
   const orderBy = {
     [sortBy]: sortOrder,

@@ -15,16 +15,14 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true },
-    });
-
     const existing = await prisma.template.findFirst({
       where: {
         id,
         deletedAt: null,
-        organizationId: user?.organizationId ?? null,
+        OR: [
+          { ownerId: session.user.id },
+          { accesses: { some: { userId: session.user.id } } },
+        ],
       },
     });
 
@@ -41,7 +39,7 @@ export async function POST(
         pageConfig: existing.pageConfig ? (existing.pageConfig as Prisma.InputJsonValue) : undefined,
         tags: existing.tags,
         organizationId: existing.organizationId,
-        createdById: session.user.id,
+        ownerId: session.user.id,
       },
     });
 

@@ -16,16 +16,14 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true },
-    });
-
     const template = await prisma.template.findFirst({
       where: {
         id,
         deletedAt: null,
-        organizationId: user?.organizationId ?? null,
+        OR: [
+          { ownerId: session.user.id },
+          { accesses: { some: { userId: session.user.id } } },
+        ],
       },
     });
 
@@ -76,16 +74,14 @@ export async function PUT(
       console.log('[API] headerFooterConfig after validation:', JSON.stringify(parsed.data.headerFooterConfig));
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true },
-    });
-
     const existing = await prisma.template.findFirst({
       where: {
         id,
         deletedAt: null,
-        organizationId: user?.organizationId ?? null,
+        OR: [
+          { ownerId: session.user.id },
+          { accesses: { some: { userId: session.user.id } } },
+        ],
       },
     });
 
@@ -157,21 +153,24 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true },
-    });
-
     const existing = await prisma.template.findFirst({
       where: {
         id,
         deletedAt: null,
-        organizationId: user?.organizationId ?? null,
+        OR: [
+          { ownerId: session.user.id },
+          { accesses: { some: { userId: session.user.id } } },
+        ],
       },
     });
 
     if (!existing) {
       return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+    }
+
+    // Only the owner can delete
+    if (existing.ownerId !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden: Only the template owner can delete' }, { status: 403 });
     }
 
     await prisma.template.update({
