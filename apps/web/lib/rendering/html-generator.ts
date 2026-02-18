@@ -18,13 +18,14 @@ export async function generateHtml(
   const { createElement } = await import('react');
   const { renderToStaticMarkup } = await import('react-dom/server');
   const { Render } = await import('@puckeditor/core');
-  const { puckConfig } = await import('@/lib/puck/config');
+  const { serverPuckConfig } = await import('@/lib/puck/server-config');
 
   const { title = 'Report', cssStyles = '' } = options;
 
-  // Render Puck component tree to HTML
+  // Render Puck component tree to HTML using server-safe config
+  // (no DropZone, no browser-only hooks)
   const element = createElement(Render, {
-    config: puckConfig,
+    config: serverPuckConfig,
     data: templateData,
   });
 
@@ -45,14 +46,14 @@ export async function generateMultiPageHtml(
   const { createElement } = await import('react');
   const { renderToStaticMarkup } = await import('react-dom/server');
   const { Render } = await import('@puckeditor/core');
-  const { puckConfig } = await import('@/lib/puck/config');
+  const { serverPuckConfig } = await import('@/lib/puck/server-config');
 
   const { title = 'Report', cssStyles = '' } = options;
 
   const bodyParts: string[] = [];
   for (let i = 0; i < pages.length; i++) {
     const element = createElement(Render, {
-      config: puckConfig,
+      config: serverPuckConfig,
       data: pages[i],
     });
     const pageHtml = renderToStaticMarkup(element);
@@ -81,18 +82,27 @@ function buildHtmlDocument(
   cssStyles: string,
 ): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
   <style>
+    /* CSS custom properties for theming (F-5.5) */
+    :root {
+      --primary-color: #1a1a1a;
+      --muted-foreground: #6b7280;
+      --border-color: #e5e7eb;
+      --background: #ffffff;
+    }
     /* Reset & base styles */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; color: #1a1a1a; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; color: #1a1a1a; background-color: #ffffff; }
     img { max-width: 100%; height: auto; }
-    table { border-collapse: collapse; width: 100%; }
+    /* Tables: use border-collapse: separate for reliable page break behavior (F-7.1) */
+    table { border-collapse: separate; border-spacing: 0; width: 100%; }
     /* Tailwind-like utilities used by report components */
+    .p-2 { padding: 0.5rem; }
     .p-4 { padding: 1rem; }
     .p-6 { padding: 1.5rem; }
     .p-8 { padding: 2rem; }
@@ -146,7 +156,7 @@ function buildHtmlDocument(
     .w-full { width: 100%; }
     .min-w-0 { min-width: 0; }
     .tracking-tight { letter-spacing: -0.025em; }
-    /* Print & page break styles - applied universally for PDF/print compatibility */
+    /* Print & page break styles — applied universally for PDF/print compatibility */
     table { page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
     thead { display: table-header-group; }
@@ -156,6 +166,11 @@ function buildHtmlDocument(
     .break-after { page-break-after: always; }
     h1, h2, h3, h4, h5, h6 { page-break-after: avoid; }
     p { orphans: 2; widows: 2; }
+    /* Ensure overflow is visible for page-level containers so content flows to next page (F-7.5) */
+    body > div { overflow: visible; }
+    /* Recharts: ensure SVG charts render visibly in print (F-4.4) */
+    .recharts-wrapper { overflow: visible !important; }
+    .recharts-surface { overflow: visible !important; }
     ${sanitizeCss(cssStyles)}
   </style>
 </head>

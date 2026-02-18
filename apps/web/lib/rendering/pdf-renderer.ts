@@ -28,8 +28,62 @@ const MAX_CONCURRENT_PAGES = 10;
 let activePages = 0;
 
 /**
+ * Paper sizes in mm (width × height for portrait orientation).
+ * Used to calculate viewport width matching the PDF content area.
+ */
+const PAPER_SIZES_MM: Record<string, { width: number; height: number }> = {
+  A4: { width: 210, height: 297 },
+  A3: { width: 297, height: 420 },
+  Letter: { width: 215.9, height: 279.4 },
+  Legal: { width: 215.9, height: 355.6 },
+  Tabloid: { width: 279.4, height: 431.8 },
+};
+
+/**
+ * Parse a margin string (e.g., "20mm", "1in", "96px") to mm.
+ */
+function parseMarginToMm(value: string): number {
+  const num = parseFloat(value);
+  if (isNaN(num)) return 0;
+  if (value.endsWith('in')) return num * 25.4;
+  if (value.endsWith('px')) return num * 0.264583;
+  // Default: mm
+  return num;
+}
+
+/**
+ * Calculate the viewport width in pixels that matches the PDF content area.
+ * This ensures CSS layouts render at the correct width before PDF conversion (F-6.1).
+ */
+function calculateViewportWidth(options: PdfRenderOptions): number {
+  const DPI = 96;
+  const MM_PER_INCH = 25.4;
+
+  let paperWidthMm: number;
+
+  if (options.width) {
+    paperWidthMm = parseMarginToMm(options.width);
+  } else {
+    const format = options.format ?? 'A4';
+    const size = PAPER_SIZES_MM[format] ?? PAPER_SIZES_MM.A4;
+    paperWidthMm = options.orientation === 'landscape' ? size.height : size.width;
+  }
+
+  const marginLeftMm = parseMarginToMm(options.margin?.left ?? DEFAULT_MARGIN.left);
+  const marginRightMm = parseMarginToMm(options.margin?.right ?? DEFAULT_MARGIN.right);
+  const contentWidthMm = paperWidthMm - marginLeftMm - marginRightMm;
+
+  return Math.round((contentWidthMm / MM_PER_INCH) * DPI);
+}
+
+/**
  * Render an HTML string to a PDF buffer using Puppeteer.
  * Limits concurrent pages to prevent resource exhaustion.
+ *
+ * Sets viewport width to match the PDF content area so CSS media queries
+ * and responsive layouts compute correctly before PDF conversion.
+ * Emulates 'screen' media type for consistent Tailwind/CSS rendering,
+ * combined with printBackground: true for background colors (F-5.4, F-6.4).
  */
 export async function renderPdf(
   html: string,
@@ -44,6 +98,15 @@ export async function renderPdf(
   const page = await browser.newPage();
 
   try {
+    // Set viewport width to match PDF content area (F-6.1)
+    const viewportWidth = calculateViewportWidth(options);
+    await page.setViewport({ width: viewportWidth, height: 1024 });
+
+    // Emulate screen media for consistent CSS rendering (F-5.4)
+    // Tailwind defaults differ between screen and print; screen mode with
+    // printBackground: true gives the most predictable output.
+    await page.emulateMediaType('screen');
+
     // Set content and wait for rendering to complete
     await page.setContent(html, { waitUntil: 'networkidle0' });
 

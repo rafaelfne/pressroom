@@ -387,6 +387,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
                 dataKey={seriesItem.yField}
                 fill={seriesItem.color || colorArray[index % colorArray.length] || '#8884d8'}
                 name={seriesItem.name}
+                isAnimationActive={false}
               />
             ))}
           </BarChart>
@@ -399,7 +400,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
             <YAxis tickFormatter={yAxisTickFormatter} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
-            <Bar dataKey={yField} fill={colorArray[0] || '#8884d8'} />
+            <Bar dataKey={yField} fill={colorArray[0] || '#8884d8'} isAnimationActive={false} />
           </BarChart>
         );
       }
@@ -421,6 +422,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
                 stroke={seriesItem.color || colorArray[index % colorArray.length] || '#8884d8'}
                 strokeWidth={2}
                 name={seriesItem.name}
+                isAnimationActive={false}
               />
             ))}
           </LineChart>
@@ -438,6 +440,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
               dataKey={yField}
               stroke={colorArray[0] || '#8884d8'}
               strokeWidth={2}
+              isAnimationActive={false}
             />
           </LineChart>
         );
@@ -460,6 +463,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
                 stroke={seriesItem.color || colorArray[index % colorArray.length] || '#8884d8'}
                 fill={seriesItem.color || colorArray[index % colorArray.length] || '#8884d8'}
                 name={seriesItem.name}
+                isAnimationActive={false}
               />
             ))}
           </AreaChart>
@@ -477,6 +481,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
               dataKey={yField}
               stroke={colorArray[0] || '#8884d8'}
               fill={colorArray[0] || '#8884d8'}
+              isAnimationActive={false}
             />
           </AreaChart>
         );
@@ -498,6 +503,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
                 fill={seriesItem.color || colorArray[index % colorArray.length] || '#8884d8'}
                 stackId="stack"
                 name={seriesItem.name}
+                isAnimationActive={false}
               />
             ))}
           </BarChart>
@@ -510,7 +516,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
             <YAxis type="category" dataKey={xField} />
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
-            <Bar dataKey={yField} fill={colorArray[0] || '#8884d8'} stackId="stack" />
+            <Bar dataKey={yField} fill={colorArray[0] || '#8884d8'} stackId="stack" isAnimationActive={false} />
           </BarChart>
         );
       }
@@ -531,6 +537,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
               outerRadius={outerRadius}
               fill={colorArray[0] || '#8884d8'}
               label
+              isAnimationActive={false}
             >
               {data.map((_, index) => (
                 <Cell
