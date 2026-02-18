@@ -20,12 +20,12 @@ describe('DEFAULT_PAGE_CONFIG', () => {
     expect(DEFAULT_PAGE_CONFIG.orientation).toBe('portrait');
   });
 
-  it('has 57px margins on all sides (normal preset)', () => {
+  it('has 16px margins on all sides (normal preset)', () => {
     expect(DEFAULT_PAGE_CONFIG.margins).toEqual({
-      top: 57,
-      right: 57,
-      bottom: 57,
-      left: 57,
+      top: 16,
+      right: 16,
+      bottom: 16,
+      left: 16,
     });
   });
 });
@@ -73,21 +73,21 @@ describe('MARGIN_PRESETS', () => {
     expect(MARGIN_PRESETS).toHaveProperty('wide');
   });
 
-  it('normal has 57px margins', () => {
+  it('normal has 16px margins', () => {
     expect(MARGIN_PRESETS.normal.margins).toEqual({
-      top: 57, right: 57, bottom: 57, left: 57,
+      top: 16, right: 16, bottom: 16, left: 16,
     });
   });
 
-  it('narrow has 36px margins', () => {
+  it('narrow has 8px margins', () => {
     expect(MARGIN_PRESETS.narrow.margins).toEqual({
-      top: 36, right: 36, bottom: 36, left: 36,
+      top: 8, right: 8, bottom: 8, left: 8,
     });
   });
 
-  it('wide has 72px margins', () => {
+  it('wide has 24px margins', () => {
     expect(MARGIN_PRESETS.wide.margins).toEqual({
-      top: 72, right: 72, bottom: 72, left: 72,
+      top: 24, right: 24, bottom: 24, left: 24,
     });
   });
 });
@@ -148,15 +148,15 @@ describe('getPageDimensions', () => {
 
 describe('detectMarginPreset', () => {
   it('detects normal preset', () => {
-    expect(detectMarginPreset({ top: 57, right: 57, bottom: 57, left: 57 })).toBe('normal');
+    expect(detectMarginPreset({ top: 16, right: 16, bottom: 16, left: 16 })).toBe('normal');
   });
 
   it('detects narrow preset', () => {
-    expect(detectMarginPreset({ top: 36, right: 36, bottom: 36, left: 36 })).toBe('narrow');
+    expect(detectMarginPreset({ top: 8, right: 8, bottom: 8, left: 8 })).toBe('narrow');
   });
 
   it('detects wide preset', () => {
-    expect(detectMarginPreset({ top: 72, right: 72, bottom: 72, left: 72 })).toBe('wide');
+    expect(detectMarginPreset({ top: 24, right: 24, bottom: 24, left: 24 })).toBe('wide');
   });
 
   it('returns custom for non-matching margins', () => {
@@ -164,21 +164,21 @@ describe('detectMarginPreset', () => {
   });
 
   it('returns custom when one margin differs from preset', () => {
-    expect(detectMarginPreset({ top: 57, right: 57, bottom: 57, left: 58 })).toBe('custom');
+    expect(detectMarginPreset({ top: 16, right: 16, bottom: 16, left: 17 })).toBe('custom');
   });
 });
 
 describe('pageConfigToRenderOptions', () => {
-  it('converts A4 portrait with normal margins (57px → mm)', () => {
+  it('converts A4 portrait with normal margins (16px → mm)', () => {
     const options = pageConfigToRenderOptions(DEFAULT_PAGE_CONFIG);
     expect(options).toEqual({
       format: 'A4',
       orientation: 'portrait',
       margin: {
-        top: '20.11mm',
-        right: '20.11mm',
-        bottom: '20.11mm',
-        left: '20.11mm',
+        top: '5.6444mm',
+        right: '5.6444mm',
+        bottom: '5.6444mm',
+        left: '5.6444mm',
       },
     });
   });
@@ -193,10 +193,10 @@ describe('pageConfigToRenderOptions', () => {
       format: 'Letter',
       orientation: 'landscape',
       margin: {
-        top: '12.70mm',
-        right: '12.70mm',
-        bottom: '12.70mm',
-        left: '12.70mm',
+        top: '12.7000mm',
+        right: '12.7000mm',
+        bottom: '12.7000mm',
+        left: '12.7000mm',
       },
     });
   });
@@ -227,9 +227,9 @@ describe('pageConfigToRenderOptions', () => {
       customWidth: 425,
       customHeight: 567,
     });
-    // 425px → 149.93mm, 567px → 200.02mm
-    expect(options.width).toBe('149.93mm');
-    expect(options.height).toBe('200.02mm');
+    // 425px → 149.9306mm, 567px → 200.0250mm (72 DPI px → mm with 4 decimal precision)
+    expect(options.width).toBe('149.9306mm');
+    expect(options.height).toBe('200.0250mm');
     expect(options.format).toBeUndefined();
   });
 
@@ -239,9 +239,9 @@ describe('pageConfigToRenderOptions', () => {
       orientation: 'portrait',
       margins: { top: 57, right: 57, bottom: 57, left: 57 },
     });
-    // A4: 595px → 209.90mm, 842px → 297.04mm
-    expect(options.width).toBe('209.90mm');
-    expect(options.height).toBe('297.04mm');
+    // A4: 595px → 209.9028mm, 842px → 297.0389mm
+    expect(options.width).toBe('209.9028mm');
+    expect(options.height).toBe('297.0389mm');
   });
 });
 

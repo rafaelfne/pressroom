@@ -41,24 +41,39 @@ const PAPER_SIZES_MM: Record<string, { width: number; height: number }> = {
 
 /**
  * Parse a margin string (e.g., "20mm", "1in", "96px") to mm.
+ *
+ * Unit handling:
+ * - "mm": used as-is (Puppeteer native unit)
+ * - "in": converted via exact factor (1in = 25.4mm)
+ * - "px": treated as CSS reference pixels (96 DPI) per W3C spec.
+ *   Note: The studio stores dimensions at 72 DPI (PDF points). Those values
+ *   are converted to mm strings by `pageConfigToRenderOptions()` before
+ *   reaching this function, so the 96 DPI path here is only for raw CSS px.
  */
 function parseMarginToMm(value: string): number {
   const num = parseFloat(value);
   if (isNaN(num)) return 0;
-  if (value.endsWith('in')) return num * 25.4;
-  if (value.endsWith('px')) return num * 0.264583;
+  if (value.endsWith('in')) return num * MM_PER_INCH;
+  if (value.endsWith('px')) return (num * MM_PER_INCH) / VIEWPORT_DPI;
   // Default: mm
   return num;
 }
 
-/** Dots per inch — standard CSS reference pixel density */
-const DPI = 96;
+/**
+ * CSS reference pixel density (96 DPI) used for Puppeteer viewport calculations.
+ * Note: The studio stores dimensions at 72 DPI (PDF points). Conversion from
+ * 72 DPI px → mm happens in pageConfigToRenderOptions() before reaching this module.
+ */
+const VIEWPORT_DPI = 96;
 /** Millimeters per inch conversion factor */
 const MM_PER_INCH = 25.4;
 
 /**
  * Calculate the viewport width in pixels that matches the PDF content area.
  * This ensures CSS layouts render at the correct width before PDF conversion (F-6.1).
+ *
+ * The viewport uses CSS pixels (96 DPI) because that's what Puppeteer's Chromium expects.
+ * Margin values arrive as mm strings (converted from studio 72 DPI px upstream).
  */
 function calculateViewportWidth(options: PdfRenderOptions): number {
   let paperWidthMm: number;
@@ -75,7 +90,7 @@ function calculateViewportWidth(options: PdfRenderOptions): number {
   const marginRightMm = parseMarginToMm(options.margin?.right ?? DEFAULT_MARGIN.right);
   const contentWidthMm = paperWidthMm - marginLeftMm - marginRightMm;
 
-  return Math.round((contentWidthMm / MM_PER_INCH) * DPI);
+  return Math.round((contentWidthMm / MM_PER_INCH) * VIEWPORT_DPI);
 }
 
 /**
