@@ -25,6 +25,8 @@ type GetTemplatesResult = {
     updatedAt: Date;
     templateData: unknown;
     version: number;
+    ownerId: string | null;
+    organization: { id: string; name: string } | null;
   }>;
   totalCount: number;
   totalPages: number;
@@ -164,6 +166,10 @@ export async function getTemplates(
         updatedAt: true,
         templateData: true,
         version: true,
+        ownerId: true,
+        organization: {
+          select: { id: true, name: true },
+        },
       },
     }),
     prisma.template.count({ where }),
