@@ -16,7 +16,7 @@ import {
   MARGIN_PRESETS,
   detectMarginPreset,
 } from '@/lib/types/page-config';
-import type { HeaderFooterConfig, HeaderConfig, FooterConfig } from '@/lib/types/header-footer-config';
+import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
 import {
   DEFAULT_HEADER_CONFIG,
   DEFAULT_FOOTER_CONFIG,
