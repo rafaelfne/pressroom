@@ -126,7 +126,7 @@ export function detectMarginPreset(margins: PageMargins): MarginPreset {
  * Converts pixels (72 DPI / PDF points) to millimeters.
  * The studio works exclusively in pixels at 72 DPI. This function provides
  * the precise conversion used when generating PDF output via Puppeteer.
- * Formula: mm = px × 25.4 / 72
+ * Formula: mm = px * 25.4 / 72
  */
 export function pxToMm(px: number): number {
   return px * 25.4 / 72;

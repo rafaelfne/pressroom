@@ -227,7 +227,7 @@ describe('pageConfigToRenderOptions', () => {
       customWidth: 425,
       customHeight: 567,
     });
-    // 425px → 149.9306mm, 567px → 200.0250mm (72 DPI px → mm with 4 decimal precision)
+    // 425px -> 149.9306mm, 567px -> 200.0250mm (72 DPI px -> mm with 4 decimal precision)
     expect(options.width).toBe('149.9306mm');
     expect(options.height).toBe('200.0250mm');
     expect(options.format).toBeUndefined();
@@ -239,7 +239,7 @@ describe('pageConfigToRenderOptions', () => {
       orientation: 'portrait',
       margins: { top: 57, right: 57, bottom: 57, left: 57 },
     });
-    // A4: 595px → 209.9028mm, 842px → 297.0389mm
+    // A4: 595px -> 209.9028mm, 842px -> 297.0389mm
     expect(options.width).toBe('209.9028mm');
     expect(options.height).toBe('297.0389mm');
   });
