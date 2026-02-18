@@ -160,6 +160,18 @@ export default function StudioPage() {
   const puckDataRef = useRef<Data>(EMPTY_DATA);
   const activePageIdRef = useRef<string>(activePageId);
   const zoomRef = useRef<number>(zoom);
+  const puckWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Force Puck's layout height to respect the flex parent
+  // _Puck_ root has class like "_Puck_1dd16_19" (contains "_Puck_")
+  // _PuckLayout_ has class like "_PuckLayout_1dd16_36" (contains "PuckLayout")
+  useEffect(() => {
+    if (!puckWrapperRef.current) return;
+    const root = puckWrapperRef.current.querySelector<HTMLElement>('[class*="_Puck_"]');
+    const layout = puckWrapperRef.current.querySelector<HTMLElement>('[class*="PuckLayout"]:not([class*="PuckLayout-"])');
+    if (root) root.style.setProperty('height', '100%', 'important');
+    if (layout) layout.style.setProperty('height', '100%', 'important');
+  });
 
   useEffect(() => {
     pageConfigRef.current = pageConfig;
@@ -518,6 +530,7 @@ export default function StudioPage() {
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden relative">
+          <div ref={puckWrapperRef} className="flex-1 min-h-0 overflow-hidden">
           <Puck
             key={activePage.id}
             config={puckConfig}
@@ -559,6 +572,7 @@ export default function StudioPage() {
               ),
             }}
           />
+          </div>
           {/* Page Tab Bar at bottom of canvas */}
           <PageTabBar
             pages={pages}

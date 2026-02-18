@@ -79,3 +79,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Match Puck's inner background to the canvas workspace */
+[data-testid='studio-editor'] div[class*='PuckLayout-inner'] {
+  background-color: #f5f5f5 !important;
+}
+
+/* Hide Puck's canvas root white background (we use our own PaperCanvas) */
+[data-testid='studio-editor'] div[class*='PuckCanvas-root'] {
+  background: transparent !important;
+  outline: none !important;
+}
+
+

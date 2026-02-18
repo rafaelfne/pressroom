@@ -16,7 +16,7 @@ import {
   MARGIN_PRESETS,
   detectMarginPreset,
 } from '@/lib/types/page-config';
-import type { HeaderFooterConfig, HeaderConfig, FooterConfig } from '@/lib/types/header-footer-config';
+import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
 import {
   DEFAULT_HEADER_CONFIG,
   DEFAULT_FOOTER_CONFIG,
@@ -136,11 +136,6 @@ export function PageSettingsPanel({
 
   return (
     <div className="space-y-6 p-4" data-testid="page-settings-panel">
-      {/* Panel Title */}
-      <div>
-        <h3 className="text-sm font-bold">Page</h3>
-      </div>
-
       {/* Page Title Section */}
       <div className="space-y-2">
         <Label htmlFor="page-title" className="text-xs font-medium text-muted-foreground">
@@ -422,7 +417,7 @@ export function PageSettingsPanel({
             type="header"
             open={headerDialogOpen}
             onOpenChange={setHeaderDialogOpen}
-            config={headerFooterConfig.header}
+            config={headerFooterConfig.header ?? DEFAULT_HEADER_CONFIG}
             onSave={(newConfig) => {
               onHeaderFooterConfigChange({
                 ...headerFooterConfig,
@@ -459,7 +454,7 @@ export function PageSettingsPanel({
             type="footer"
             open={footerDialogOpen}
             onOpenChange={setFooterDialogOpen}
-            config={headerFooterConfig.footer}
+            config={headerFooterConfig.footer ?? DEFAULT_FOOTER_CONFIG}
             onSave={(newConfig) => {
               onHeaderFooterConfigChange({
                 ...headerFooterConfig,

@@ -64,11 +64,14 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
   const marginBottom = pxToScreen(pageConfig.margins.bottom);
   const marginLeft = pxToScreen(pageConfig.margins.left);
 
+  const scaledWidth = paperDimensions.width * (zoom / 100);
+  const scaledHeight = paperDimensions.height * (zoom / 100);
+
   return (
-    <div className="flex flex-col flex-1 overflow-hidden relative">
+    <div className="flex flex-col flex-1 overflow-hidden">
       {/* Zoom toolbar */}
-      <div className="absolute top-2 right-2 z-10" data-testid="zoom-toolbar">
-        <div className="flex items-center gap-2 bg-white rounded-lg shadow-md px-3 py-2 border">
+      <div className="flex items-center justify-end px-3 py-1.5 bg-[#f5f5f5] border-b border-border/50 shrink-0" data-testid="zoom-toolbar">
+        <div className="flex items-center gap-2 bg-white rounded-lg shadow-sm px-3 py-1.5 border">
           <span className="text-sm text-muted-foreground" data-testid="zoom-level-display">
             {zoom}%
           </span>
@@ -100,17 +103,25 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
         onWheel={handleWheel}
         data-testid="canvas-workspace"
       >
-        {/* Paper sheet */}
+        {/* Scaled wrapper - matches visual size to prevent extra scroll */}
         <div
-          className="bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-200 relative"
           style={{
-            width: `${paperDimensions.width}px`,
-            height: `${paperDimensions.height}px`,
-            transform: `scale(${zoom / 100})`,
-            transformOrigin: 'top center',
+            width: `${scaledWidth}px`,
+            height: `${scaledHeight}px`,
+            flexShrink: 0,
           }}
-          data-testid="paper-sheet"
         >
+          {/* Paper sheet */}
+          <div
+            className="bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-200 relative"
+            style={{
+              width: `${paperDimensions.width}px`,
+              height: `${paperDimensions.height}px`,
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: 'top left',
+            }}
+            data-testid="paper-sheet"
+          >
           {/* Margin guides */}
           <div
             className="absolute pointer-events-none border border-dashed"
@@ -177,6 +188,7 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
               <div className="text-xs text-muted-foreground">Footer</div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
