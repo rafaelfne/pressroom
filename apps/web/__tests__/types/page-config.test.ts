@@ -20,12 +20,12 @@ describe('DEFAULT_PAGE_CONFIG', () => {
     expect(DEFAULT_PAGE_CONFIG.orientation).toBe('portrait');
   });
 
-  it('has 57px margins on all sides (normal preset)', () => {
+  it('has 16px margins on all sides (normal preset)', () => {
     expect(DEFAULT_PAGE_CONFIG.margins).toEqual({
-      top: 57,
-      right: 57,
-      bottom: 57,
-      left: 57,
+      top: 16,
+      right: 16,
+      bottom: 16,
+      left: 16,
     });
   });
 });
@@ -73,21 +73,21 @@ describe('MARGIN_PRESETS', () => {
     expect(MARGIN_PRESETS).toHaveProperty('wide');
   });
 
-  it('normal has 57px margins', () => {
+  it('normal has 16px margins', () => {
     expect(MARGIN_PRESETS.normal.margins).toEqual({
-      top: 57, right: 57, bottom: 57, left: 57,
+      top: 16, right: 16, bottom: 16, left: 16,
     });
   });
 
-  it('narrow has 36px margins', () => {
+  it('narrow has 8px margins', () => {
     expect(MARGIN_PRESETS.narrow.margins).toEqual({
-      top: 36, right: 36, bottom: 36, left: 36,
+      top: 8, right: 8, bottom: 8, left: 8,
     });
   });
 
-  it('wide has 72px margins', () => {
+  it('wide has 24px margins', () => {
     expect(MARGIN_PRESETS.wide.margins).toEqual({
-      top: 72, right: 72, bottom: 72, left: 72,
+      top: 24, right: 24, bottom: 24, left: 24,
     });
   });
 });
@@ -148,15 +148,15 @@ describe('getPageDimensions', () => {
 
 describe('detectMarginPreset', () => {
   it('detects normal preset', () => {
-    expect(detectMarginPreset({ top: 57, right: 57, bottom: 57, left: 57 })).toBe('normal');
+    expect(detectMarginPreset({ top: 16, right: 16, bottom: 16, left: 16 })).toBe('normal');
   });
 
   it('detects narrow preset', () => {
-    expect(detectMarginPreset({ top: 36, right: 36, bottom: 36, left: 36 })).toBe('narrow');
+    expect(detectMarginPreset({ top: 8, right: 8, bottom: 8, left: 8 })).toBe('narrow');
   });
 
   it('detects wide preset', () => {
-    expect(detectMarginPreset({ top: 72, right: 72, bottom: 72, left: 72 })).toBe('wide');
+    expect(detectMarginPreset({ top: 24, right: 24, bottom: 24, left: 24 })).toBe('wide');
   });
 
   it('returns custom for non-matching margins', () => {
@@ -169,16 +169,16 @@ describe('detectMarginPreset', () => {
 });
 
 describe('pageConfigToRenderOptions', () => {
-  it('converts A4 portrait with normal margins (57px → mm)', () => {
+  it('converts A4 portrait with normal margins (16px → mm)', () => {
     const options = pageConfigToRenderOptions(DEFAULT_PAGE_CONFIG);
     expect(options).toEqual({
       format: 'A4',
       orientation: 'portrait',
       margin: {
-        top: '20.11mm',
-        right: '20.11mm',
-        bottom: '20.11mm',
-        left: '20.11mm',
+        top: '5.64mm',
+        right: '5.64mm',
+        bottom: '5.64mm',
+        left: '5.64mm',
       },
     });
   });

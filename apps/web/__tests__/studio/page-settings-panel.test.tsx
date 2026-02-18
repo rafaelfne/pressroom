@@ -26,11 +26,10 @@ describe('PageSettingsPanel', () => {
         cleanup();
     });
 
-    it('renders the panel with "Page" title', () => {
+    it('renders the panel', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
         expect(panel).toBeInTheDocument();
-        expect(within(panel).getByText('Page')).toBeInTheDocument();
     });
 
     it('displays page title input with current value', () => {
@@ -116,10 +115,10 @@ describe('PageSettingsPanel', () => {
         const bottomInput = within(panel).getByTestId('margin-bottom') as HTMLInputElement;
         const leftInput = within(panel).getByTestId('margin-left') as HTMLInputElement;
 
-        expect(topInput.value).toBe('57');
-        expect(rightInput.value).toBe('57');
-        expect(bottomInput.value).toBe('57');
-        expect(leftInput.value).toBe('57');
+        expect(topInput.value).toBe('16');
+        expect(rightInput.value).toBe('16');
+        expect(bottomInput.value).toBe('16');
+        expect(leftInput.value).toBe('16');
     });
 
     it('highlights correct margin preset', () => {
@@ -138,10 +137,10 @@ describe('PageSettingsPanel', () => {
         expect(mockOnConfigChange).toHaveBeenCalledWith(
             expect.objectContaining({
                 margins: expect.objectContaining({
-                    top: 36,
-                    right: 36,
-                    bottom: 36,
-                    left: 36,
+                    top: 8,
+                    right: 8,
+                    bottom: 8,
+                    left: 8,
                 }),
             }),
         );
