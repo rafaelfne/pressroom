@@ -51,7 +51,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/');
+      router.push('/templates');
       router.refresh();
     } catch (err) {
       console.error('[Login] Error:', err);

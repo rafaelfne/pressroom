@@ -5,21 +5,14 @@ describe('Middleware', () => {
     it('should have correct route matchers', () => {
       // We're testing the expected middleware configuration
       // without importing the actual middleware which requires Next.js runtime
-      const expectedMatchers = [
-        '/studio/:path*',
-        '/api/:path*',
-        '/((?!_next/static|_next/image|favicon.ico).*)',
-      ];
+      const expectedMatchers = ['/((?!_next/static|_next/image|favicon.ico).*)'];
 
-      // The middleware should protect these routes
-      expect(expectedMatchers).toContain('/studio/:path*');
-      expect(expectedMatchers).toContain('/api/:path*');
-
+      // The middleware should use a single catch-all matcher
       const catchAllPattern = expectedMatchers.find((pattern) =>
         pattern.includes('(?!_next/static|_next/image|favicon.ico)'),
       );
       expect(catchAllPattern).toBeDefined();
-      expect(expectedMatchers).toHaveLength(3);
+      expect(expectedMatchers).toHaveLength(1);
     });
   });
 });

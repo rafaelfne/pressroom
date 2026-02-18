@@ -113,22 +113,15 @@ export async function POST(request: NextRequest) {
     } else if (inlineTemplateData) {
       templateData = inlineTemplateData as Data;
     } else if (templateId) {
-      // Fetch user's org
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { organizationId: true },
-      });
-
-      if (!user?.organizationId) {
-        return NextResponse.json({ error: 'User has no organization' }, { status: 403 });
-      }
-
-      // Fetch template
+      // Fetch template with access check
       const template = await prisma.template.findFirst({
         where: {
           id: templateId,
-          organizationId: user.organizationId,
           deletedAt: null,
+          OR: [
+            { ownerId: session.user.id },
+            { accesses: { some: { userId: session.user.id } } },
+          ],
         },
       });
 

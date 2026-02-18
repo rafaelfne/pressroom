@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
@@ -24,12 +25,19 @@ type GetTemplatesResult = {
     updatedAt: Date;
     templateData: unknown;
     version: number;
+    ownerId: string | null;
+    organization: { id: string; name: string } | null;
   }>;
   totalCount: number;
   totalPages: number;
 };
 
 export async function createTemplate(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized: Must be logged in to create a template');
+  }
+
   const name = formData.get('name');
 
   if (!name || typeof name !== 'string') {
@@ -44,6 +52,7 @@ export async function createTemplate(formData: FormData) {
       pageConfig: {},
       version: 1,
       tags: [],
+      ownerId: session.user.id,
     },
   });
 
@@ -92,6 +101,11 @@ export async function duplicateTemplate(id: string) {
 export async function getTemplates(
   params: GetTemplatesParams = {},
 ): Promise<GetTemplatesResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized: Must be logged in to view templates');
+  }
+
   const {
     search,
     tags,
@@ -101,19 +115,37 @@ export async function getTemplates(
     sortOrder = 'desc',
   } = params;
 
-  const where = {
-    deletedAt: null,
-    ...(search && {
+  // Build the AND conditions array
+  const andConditions: Prisma.TemplateWhereInput[] = [];
+
+  // Add search filter if provided
+  if (search) {
+    andConditions.push({
       OR: [
         { name: { contains: search, mode: 'insensitive' as const } },
         { description: { contains: search, mode: 'insensitive' as const } },
       ],
-    }),
-    ...(tags && {
-      tags: {
-        hasSome: tags.split(',').map((tag) => tag.trim()),
-      },
-    }),
+    });
+  }
+
+  // Add tags filter if provided
+  if (tags) {
+    const tagList = tags.split(',').map((tag) => tag.trim());
+    if (tagList.length > 0) {
+      andConditions.push({
+        tags: { hasSome: tagList },
+      });
+    }
+  }
+
+  // Build final where clause with access control
+  const where: Prisma.TemplateWhereInput = {
+    deletedAt: null,
+    OR: [
+      { ownerId: session.user.id },
+      { accesses: { some: { userId: session.user.id } } },
+    ],
+    ...(andConditions.length > 0 && { AND: andConditions }),
   };
 
   const orderBy = {
@@ -134,6 +166,10 @@ export async function getTemplates(
         updatedAt: true,
         templateData: true,
         version: true,
+        ownerId: true,
+        organization: {
+          select: { id: true, name: true },
+        },
       },
     }),
     prisma.template.count({ where }),

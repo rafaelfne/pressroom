@@ -52,6 +52,7 @@ export const templateCreateSchema = z.object({
   pageConfig: pageConfigSchema.optional(),
   headerFooterConfig: headerFooterConfigSchema.optional(),
   tags: z.array(z.string()).optional(),
+  organizationId: z.string().optional(),
 });
 
 export const templateUpdateSchema = z.object({

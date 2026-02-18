@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import {
+  ArrowLeft,
   Pencil,
   Undo2,
   Redo2,
@@ -127,7 +128,7 @@ export function StudioHeader({
         data-testid="studio-header"
       >
         <div className="flex h-full items-center px-4 gap-4">
-          {/* Left: Logo */}
+          {/* Left: Logo + Back to Templates */}
           <Link
             href="/templates"
             className="flex items-center gap-2 font-semibold shrink-0"
@@ -158,6 +159,20 @@ export function StudioHeader({
             </svg>
             <span className="hidden sm:inline text-sm">Pressroom</span>
           </Link>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/templates"
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
+                data-testid="back-to-templates"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Templates</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Back to Templates</TooltipContent>
+          </Tooltip>
 
           {/* Separator */}
           <div className="h-6 w-px bg-border shrink-0" />

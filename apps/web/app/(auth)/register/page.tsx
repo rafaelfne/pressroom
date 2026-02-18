@@ -21,9 +21,26 @@ export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [lastSuggestedUsername, setLastSuggestedUsername] = useState('');
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    // Auto-suggest username from email
+    if (newEmail.includes('@') && (username === '' || username === lastSuggestedUsername)) {
+      const suggestedUsername = newEmail
+        .split('@')[0]
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9._-]/g, '.');
+      setUsername(suggestedUsername);
+      setLastSuggestedUsername(suggestedUsername);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +48,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const parsed = registerSchema.safeParse({ name, email, password });
+      const parsed = registerSchema.safeParse({ name, email, username, password });
 
       if (!parsed.success) {
         const firstError = parsed.error.issues[0];
@@ -40,7 +57,7 @@ export default function RegisterPage() {
         return;
       }
 
-      const result = await registerUser({ name, email, password });
+      const result = await registerUser({ name, email, username, password });
 
       if ('error' in result) {
         setError(result.error);
@@ -86,7 +103,19 @@ export default function RegisterPage() {
               type="email"
               placeholder="john@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              disabled={isLoading}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="john.doe"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
               required
             />
