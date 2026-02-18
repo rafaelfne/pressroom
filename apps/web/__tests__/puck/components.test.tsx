@@ -25,7 +25,7 @@ describe('TextBlock component', () => {
   it('renders custom text with style', () => {
     const Component = puckConfig.components.TextBlock.render;
     const { container } = render(
-      <Component text="Hello World" fontSize="1.5rem" color="#ff0000" alignment="left" bold="false" italic="false" pageBreakBehavior="auto" id="test-text" puck={mockPuckContext} />,
+      <Component text="Hello World" fontSize="1.5rem" customFontSize={16} color="#ff0000" alignment="left" bold="false" italic="false" pageBreakBehavior="auto" id="test-text" puck={mockPuckContext} />,
     );
     const element = screen.getByText('Hello World');
     expect(element).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('TextBlock component', () => {
   it('applies alignment, bold, and italic styles', () => {
     const Component = puckConfig.components.TextBlock.render;
     const { container } = render(
-      <Component text="Styled Text" fontSize="1rem" color="#000000" alignment="center" bold="true" italic="true" pageBreakBehavior="auto" id="test-text" puck={mockPuckContext} />,
+      <Component text="Styled Text" fontSize="1rem" customFontSize={16} color="#000000" alignment="center" bold="true" italic="true" pageBreakBehavior="auto" id="test-text" puck={mockPuckContext} />,
     );
     const element = container.firstChild as HTMLElement;
     expect(element).toHaveStyle({ textAlign: 'center', fontWeight: 'bold', fontStyle: 'italic' });

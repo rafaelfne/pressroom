@@ -422,7 +422,7 @@ export function PageSettingsPanel({
             type="header"
             open={headerDialogOpen}
             onOpenChange={setHeaderDialogOpen}
-            config={headerFooterConfig.header}
+            config={headerFooterConfig.header ?? DEFAULT_HEADER_CONFIG}
             onSave={(newConfig) => {
               onHeaderFooterConfigChange({
                 ...headerFooterConfig,
@@ -459,7 +459,7 @@ export function PageSettingsPanel({
             type="footer"
             open={footerDialogOpen}
             onOpenChange={setFooterDialogOpen}
-            config={headerFooterConfig.footer}
+            config={headerFooterConfig.footer ?? DEFAULT_FOOTER_CONFIG}
             onSave={(newConfig) => {
               onHeaderFooterConfigChange({
                 ...headerFooterConfig,
