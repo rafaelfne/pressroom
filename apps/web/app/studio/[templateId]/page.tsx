@@ -18,6 +18,7 @@ import {
   type PageConfig,
 } from '@/lib/types/page-config';
 import { Toaster, toast } from 'sonner';
+import { CustomActionBar } from '@/components/studio/custom-action-bar';
 
 const usePuck = createUsePuck();
 
@@ -625,6 +626,7 @@ function StudioContent({
               iframe={{ enabled: false }}
               overrides={{
                 header: () => <></>,
+                actionBar: () => <CustomActionBar usePuck={usePuck} />,
                 puck: ({ children }) => (
                   <>
                     <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
