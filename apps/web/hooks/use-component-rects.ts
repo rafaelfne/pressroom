@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 
 /**
  * Hook that provides a mapping of Puck component IDs to their DOM bounding rectangles.

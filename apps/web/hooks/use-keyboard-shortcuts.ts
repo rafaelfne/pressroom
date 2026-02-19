@@ -84,8 +84,6 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions): void
     if (!enabled) return;
 
     const handleKeyDown = (e: KeyboardEvent): void => {
-      const isMac = navigator.platform.toUpperCase().includes('MAC');
-      const modKey = isMac ? e.metaKey : e.ctrlKey;
       const anyModKey = e.ctrlKey || e.metaKey;
 
       // Check if we're in an editable element
