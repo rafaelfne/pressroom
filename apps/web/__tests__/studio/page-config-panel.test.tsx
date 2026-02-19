@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, cleanup, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, fireEvent, cleanup, within, screen } from '@testing-library/react';
 import { PageConfigPanel } from '@/components/studio/page-config-panel';
 import { DEFAULT_PAGE_CONFIG } from '@/lib/types/page-config';
 
@@ -39,15 +38,16 @@ describe('PageConfigPanel', () => {
     });
 
     it('calls onConfigChange when Custom paper size is selected', async () => {
-        const user = userEvent.setup();
         const { container } = render(<PageConfigPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-config-panel');
         const trigger = within(panel).getByTestId('paper-size-select');
-        await user.click(trigger);
-        const option = document.querySelector('[data-slot="select-item"][data-value="Custom"]');
-        if (option) {
-            await user.click(option as HTMLElement);
-        }
+
+        // Open the Radix Select dropdown via fireEvent.click (userEvent fails due to pointer-events: none on child spans)
+        fireEvent.click(trigger);
+
+        // Select the "Custom" option from the portal
+        const option = screen.getByRole('option', { name: 'Custom' });
+        fireEvent.click(option);
 
         expect(mockOnConfigChange).toHaveBeenCalledWith(
             expect.objectContaining({

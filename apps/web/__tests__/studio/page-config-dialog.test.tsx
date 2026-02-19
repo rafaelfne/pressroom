@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { PageConfigDialog } from '@/components/studio/page-config-dialog';
 import { DEFAULT_PAGE_CONFIG } from '@/lib/types/page-config';
 
@@ -42,14 +41,15 @@ describe('PageConfigDialog', () => {
   });
 
   it('shows custom dimension inputs when Custom paper size is selected', async () => {
-    const user = userEvent.setup();
     render(<PageConfigDialog {...defaultProps} />);
     const trigger = screen.getAllByTestId('paper-size-select')[0];
-    await user.click(trigger);
-    const option = document.querySelector('[data-slot="select-item"][data-value="Custom"]');
-    if (option) {
-      await user.click(option as HTMLElement);
-    }
+
+    // Open the Radix Select dropdown via fireEvent.click (userEvent fails due to pointer-events: none on child spans)
+    fireEvent.click(trigger);
+
+    // Select the "Custom" option from the portal
+    const option = screen.getByRole('option', { name: 'Custom' });
+    fireEvent.click(option);
 
     expect(screen.getAllByTestId('custom-width')[0]).toBeInTheDocument();
     expect(screen.getAllByTestId('custom-height')[0]).toBeInTheDocument();
