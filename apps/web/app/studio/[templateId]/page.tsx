@@ -505,44 +505,44 @@ export default function StudioPage() {
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden relative">
           <div ref={puckWrapperRef} className="flex-1 min-h-0 overflow-hidden">
-          <Puck
-            key={activePage.id}
-            config={puckConfig}
-            data={activePage.content}
-            onPublish={handlePublish}
-            viewports={[]}
-            iframe={{ enabled: false }}
-            overrides={{
-              header: () => <></>,
-              actionBar: () => <></>,
-              puck: ({ children }) => (
-                <>
-                  <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
-                  {children}
-                </>
-              ),
-              preview: () => (
-                <PaperCanvas
-                  pageConfig={pageConfig}
-                  zoom={zoom}
-                  onZoomChange={setZoom}
-                >
-                  <Puck.Preview />
-                </PaperCanvas>
-              ),
-              fields: ({ children }) => (
-                <RightPanel
-                  usePuck={usePuck}
-                  config={pageConfig}
-                  onConfigChange={handlePageConfigChange}
-                  pageTitle={activePage.name}
-                  onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
-                >
-                  {children}
-                </RightPanel>
-              ),
-            }}
-          />
+            <Puck
+              key={activePage.id}
+              config={puckConfig}
+              data={activePage.content}
+              onPublish={handlePublish}
+              viewports={[]}
+              iframe={{ enabled: false }}
+              overrides={{
+                header: () => <></>,
+                actionBar: () => <></>,
+                puck: ({ children }) => (
+                  <>
+                    <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
+                    {children}
+                  </>
+                ),
+                preview: () => (
+                  <PaperCanvas
+                    pageConfig={pageConfig}
+                    zoom={zoom}
+                    onZoomChange={setZoom}
+                  >
+                    <Puck.Preview />
+                  </PaperCanvas>
+                ),
+                fields: ({ children }) => (
+                  <RightPanel
+                    usePuck={usePuck}
+                    config={pageConfig}
+                    onConfigChange={handlePageConfigChange}
+                    pageTitle={activePage.name}
+                    onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
+                  >
+                    {children}
+                  </RightPanel>
+                ),
+              }}
+            />
           </div>
           {/* Page Tab Bar at bottom of canvas */}
           <PageTabBar

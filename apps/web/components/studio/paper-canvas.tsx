@@ -114,33 +114,33 @@ export function PaperCanvas({ pageConfig, zoom, onZoomChange, children }: PaperC
             }}
             data-testid="paper-sheet"
           >
-          {/* Margin guides */}
-          <div
-            className="absolute pointer-events-none border border-dashed"
-            style={{
-              top: `${marginTop}px`,
-              right: `${marginRight}px`,
-              bottom: `${marginBottom}px`,
-              left: `${marginLeft}px`,
-              borderColor: 'rgba(0,0,0,0.1)',
-            }}
-            data-testid="margin-guides"
-          />
+            {/* Margin guides */}
+            <div
+              className="absolute pointer-events-none border border-dashed"
+              style={{
+                top: `${marginTop}px`,
+                right: `${marginRight}px`,
+                bottom: `${marginBottom}px`,
+                left: `${marginLeft}px`,
+                borderColor: 'rgba(0,0,0,0.1)',
+              }}
+              data-testid="margin-guides"
+            />
 
-          {/* Content area - respects margins */}
-          <div
-            className="absolute overflow-hidden"
-            style={{
-              top: `${marginTop}px`,
-              right: `${marginRight}px`,
-              bottom: `${marginBottom}px`,
-              left: `${marginLeft}px`,
-            }}
-            data-testid="content-area"
-          >
-            {children}
+            {/* Content area - respects margins */}
+            <div
+              className="absolute overflow-hidden"
+              style={{
+                top: `${marginTop}px`,
+                right: `${marginRight}px`,
+                bottom: `${marginBottom}px`,
+                left: `${marginLeft}px`,
+              }}
+              data-testid="content-area"
+            >
+              {children}
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
