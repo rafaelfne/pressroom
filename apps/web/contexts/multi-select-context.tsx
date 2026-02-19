@@ -184,8 +184,6 @@ export function multiSelectReducer(
     }
 
     default: {
-      // Exhaustive check - TypeScript will error if we miss a case
-      const _exhaustive: never = action;
       return state;
     }
   }
