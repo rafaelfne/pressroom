@@ -12,9 +12,6 @@ export interface PdfRenderOptions {
     left?: string;
   };
   orientation?: 'portrait' | 'landscape';
-  headerTemplate?: string;
-  footerTemplate?: string;
-  displayHeaderFooter?: boolean;
 }
 
 const DEFAULT_MARGIN = {
@@ -45,8 +42,8 @@ const PAPER_SIZES_MM: Record<string, { width: number; height: number }> = {
  * Unit handling:
  * - "mm": used as-is (Puppeteer native unit)
  * - "in": converted via exact factor (1in = 25.4mm)
- * - "px": treated as viewport pixels at VIEWPORT_DPI (72 DPI).
- *   Note: The studio stores dimensions at 72 DPI (PDF points). Those values
+ * - "px": treated as viewport pixels at VIEWPORT_DPI (96 DPI).
+ *   Note: The studio stores dimensions at 96 DPI. Those values
  *   are converted to mm strings by `pageConfigToRenderOptions()` before
  *   reaching this function, so this px path is only for raw CSS px values.
  */
@@ -60,11 +57,11 @@ function parseMarginToMm(value: string): number {
 }
 
 /**
- * Viewport pixel density for Puppeteer, set to 72 DPI to match the studio's
- * coordinate system (PDF points). This ensures the Puppeteer viewport width
- * equals the studio content width, so CSS layouts render at the same scale.
+ * Viewport pixel density for Puppeteer, set to 96 DPI to match the studio's
+ * coordinate system. This ensures the Puppeteer viewport width equals the
+ * studio content width, so CSS layouts render at the same scale.
  */
-const VIEWPORT_DPI = 72;
+const VIEWPORT_DPI = 96;
 /** Millimeters per inch conversion factor */
 const MM_PER_INCH = 25.4;
 
@@ -72,8 +69,8 @@ const MM_PER_INCH = 25.4;
  * Calculate the viewport width in pixels that matches the PDF content area.
  * This ensures CSS layouts render at the correct width before PDF conversion (F-6.1).
  *
- * The viewport uses CSS pixels (96 DPI) because that's what Puppeteer's Chromium expects.
- * Margin values arrive as mm strings (converted from studio 72 DPI px upstream).
+ * The viewport uses 96 DPI because that's what the studio uses.
+ * Margin values arrive as mm strings (converted from studio 96 DPI px upstream).
  */
 function calculateViewportWidth(options: PdfRenderOptions): number {
   let paperWidthMm: number;
@@ -150,13 +147,6 @@ export async function renderPdf(
     // Orientation
     if (options.orientation === 'landscape') {
       pdfOptions.landscape = true;
-    }
-
-    // Header / footer
-    if (options.displayHeaderFooter) {
-      pdfOptions.displayHeaderFooter = true;
-      pdfOptions.headerTemplate = options.headerTemplate ?? '<span></span>';
-      pdfOptions.footerTemplate = options.footerTemplate ?? '<span></span>';
     }
 
     const pdfBuffer = await page.pdf(pdfOptions);

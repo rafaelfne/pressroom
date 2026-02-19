@@ -144,36 +144,6 @@ describe('renderPdf', () => {
     );
   });
 
-  it('enables header/footer when displayHeaderFooter is true', async () => {
-    const html = '<html><body>Test</body></html>';
-    await renderPdf(html, {
-      displayHeaderFooter: true,
-      headerTemplate: '<div>Header</div>',
-      footerTemplate: '<div>Footer</div>',
-    });
-
-    expect(mockPage.pdf).toHaveBeenCalledWith(
-      expect.objectContaining({
-        displayHeaderFooter: true,
-        headerTemplate: '<div>Header</div>',
-        footerTemplate: '<div>Footer</div>',
-      }),
-    );
-  });
-
-  it('uses default header/footer templates when not provided', async () => {
-    const html = '<html><body>Test</body></html>';
-    await renderPdf(html, { displayHeaderFooter: true });
-
-    expect(mockPage.pdf).toHaveBeenCalledWith(
-      expect.objectContaining({
-        displayHeaderFooter: true,
-        headerTemplate: '<span></span>',
-        footerTemplate: '<span></span>',
-      }),
-    );
-  });
-
   it('enables print background', async () => {
     const html = '<html><body>Test</body></html>';
     await renderPdf(html);
@@ -227,7 +197,7 @@ describe('renderPdf', () => {
     await renderPdf(html);
 
     // A4 (210mm) - default margins (15mm left + 15mm right) = 180mm content width
-    // 180mm / 25.4 * 72 ≈ 510px
+    // 180mm / 25.4 * 96 ≈ 680px
     expect(mockPage.setViewport).toHaveBeenCalledWith(
       expect.objectContaining({
         width: expect.any(Number),
@@ -235,8 +205,8 @@ describe('renderPdf', () => {
       }),
     );
     const { width } = vi.mocked(mockPage.setViewport).mock.calls[0][0] as { width: number; height: number };
-    expect(width).toBeGreaterThan(450);
-    expect(width).toBeLessThan(600);
+    expect(width).toBeGreaterThan(600);
+    expect(width).toBeLessThan(750);
   });
 
   it('sets viewport for landscape orientation', async () => {
@@ -244,9 +214,9 @@ describe('renderPdf', () => {
     await renderPdf(html, { orientation: 'landscape' });
 
     // A4 landscape (297mm) - default margins (15mm left + 15mm right) = 267mm
-    // 267mm / 25.4 * 72 ≈ 757px
+    // 267mm / 25.4 * 96 ≈ 1008px
     const { width } = vi.mocked(mockPage.setViewport).mock.calls[0][0] as { width: number; height: number };
-    expect(width).toBeGreaterThan(700);
+    expect(width).toBeGreaterThan(900);
   });
 
   it('emulates screen media type', async () => {

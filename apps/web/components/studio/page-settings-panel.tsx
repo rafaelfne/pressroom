@@ -16,43 +16,29 @@ import {
   MARGIN_PRESETS,
   detectMarginPreset,
 } from '@/lib/types/page-config';
-import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
-import {
-  DEFAULT_HEADER_CONFIG,
-  DEFAULT_FOOTER_CONFIG,
-} from '@/lib/types/header-footer-config';
-import { HeaderFooterConfigDialog } from './header-footer-config-dialog';
 
 export interface PageSettingsPanelProps {
   config: PageConfig;
   onConfigChange: (config: PageConfig) => void;
   pageTitle: string;
   onPageTitleChange: (title: string) => void;
-  headerFooterConfig: HeaderFooterConfig;
-  onHeaderFooterConfigChange: (config: HeaderFooterConfig) => void;
 }
 
 /**
  * Full page settings panel that shows when no component is selected.
- * Includes page title, paper size, orientation, margins, and header/footer config.
+ * Includes page title, paper size, orientation, and margins.
  */
 export function PageSettingsPanel({
   config,
   onConfigChange,
   pageTitle,
   onPageTitleChange,
-  headerFooterConfig,
-  onHeaderFooterConfigChange,
 }: PageSettingsPanelProps) {
   // Local state for text inputs to prevent focus loss during typing
   const [localPageTitle, setLocalPageTitle] = React.useState(pageTitle);
   const [localMargins, setLocalMargins] = React.useState(config.margins);
   const [localCustomWidth, setLocalCustomWidth] = React.useState(config.customWidth ?? 595);
   const [localCustomHeight, setLocalCustomHeight] = React.useState(config.customHeight ?? 842);
-
-  // Dialog state for header/footer configuration
-  const [headerDialogOpen, setHeaderDialogOpen] = React.useState(false);
-  const [footerDialogOpen, setFooterDialogOpen] = React.useState(false);
 
   // Sync local state when props change from external sources
   React.useEffect(() => {
@@ -108,30 +94,6 @@ export function PageSettingsPanel({
     value: number,
   ) => {
     onConfigChange({ ...config, [dimension]: value });
-  };
-
-  const handleHeaderEnabledChange = (enabled: boolean) => {
-    const header = headerFooterConfig.header ?? DEFAULT_HEADER_CONFIG;
-
-    onHeaderFooterConfigChange({
-      ...headerFooterConfig,
-      header: {
-        ...header,
-        enabled,
-      },
-    });
-  };
-
-  const handleFooterEnabledChange = (enabled: boolean) => {
-    const footer = headerFooterConfig.footer ?? DEFAULT_FOOTER_CONFIG;
-
-    onHeaderFooterConfigChange({
-      ...headerFooterConfig,
-      footer: {
-        ...footer,
-        enabled,
-      },
-    });
   };
 
   return (
@@ -381,87 +343,6 @@ export function PageSettingsPanel({
               }}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Header/Footer Section */}
-      <div className="space-y-4 border-t border-border pt-4">
-        <Label className="text-xs font-medium text-muted-foreground">
-          Header & Footer
-        </Label>
-
-        {/* Header */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <input
-              id="show-header"
-              data-testid="show-header-checkbox"
-              type="checkbox"
-              checked={headerFooterConfig.header?.enabled ?? false}
-              onChange={(e) => handleHeaderEnabledChange(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="show-header" className="text-sm cursor-pointer">
-              Show header on this page
-            </Label>
-          </div>
-          <button
-            type="button"
-            data-testid="configure-header-link"
-            className="text-xs text-blue-600 hover:underline"
-            onClick={() => setHeaderDialogOpen(true)}
-          >
-            Configure Header →
-          </button>
-          <HeaderFooterConfigDialog
-            type="header"
-            open={headerDialogOpen}
-            onOpenChange={setHeaderDialogOpen}
-            config={headerFooterConfig.header ?? DEFAULT_HEADER_CONFIG}
-            onSave={(newConfig) => {
-              onHeaderFooterConfigChange({
-                ...headerFooterConfig,
-                header: newConfig,
-              });
-            }}
-          />
-        </div>
-
-        {/* Footer */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <input
-              id="show-footer"
-              data-testid="show-footer-checkbox"
-              type="checkbox"
-              checked={headerFooterConfig.footer?.enabled ?? false}
-              onChange={(e) => handleFooterEnabledChange(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="show-footer" className="text-sm cursor-pointer">
-              Show footer on this page
-            </Label>
-          </div>
-          <button
-            type="button"
-            data-testid="configure-footer-link"
-            className="text-xs text-blue-600 hover:underline"
-            onClick={() => setFooterDialogOpen(true)}
-          >
-            Configure Footer →
-          </button>
-          <HeaderFooterConfigDialog
-            type="footer"
-            open={footerDialogOpen}
-            onOpenChange={setFooterDialogOpen}
-            config={headerFooterConfig.footer ?? DEFAULT_FOOTER_CONFIG}
-            onSave={(newConfig) => {
-              onHeaderFooterConfigChange({
-                ...headerFooterConfig,
-                footer: newConfig,
-              });
-            }}
-          />
         </div>
       </div>
     </div>

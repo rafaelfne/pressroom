@@ -5,8 +5,6 @@ import { ImageBlock, type ImageBlockProps } from '@/components/report-components
 import { Spacer, type SpacerProps } from '@/components/report-components/spacer';
 import { Divider, type DividerProps } from '@/components/report-components/divider';
 import { PageBreak, type PageBreakProps } from '@/components/report-components/page-break';
-import { ReportHeader, type ReportHeaderProps } from '@/components/report-components/report-header';
-import { ReportFooter, type ReportFooterProps } from '@/components/report-components/report-footer';
 import { DataTable, type DataTableProps } from '@/components/report-components/data-table';
 import { ChartBlock, type ChartBlockProps } from '@/components/report-components/chart-block';
 import { Container, type ContainerProps } from '@/components/report-components/container';
@@ -21,8 +19,6 @@ type PuckComponents = {
   Spacer: SpacerProps;
   Divider: DividerProps;
   PageBreak: PageBreakProps;
-  ReportHeader: ReportHeaderProps;
-  ReportFooter: ReportFooterProps;
   DataTable: DataTableProps;
   ChartBlock: ChartBlockProps;
   Container: ContainerProps;
@@ -41,10 +37,6 @@ export const puckConfig: Config<PuckComponents> = {
       title: 'Content',
       components: ['TextBlock', 'HeadingBlock', 'ImageBlock'],
     },
-    header_footer: {
-      title: 'Header & Footer (Legacy)',
-      components: ['ReportHeader', 'ReportFooter'],
-    },
     data: {
       title: 'Data',
       components: ['DataTable'],
@@ -61,8 +53,6 @@ export const puckConfig: Config<PuckComponents> = {
     Spacer,
     Divider,
     PageBreak,
-    ReportHeader,
-    ReportFooter,
     DataTable,
     ChartBlock,
     Container,

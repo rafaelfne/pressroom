@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { headerFooterConfigSchema } from './header-footer-schemas';
 
 // Puck Data structure validation.
 // Puck component items have dynamic shapes determined by registered components,
@@ -50,7 +49,6 @@ export const templateCreateSchema = z.object({
   pages: pagesSchema.optional(),
   sampleData: z.record(z.string(), z.unknown()).optional(),
   pageConfig: pageConfigSchema.optional(),
-  headerFooterConfig: headerFooterConfigSchema.optional(),
   tags: z.array(z.string()).optional(),
   organizationId: z.string().optional(),
 });
@@ -62,7 +60,6 @@ export const templateUpdateSchema = z.object({
   pages: pagesSchema.optional(),
   sampleData: z.record(z.string(), z.unknown()).optional(),
   pageConfig: pageConfigSchema.optional(),
-  headerFooterConfig: headerFooterConfigSchema.optional(),
   tags: z.array(z.string()).optional(),
 });
 

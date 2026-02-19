@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { headerFooterConfigSchema } from './header-footer-schemas';
 
 export const renderRequestSchema = z.object({
   templateId: z.string().min(1).optional(),
@@ -39,11 +38,7 @@ export const renderRequestSchema = z.object({
     customWidth: z.number().positive().optional(),
     customHeight: z.number().positive().optional(),
     orientation: z.enum(['portrait', 'landscape']).optional(),
-    headerTemplate: z.string().optional(),
-    footerTemplate: z.string().optional(),
-    displayHeaderFooter: z.boolean().optional(),
   }).optional(),
-  headerFooterConfig: headerFooterConfigSchema.optional(),
 }).refine(
   (data) => data.templateId || data.templateData || data.pages,
   { message: 'Either templateId, templateData, or pages must be provided' },

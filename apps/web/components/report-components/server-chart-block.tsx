@@ -4,7 +4,7 @@
  * so this file is safe to use in RSC / API route contexts.
  */
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, pageBreakField } from '@/lib/utils/page-break';
 import type { ChartBlockProps, SeriesConfig } from './chart-block';
 
 // Re-export the type so server-config can reference it
@@ -39,6 +39,16 @@ const STACKED_BAR_SAMPLE_DATA = [
 
 const PADDING = { top: 20, right: 20, bottom: 40, left: 50 };
 
+/**
+ * Convert xAxisRotation prop to rotation angle in degrees.
+ * Negative rotation matches Recharts behavior.
+ */
+function getRotationAngle(rotation: '0' | '45' | '90' | undefined): number {
+  if (rotation === '45') return -45;
+  if (rotation === '90') return -90;
+  return 0;
+}
+
 function getNumericValue(row: Record<string, string | number>, field: string): number {
   const v = row[field];
   return typeof v === 'number' ? v : parseFloat(String(v)) || 0;
@@ -59,7 +69,7 @@ function renderBarChart(
   seriesConfig: SeriesConfig[],
   stacked: boolean,
 ): React.ReactNode {
-  const { xField, yField, showGrid, showLegend, yAxisFormat } = props;
+  const { xField, yField, showGrid, showLegend, yAxisFormat, xAxisRotation } = props;
   const plotW = w - PADDING.left - PADDING.right;
   const plotH = h - PADDING.top - PADDING.bottom;
 
@@ -150,12 +160,20 @@ function renderBarChart(
         </text>
       ))}
       {bars}
-      {data.map((row, i) => (
-        <text key={i} x={PADDING.left + i * groupW + groupW / 2} y={PADDING.top + plotH + 16}
-          textAnchor="middle" fontSize={10} fill="#6b7280">
-          {String(row[xField] ?? '')}
-        </text>
-      ))}
+      {data.map((row, i) => {
+        const x = PADDING.left + i * groupW + groupW / 2;
+        const y = PADDING.top + plotH + 16;
+        const rotation = getRotationAngle(xAxisRotation);
+        const anchor = rotation !== 0 ? 'end' : 'middle';
+        const transform = rotation !== 0 ? `rotate(${rotation}, ${x}, ${y})` : undefined;
+
+        return (
+          <text key={i} x={x} y={y} textAnchor={anchor} fontSize={10} fill="#6b7280"
+            transform={transform}>
+            {String(row[xField] ?? '')}
+          </text>
+        );
+      })}
       {showLegend === 'true' && legendItems.map((item, i) => (
         <g key={i} transform={`translate(${PADDING.left + i * 80}, ${h - 12})`}>
           <rect x={0} y={-8} width={10} height={10} fill={item.color} />
@@ -175,7 +193,7 @@ function renderLineAreaChart(
   seriesConfig: SeriesConfig[],
   filled: boolean,
 ): React.ReactNode {
-  const { xField, yField, showGrid, showLegend, yAxisFormat } = props;
+  const { xField, yField, showGrid, showLegend, yAxisFormat, xAxisRotation } = props;
   const plotW = w - PADDING.left - PADDING.right;
   const plotH = h - PADDING.top - PADDING.bottom;
 
@@ -241,12 +259,20 @@ function renderLineAreaChart(
         ? seriesConfig.map((sc, i) => renderSeries(sc.yField, sc.color || colorArray[i % colorArray.length] || '#8884d8', i))
         : renderSeries(yField, colorArray[0] || '#8884d8', 0)
       }
-      {data.map((row, i) => (
-        <text key={i} x={PADDING.left + i * xStep} y={PADDING.top + plotH + 16}
-          textAnchor="middle" fontSize={10} fill="#6b7280">
-          {String(row[xField] ?? '')}
-        </text>
-      ))}
+      {data.map((row, i) => {
+        const x = PADDING.left + i * xStep;
+        const y = PADDING.top + plotH + 16;
+        const rotation = getRotationAngle(xAxisRotation);
+        const anchor = rotation !== 0 ? 'end' : 'middle';
+        const transform = rotation !== 0 ? `rotate(${rotation}, ${x}, ${y})` : undefined;
+
+        return (
+          <text key={i} x={x} y={y} textAnchor={anchor} fontSize={10} fill="#6b7280"
+            transform={transform}>
+            {String(row[xField] ?? '')}
+          </text>
+        );
+      })}
       {showLegend === 'true' && legendItems.map((item, i) => (
         <g key={i} transform={`translate(${PADDING.left + i * 80}, ${h - 12})`}>
           <rect x={0} y={-8} width={10} height={10} fill={item.color} />
@@ -320,14 +346,16 @@ function renderPieChart(
 export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
   label: 'Chart',
   fields: {
-    chartType: { type: 'select', label: 'Chart Type', options: [
-      { label: 'Bar', value: 'bar' },
-      { label: 'Line', value: 'line' },
-      { label: 'Pie', value: 'pie' },
-      { label: 'Area', value: 'area' },
-      { label: 'Donut', value: 'donut' },
-      { label: 'Stacked Bar', value: 'stackedBar' },
-    ]},
+    chartType: {
+      type: 'select', label: 'Chart Type', options: [
+        { label: 'Bar', value: 'bar' },
+        { label: 'Line', value: 'line' },
+        { label: 'Pie', value: 'pie' },
+        { label: 'Area', value: 'area' },
+        { label: 'Donut', value: 'donut' },
+        { label: 'Stacked Bar', value: 'stackedBar' },
+      ]
+    },
     dataExpression: { type: 'text', label: 'Data Source' },
     xField: { type: 'text', label: 'X-Axis Field' },
     yField: { type: 'text', label: 'Y-Axis Field' },
@@ -340,19 +368,25 @@ export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
     showGrid: { type: 'radio', label: 'Show Grid', options: [{ label: 'Yes', value: 'true' }, { label: 'No', value: 'false' }] },
     showTooltip: { type: 'radio', label: 'Show Tooltip', options: [{ label: 'Yes', value: 'true' }, { label: 'No', value: 'false' }] },
     series: { type: 'text', label: 'Series Config (JSON)' },
-    xAxisFormat: { type: 'select', label: 'X-Axis Format', options: [
-      { label: 'Category', value: 'category' },
-      { label: 'Date', value: 'date' },
-      { label: 'Number', value: 'number' },
-    ]},
-    yAxisFormat: { type: 'select', label: 'Y-Axis Format', options: [
-      { label: 'Number', value: 'number' },
-      { label: 'Percentage', value: 'percentage' },
-      { label: 'Currency', value: 'currency' },
-    ]},
-    xAxisRotation: { type: 'select', label: 'X-Axis Label Rotation', options: [
-      { label: '0°', value: '0' }, { label: '45°', value: '45' }, { label: '90°', value: '90' },
-    ]},
+    xAxisFormat: {
+      type: 'select', label: 'X-Axis Format', options: [
+        { label: 'Category', value: 'category' },
+        { label: 'Date', value: 'date' },
+        { label: 'Number', value: 'number' },
+      ]
+    },
+    yAxisFormat: {
+      type: 'select', label: 'Y-Axis Format', options: [
+        { label: 'Number', value: 'number' },
+        { label: 'Percentage', value: 'percentage' },
+        { label: 'Currency', value: 'currency' },
+      ]
+    },
+    xAxisRotation: {
+      type: 'select', label: 'X-Axis Label Rotation', options: [
+        { label: '0°', value: '0' }, { label: '45°', value: '45' }, { label: '90°', value: '90' },
+      ]
+    },
     centerLabel: { type: 'text', label: 'Donut Center Label' },
     backgroundColor: { type: 'text', label: 'Background Color' },
     containerBorder: { type: 'radio', label: 'Container Border', options: [{ label: 'Yes', value: 'true' }, { label: 'No', value: 'false' }] },
@@ -382,8 +416,8 @@ export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
   },
   render: ({
     chartType, xField, yField, title, subtitle, height, width,
-    colors, showLegend, showGrid, series, yAxisFormat, centerLabel,
-    backgroundColor, containerBorder, pageBreakBehavior,
+    colors, showLegend, showGrid, series, yAxisFormat, xAxisRotation,
+    centerLabel, backgroundColor, containerBorder, pageBreakBehavior,
   }) => {
     const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
     const parsedHeight = parseInt(height, 10) || 300;
@@ -403,7 +437,7 @@ export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
     const chartProps = {
       chartType, xField, yField, title, subtitle, height, width,
       colors, showLegend, showGrid, showTooltip: 'false', series,
-      xAxisFormat: 'category' as const, yAxisFormat, xAxisRotation: '0' as const,
+      xAxisFormat: 'category' as const, yAxisFormat, xAxisRotation,
       centerLabel, backgroundColor, containerBorder, pageBreakBehavior,
       dataExpression: '',
     };

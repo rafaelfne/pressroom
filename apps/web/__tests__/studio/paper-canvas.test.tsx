@@ -22,12 +22,12 @@ describe('PaperCanvas', () => {
     expect(workspace).toHaveClass('bg-[#f5f5f5]');
   });
 
-  it('renders paper sheet with correct dimensions for A4 portrait (595×842 px at 72 DPI)', () => {
+  it('renders paper sheet with correct dimensions for A4 portrait (794×1123 px at 96 DPI)', () => {
     render(<PaperCanvas {...defaultProps} />);
     const paperSheet = screen.getByTestId('paper-sheet');
     expect(paperSheet).toBeInTheDocument();
-    // A4 portrait: 595×842 px at 72 DPI (matches PDF output resolution)
-    expect(paperSheet).toHaveStyle({ width: '595px', height: '842px' });
+    // A4 portrait: 794×1123 px at 96 DPI (matches studio resolution)
+    expect(paperSheet).toHaveStyle({ width: '794px', height: '1123px' });
   });
 
   it('renders margin guides', () => {

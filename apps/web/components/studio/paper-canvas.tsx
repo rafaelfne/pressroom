@@ -1,33 +1,8 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { PageConfig, getPageDimensionsPx, pxToScreen, ZOOM_LEVELS } from '@/lib/types/page-config';
-import { HeaderFooterConfig, type ZoneContent } from '@/lib/types/header-footer-config';
 import { Button } from '@/components/ui/button';
-
-function ImageZonePreview({ src, alt }: { src: string; alt?: string }) {
-  const [errored, setErrored] = useState(false);
-  if (errored) return <span className="truncate italic opacity-60">[img]</span>;
-  return (
-    <img
-      src={src}
-      alt={alt ?? ''}
-      style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', verticalAlign: 'middle' }}
-      onError={() => setErrored(true)}
-    />
-  );
-}
-
-function ZonePreview({ zone }: { zone: ZoneContent }) {
-  if (zone.type === 'empty') return null;
-  if (zone.type === 'text') return <span className="truncate">{zone.value || '…'}</span>;
-  if (zone.type === 'pageNumber') return <span className="truncate">{zone.format.replace('{page}', '1').replace('{total}', '1')}</span>;
-  if (zone.type === 'image') {
-    if (!zone.src) return <span className="truncate italic opacity-60">[img]</span>;
-    return <ImageZonePreview src={zone.src} alt={zone.alt} />;
-  }
-  return null;
-}
 
 const MIN_ZOOM = 50;
 const MAX_ZOOM = 150;
@@ -37,20 +12,13 @@ const FIT_PADDING_PX = 64;
 
 export interface PaperCanvasProps {
   pageConfig: PageConfig;
-  headerFooterConfig?: HeaderFooterConfig;
   zoom: number;
   onZoomChange: (zoom: number) => void;
   children: React.ReactNode;
 }
 
-export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange, children }: PaperCanvasProps) {
+export function PaperCanvas({ pageConfig, zoom, onZoomChange, children }: PaperCanvasProps) {
   const workspaceRef = useRef<HTMLDivElement>(null);
-
-  // Header/Footer dimensions - convert from 72 DPI to screen pixels
-  const headerEnabled = headerFooterConfig?.header?.enabled ?? false;
-  const footerEnabled = headerFooterConfig?.footer?.enabled ?? false;
-  const headerHeightPx = headerEnabled ? pxToScreen(headerFooterConfig?.header?.height ?? 43) : 0;
-  const footerHeightPx = footerEnabled ? pxToScreen(headerFooterConfig?.footer?.height ?? 34) : 0;
 
   const paperDimensions = getPageDimensionsPx(pageConfig);
 
@@ -82,7 +50,7 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
     [zoom, onZoomChange],
   );
 
-  // Margin calculations - convert from 72 DPI to screen pixels
+  // Margin calculations - convert from 96 DPI to screen pixels
   const marginTop = pxToScreen(pageConfig.margins.top);
   const marginRight = pxToScreen(pageConfig.margins.right);
   const marginBottom = pxToScreen(pageConfig.margins.bottom);
@@ -159,75 +127,19 @@ export function PaperCanvas({ pageConfig, headerFooterConfig, zoom, onZoomChange
             data-testid="margin-guides"
           />
 
-          {/* Header area */}
-          {headerEnabled && (
-            <div
-              className="absolute flex items-center px-2 border-b text-xs text-muted-foreground"
-              style={{
-                top: `${marginTop}px`,
-                left: `${marginLeft}px`,
-                right: `${marginRight}px`,
-                height: `${headerHeightPx}px`,
-                borderColor: headerFooterConfig?.header?.bottomBorder?.enabled
-                  ? (headerFooterConfig?.header?.bottomBorder?.color ?? '#e5e7eb')
-                  : 'transparent',
-                backgroundColor: headerFooterConfig?.header?.backgroundColor ?? 'transparent',
-              }}
-              data-testid="header-area"
-            >
-              <div className="flex-1 flex items-center justify-start overflow-hidden">
-                <ZonePreview zone={headerFooterConfig!.header!.zones.left} />
-              </div>
-              <div className="flex-1 flex items-center justify-center overflow-hidden">
-                <ZonePreview zone={headerFooterConfig!.header!.zones.center} />
-              </div>
-              <div className="flex-1 flex items-center justify-end overflow-hidden">
-                <ZonePreview zone={headerFooterConfig!.header!.zones.right} />
-              </div>
-            </div>
-          )}
-
-          {/* Content area - respects margins and header/footer */}
+          {/* Content area - respects margins */}
           <div
             className="absolute overflow-hidden"
             style={{
-              top: `${marginTop + headerHeightPx}px`,
+              top: `${marginTop}px`,
               right: `${marginRight}px`,
-              bottom: `${marginBottom + footerHeightPx}px`,
+              bottom: `${marginBottom}px`,
               left: `${marginLeft}px`,
             }}
             data-testid="content-area"
           >
             {children}
           </div>
-
-          {/* Footer area */}
-          {footerEnabled && (
-            <div
-              className="absolute flex items-center px-2 border-t text-xs text-muted-foreground"
-              style={{
-                bottom: `${marginBottom}px`,
-                left: `${marginLeft}px`,
-                right: `${marginRight}px`,
-                height: `${footerHeightPx}px`,
-                borderColor: headerFooterConfig?.footer?.topBorder?.enabled
-                  ? (headerFooterConfig?.footer?.topBorder?.color ?? '#e5e7eb')
-                  : 'transparent',
-                backgroundColor: headerFooterConfig?.footer?.backgroundColor ?? 'transparent',
-              }}
-              data-testid="footer-area"
-            >
-              <div className="flex-1 flex items-center justify-start overflow-hidden">
-                <ZonePreview zone={headerFooterConfig!.footer!.zones.left} />
-              </div>
-              <div className="flex-1 flex items-center justify-center overflow-hidden">
-                <ZonePreview zone={headerFooterConfig!.footer!.zones.center} />
-              </div>
-              <div className="flex-1 flex items-center justify-end overflow-hidden">
-                <ZonePreview zone={headerFooterConfig!.footer!.zones.right} />
-              </div>
-            </div>
-          )}
         </div>
         </div>
       </div>

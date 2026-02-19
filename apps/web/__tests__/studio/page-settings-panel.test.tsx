@@ -2,20 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, cleanup, within } from '@testing-library/react';
 import { PageSettingsPanel } from '@/components/studio/page-settings-panel';
 import { DEFAULT_PAGE_CONFIG } from '@/lib/types/page-config';
-import { DEFAULT_HEADER_FOOTER_CONFIG } from '@/lib/types/header-footer-config';
 
 describe('PageSettingsPanel', () => {
     const mockOnConfigChange = vi.fn();
     const mockOnPageTitleChange = vi.fn();
-    const mockOnHeaderFooterConfigChange = vi.fn();
 
     const defaultProps = {
         config: DEFAULT_PAGE_CONFIG,
         onConfigChange: mockOnConfigChange,
         pageTitle: 'Test Page',
         onPageTitleChange: mockOnPageTitleChange,
-        headerFooterConfig: DEFAULT_HEADER_FOOTER_CONFIG,
-        onHeaderFooterConfigChange: mockOnHeaderFooterConfigChange,
     };
 
     beforeEach(() => {
@@ -57,7 +53,7 @@ describe('PageSettingsPanel', () => {
 
     it('shows dimensions label for named paper sizes', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        expect(within(container).getByText(/A4 \(595 × 842 px\)/)).toBeInTheDocument();
+        expect(within(container).getByText(/A4 \(794 × 1123 px\)/)).toBeInTheDocument();
     });
 
     it('calls onConfigChange when paper size is changed', () => {
@@ -115,10 +111,10 @@ describe('PageSettingsPanel', () => {
         const bottomInput = within(panel).getByTestId('margin-bottom') as HTMLInputElement;
         const leftInput = within(panel).getByTestId('margin-left') as HTMLInputElement;
 
-        expect(topInput.value).toBe('16');
-        expect(rightInput.value).toBe('16');
-        expect(bottomInput.value).toBe('16');
-        expect(leftInput.value).toBe('16');
+        expect(topInput.value).toBe('21');
+        expect(rightInput.value).toBe('21');
+        expect(bottomInput.value).toBe('21');
+        expect(leftInput.value).toBe('21');
     });
 
     it('highlights correct margin preset', () => {
@@ -137,10 +133,10 @@ describe('PageSettingsPanel', () => {
         expect(mockOnConfigChange).toHaveBeenCalledWith(
             expect.objectContaining({
                 margins: expect.objectContaining({
-                    top: 8,
-                    right: 8,
-                    bottom: 8,
-                    left: 8,
+                    top: 11,
+                    right: 11,
+                    bottom: 11,
+                    left: 11,
                 }),
             }),
         );
@@ -174,68 +170,5 @@ describe('PageSettingsPanel', () => {
         const panel = within(container).getByTestId('page-settings-panel');
         const customPreset = within(panel).getByTestId('margin-preset-custom');
         expect(customPreset.className).toContain('bg-primary');
-    });
-
-    // Header/Footer section tests
-    it('renders header checkbox', () => {
-        const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        const panel = within(container).getByTestId('page-settings-panel');
-        const checkbox = within(panel).getByTestId('show-header-checkbox') as HTMLInputElement;
-        expect(checkbox).toBeInTheDocument();
-        expect(checkbox.checked).toBe(false); // defaults to disabled
-    });
-
-    it('renders footer checkbox', () => {
-        const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        const panel = within(container).getByTestId('page-settings-panel');
-        const checkbox = within(panel).getByTestId('show-footer-checkbox') as HTMLInputElement;
-        expect(checkbox).toBeInTheDocument();
-        expect(checkbox.checked).toBe(false);
-    });
-
-    it('calls onHeaderFooterConfigChange when header checkbox is toggled', () => {
-        const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        const panel = within(container).getByTestId('page-settings-panel');
-        const checkbox = within(panel).getByTestId('show-header-checkbox');
-        fireEvent.click(checkbox);
-
-        expect(mockOnHeaderFooterConfigChange).toHaveBeenCalledWith(
-            expect.objectContaining({
-                header: expect.objectContaining({
-                    enabled: true,
-                }),
-            }),
-        );
-    });
-
-    it('calls onHeaderFooterConfigChange when footer checkbox is toggled', () => {
-        const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        const panel = within(container).getByTestId('page-settings-panel');
-        const checkbox = within(panel).getByTestId('show-footer-checkbox');
-        fireEvent.click(checkbox);
-
-        expect(mockOnHeaderFooterConfigChange).toHaveBeenCalledWith(
-            expect.objectContaining({
-                footer: expect.objectContaining({
-                    enabled: true,
-                }),
-            }),
-        );
-    });
-
-    it('renders configure header link (enabled)', () => {
-        const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        const panel = within(container).getByTestId('page-settings-panel');
-        const link = within(panel).getByTestId('configure-header-link');
-        expect(link).toBeInTheDocument();
-        expect(link).not.toBeDisabled();
-    });
-
-    it('renders configure footer link (enabled)', () => {
-        const { container } = render(<PageSettingsPanel {...defaultProps} />);
-        const panel = within(container).getByTestId('page-settings-panel');
-        const link = within(panel).getByTestId('configure-footer-link');
-        expect(link).toBeInTheDocument();
-        expect(link).not.toBeDisabled();
     });
 });

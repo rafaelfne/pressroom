@@ -31,11 +31,6 @@ export async function GET(
       return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
-    console.log('[API] GET template, headerFooterConfig exists:', !!template.headerFooterConfig);
-    if (template.headerFooterConfig) {
-      console.log('[API] headerFooterConfig value:', JSON.stringify(template.headerFooterConfig));
-    }
-
     return NextResponse.json(template);
   } catch (error) {
     console.error('[API] GET /api/templates/[id] error:', error);
@@ -56,22 +51,13 @@ export async function PUT(
 
   try {
     const body: unknown = await request.json();
-    console.log('[API] PUT /api/templates/[id] body keys:', Object.keys(body as Record<string, unknown>));
-    if ((body as Record<string, unknown>).headerFooterConfig) {
-      console.log('[API] headerFooterConfig received:', JSON.stringify((body as Record<string, unknown>).headerFooterConfig));
-    }
     const parsed = templateUpdateSchema.safeParse(body);
 
     if (!parsed.success) {
-      console.log('[API] Validation failed:', JSON.stringify(parsed.error.flatten()));
       return NextResponse.json(
         { error: 'Validation failed', details: parsed.error.flatten() },
         { status: 400 },
       );
-    }
-    console.log('[API] Parsed data keys:', Object.keys(parsed.data));
-    if (parsed.data.headerFooterConfig) {
-      console.log('[API] headerFooterConfig after validation:', JSON.stringify(parsed.data.headerFooterConfig));
     }
 
     const existing = await prisma.template.findFirst({
@@ -116,23 +102,14 @@ export async function PUT(
       updateData.pageConfig = parsed.data.pageConfig as Prisma.InputJsonValue;
     }
 
-    if (parsed.data.headerFooterConfig !== undefined) {
-      updateData.headerFooterConfig = parsed.data.headerFooterConfig as Prisma.InputJsonValue;
-      console.log('[API] Adding headerFooterConfig to updateData');
-    }
-
     if (parsed.data.tags !== undefined) {
       updateData.tags = parsed.data.tags;
     }
-
-    console.log('[API] updateData keys:', Object.keys(updateData));
 
     const template = await prisma.template.update({
       where: { id },
       data: updateData,
     });
-
-    console.log('[API] Template updated, headerFooterConfig saved:', !!template.headerFooterConfig);
 
     return NextResponse.json(template);
   } catch (error) {

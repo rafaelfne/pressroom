@@ -34,7 +34,7 @@ describe('PageConfigPanel', () => {
 
     it('shows dimensions label for named paper sizes', () => {
         const { container } = render(<PageConfigPanel {...defaultProps} />);
-        expect(within(container).getByText(/A4 \(595 × 842 px\)/)).toBeInTheDocument();
+        expect(within(container).getByText(/A4 \(794 × 1123 px\)/)).toBeInTheDocument();
     });
 
     it('calls onConfigChange when Custom paper size is selected', () => {
@@ -83,10 +83,10 @@ describe('PageConfigPanel', () => {
         const bottomInput = within(panel).getByTestId('margin-bottom') as HTMLInputElement;
         const leftInput = within(panel).getByTestId('margin-left') as HTMLInputElement;
 
-        expect(topInput.value).toBe('16');
-        expect(rightInput.value).toBe('16');
-        expect(bottomInput.value).toBe('16');
-        expect(leftInput.value).toBe('16');
+        expect(topInput.value).toBe('21');
+        expect(rightInput.value).toBe('21');
+        expect(bottomInput.value).toBe('21');
+        expect(leftInput.value).toBe('21');
     });
 
     it('highlights correct margin preset', () => {
@@ -105,10 +105,10 @@ describe('PageConfigPanel', () => {
         expect(mockOnConfigChange).toHaveBeenCalledWith(
             expect.objectContaining({
                 margins: expect.objectContaining({
-                    top: 8,
-                    right: 8,
-                    bottom: 8,
-                    left: 8,
+                    top: 11,
+                    right: 11,
+                    bottom: 11,
+                    left: 11,
                 }),
             }),
         );

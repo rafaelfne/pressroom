@@ -17,11 +17,6 @@ import {
   parseStoredPageConfig,
   type PageConfig,
 } from '@/lib/types/page-config';
-import {
-  DEFAULT_HEADER_FOOTER_CONFIG,
-  parseStoredHeaderFooterConfig,
-  type HeaderFooterConfig,
-} from '@/lib/types/header-footer-config';
 import { Toaster, toast } from 'sonner';
 
 const usePuck = createUsePuck();
@@ -137,9 +132,6 @@ export default function StudioPage() {
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
   const [pageConfig, setPageConfig] = useState<PageConfig>(DEFAULT_PAGE_CONFIG);
-  const [headerFooterConfig, setHeaderFooterConfig] = useState<HeaderFooterConfig>(
-    DEFAULT_HEADER_FOOTER_CONFIG,
-  );
 
   // History state for undo/redo
   const [canUndo, setCanUndo] = useState(false);
@@ -156,7 +148,6 @@ export default function StudioPage() {
   const sampleDataRef = useRef<Record<string, unknown>>(sampleData);
   const pagesRef = useRef<PageItem[]>([]);
   const pageConfigRef = useRef<PageConfig>(pageConfig);
-  const headerFooterConfigRef = useRef<HeaderFooterConfig>(headerFooterConfig);
   const puckDataRef = useRef<Data>(EMPTY_DATA);
   const activePageIdRef = useRef<string>(activePageId);
   const zoomRef = useRef<number>(zoom);
@@ -176,10 +167,6 @@ export default function StudioPage() {
   useEffect(() => {
     pageConfigRef.current = pageConfig;
   }, [pageConfig]);
-
-  useEffect(() => {
-    headerFooterConfigRef.current = headerFooterConfig;
-  }, [headerFooterConfig]);
 
   useEffect(() => {
     activePageIdRef.current = activePageId;
@@ -220,13 +207,6 @@ export default function StudioPage() {
             const loadedConfig = parseStoredPageConfig(template.pageConfig);
             setPageConfig(loadedConfig);
             pageConfigRef.current = loadedConfig;
-          }
-          if (template.headerFooterConfig) {
-            const loadedHeaderFooterConfig = parseStoredHeaderFooterConfig(
-              template.headerFooterConfig,
-            );
-            setHeaderFooterConfig(loadedHeaderFooterConfig);
-            headerFooterConfigRef.current = loadedHeaderFooterConfig;
           }
         } else {
           const defaultPages = [createDefaultPage('Page 1')];
@@ -339,7 +319,6 @@ export default function StudioPage() {
             pages: pagesPayload,
             sampleData: sampleDataRef.current,
             pageConfig: pageConfigRef.current,
-            headerFooterConfig: headerFooterConfigRef.current,
           }),
         });
         if (!response.ok) {
@@ -372,7 +351,6 @@ export default function StudioPage() {
           data: sampleDataRef.current,
           format: 'pdf',
           pageConfig: pageConfigToRenderOptions(pageConfigRef.current),
-          headerFooterConfig: headerFooterConfigRef.current,
         }),
       });
       if (response.ok) {
@@ -403,11 +381,6 @@ export default function StudioPage() {
   const handlePageConfigChange = useCallback((config: PageConfig) => {
     setPageConfig(config);
     pageConfigRef.current = config;
-  }, []);
-
-  const handleHeaderFooterConfigChange = useCallback((config: HeaderFooterConfig) => {
-    setHeaderFooterConfig(config);
-    headerFooterConfigRef.current = config;
   }, []);
 
   const handleTemplateNameChange = useCallback(
@@ -551,7 +524,6 @@ export default function StudioPage() {
               preview: () => (
                 <PaperCanvas
                   pageConfig={pageConfig}
-                  headerFooterConfig={headerFooterConfig}
                   zoom={zoom}
                   onZoomChange={setZoom}
                 >
@@ -565,8 +537,6 @@ export default function StudioPage() {
                   onConfigChange={handlePageConfigChange}
                   pageTitle={activePage.name}
                   onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
-                  headerFooterConfig={headerFooterConfig}
-                  onHeaderFooterConfigChange={handleHeaderFooterConfigChange}
                 >
                   {children}
                 </RightPanel>

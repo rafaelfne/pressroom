@@ -20,12 +20,12 @@ describe('DEFAULT_PAGE_CONFIG', () => {
     expect(DEFAULT_PAGE_CONFIG.orientation).toBe('portrait');
   });
 
-  it('has 16px margins on all sides (normal preset)', () => {
+  it('has 21px margins on all sides (normal preset)', () => {
     expect(DEFAULT_PAGE_CONFIG.margins).toEqual({
-      top: 16,
-      right: 16,
-      bottom: 16,
-      left: 16,
+      top: 21,
+      right: 21,
+      bottom: 21,
+      left: 21,
     });
   });
 });
@@ -38,24 +38,24 @@ describe('PAPER_SIZES', () => {
     expect(PAPER_SIZES).toHaveProperty('A3');
   });
 
-  it('A4 is 595 × 842 px', () => {
-    expect(PAPER_SIZES.A4.width).toBe(595);
-    expect(PAPER_SIZES.A4.height).toBe(842);
+  it('A4 is 794 × 1123 px', () => {
+    expect(PAPER_SIZES.A4.width).toBe(794);
+    expect(PAPER_SIZES.A4.height).toBe(1123);
   });
 
-  it('Letter is 612 × 792 px', () => {
-    expect(PAPER_SIZES.Letter.width).toBe(612);
-    expect(PAPER_SIZES.Letter.height).toBe(792);
+  it('Letter is 816 × 1056 px', () => {
+    expect(PAPER_SIZES.Letter.width).toBe(816);
+    expect(PAPER_SIZES.Letter.height).toBe(1056);
   });
 
-  it('Legal is 612 × 1008 px', () => {
-    expect(PAPER_SIZES.Legal.width).toBe(612);
-    expect(PAPER_SIZES.Legal.height).toBe(1008);
+  it('Legal is 816 × 1344 px', () => {
+    expect(PAPER_SIZES.Legal.width).toBe(816);
+    expect(PAPER_SIZES.Legal.height).toBe(1344);
   });
 
-  it('A3 is 842 × 1191 px', () => {
-    expect(PAPER_SIZES.A3.width).toBe(842);
-    expect(PAPER_SIZES.A3.height).toBe(1191);
+  it('A3 is 1123 × 1587 px', () => {
+    expect(PAPER_SIZES.A3.width).toBe(1123);
+    expect(PAPER_SIZES.A3.height).toBe(1587);
   });
 
   it('all sizes have labels', () => {
@@ -73,21 +73,21 @@ describe('MARGIN_PRESETS', () => {
     expect(MARGIN_PRESETS).toHaveProperty('wide');
   });
 
-  it('normal has 16px margins', () => {
+  it('normal has 21px margins', () => {
     expect(MARGIN_PRESETS.normal.margins).toEqual({
-      top: 16, right: 16, bottom: 16, left: 16,
+      top: 21, right: 21, bottom: 21, left: 21,
     });
   });
 
-  it('narrow has 8px margins', () => {
+  it('narrow has 11px margins', () => {
     expect(MARGIN_PRESETS.narrow.margins).toEqual({
-      top: 8, right: 8, bottom: 8, left: 8,
+      top: 11, right: 11, bottom: 11, left: 11,
     });
   });
 
-  it('wide has 24px margins', () => {
+  it('wide has 32px margins', () => {
     expect(MARGIN_PRESETS.wide.margins).toEqual({
-      top: 24, right: 24, bottom: 24, left: 24,
+      top: 32, right: 32, bottom: 32, left: 32,
     });
   });
 });
@@ -95,7 +95,7 @@ describe('MARGIN_PRESETS', () => {
 describe('getPageDimensions', () => {
   it('returns A4 portrait dimensions', () => {
     const dims = getPageDimensions(DEFAULT_PAGE_CONFIG);
-    expect(dims).toEqual({ width: 595, height: 842 });
+    expect(dims).toEqual({ width: 794, height: 1123 });
   });
 
   it('swaps dimensions for landscape', () => {
@@ -103,7 +103,7 @@ describe('getPageDimensions', () => {
       ...DEFAULT_PAGE_CONFIG,
       orientation: 'landscape',
     });
-    expect(dims).toEqual({ width: 842, height: 595 });
+    expect(dims).toEqual({ width: 1123, height: 794 });
   });
 
   it('returns Letter dimensions', () => {
@@ -111,7 +111,7 @@ describe('getPageDimensions', () => {
       ...DEFAULT_PAGE_CONFIG,
       paperSize: 'Letter',
     });
-    expect(dims).toEqual({ width: 612, height: 792 });
+    expect(dims).toEqual({ width: 816, height: 1056 });
   });
 
   it('returns custom dimensions when provided', () => {
@@ -142,21 +142,21 @@ describe('getPageDimensions', () => {
       orientation: 'portrait',
       margins: DEFAULT_PAGE_CONFIG.margins,
     });
-    expect(dims).toEqual({ width: 595, height: 842 });
+    expect(dims).toEqual({ width: 794, height: 1123 });
   });
 });
 
 describe('detectMarginPreset', () => {
   it('detects normal preset', () => {
-    expect(detectMarginPreset({ top: 16, right: 16, bottom: 16, left: 16 })).toBe('normal');
+    expect(detectMarginPreset({ top: 21, right: 21, bottom: 21, left: 21 })).toBe('normal');
   });
 
   it('detects narrow preset', () => {
-    expect(detectMarginPreset({ top: 8, right: 8, bottom: 8, left: 8 })).toBe('narrow');
+    expect(detectMarginPreset({ top: 11, right: 11, bottom: 11, left: 11 })).toBe('narrow');
   });
 
   it('detects wide preset', () => {
-    expect(detectMarginPreset({ top: 24, right: 24, bottom: 24, left: 24 })).toBe('wide');
+    expect(detectMarginPreset({ top: 32, right: 32, bottom: 32, left: 32 })).toBe('wide');
   });
 
   it('returns custom for non-matching margins', () => {
@@ -164,26 +164,26 @@ describe('detectMarginPreset', () => {
   });
 
   it('returns custom when one margin differs from preset', () => {
-    expect(detectMarginPreset({ top: 16, right: 16, bottom: 16, left: 17 })).toBe('custom');
+    expect(detectMarginPreset({ top: 21, right: 21, bottom: 21, left: 22 })).toBe('custom');
   });
 });
 
 describe('pageConfigToRenderOptions', () => {
-  it('converts A4 portrait with normal margins (16px → mm)', () => {
+  it('converts A4 portrait with normal margins (21px → mm)', () => {
     const options = pageConfigToRenderOptions(DEFAULT_PAGE_CONFIG);
     expect(options).toEqual({
       format: 'A4',
       orientation: 'portrait',
       margin: {
-        top: '5.6444mm',
-        right: '5.6444mm',
-        bottom: '5.6444mm',
-        left: '5.6444mm',
+        top: '5.5562mm',
+        right: '5.5562mm',
+        bottom: '5.5562mm',
+        left: '5.5562mm',
       },
     });
   });
 
-  it('converts Letter landscape with narrow margins (36px → mm)', () => {
+  it('converts Letter landscape with margins (36px → mm)', () => {
     const options = pageConfigToRenderOptions({
       paperSize: 'Letter',
       orientation: 'landscape',
@@ -193,10 +193,10 @@ describe('pageConfigToRenderOptions', () => {
       format: 'Letter',
       orientation: 'landscape',
       margin: {
-        top: '12.7000mm',
-        right: '12.7000mm',
-        bottom: '12.7000mm',
-        left: '12.7000mm',
+        top: '9.5250mm',
+        right: '9.5250mm',
+        bottom: '9.5250mm',
+        left: '9.5250mm',
       },
     });
   });
@@ -227,9 +227,9 @@ describe('pageConfigToRenderOptions', () => {
       customWidth: 425,
       customHeight: 567,
     });
-    // 425px -> 149.9306mm, 567px -> 200.0250mm (72 DPI px -> mm with 4 decimal precision)
-    expect(options.width).toBe('149.9306mm');
-    expect(options.height).toBe('200.0250mm');
+    // 425px -> 112.4479mm, 567px -> 150.0187mm (96 DPI px -> mm with 4 decimal precision)
+    expect(options.width).toBe('112.4479mm');
+    expect(options.height).toBe('150.0187mm');
     expect(options.format).toBeUndefined();
   });
 
@@ -239,9 +239,9 @@ describe('pageConfigToRenderOptions', () => {
       orientation: 'portrait',
       margins: { top: 57, right: 57, bottom: 57, left: 57 },
     });
-    // A4: 595px -> 209.9028mm, 842px -> 297.0389mm
-    expect(options.width).toBe('209.9028mm');
-    expect(options.height).toBe('297.0389mm');
+    // A4: 794px -> 210.0792mm, 1123px -> 297.1271mm
+    expect(options.width).toBe('210.0792mm');
+    expect(options.height).toBe('297.1271mm');
   });
 });
 

@@ -82,7 +82,6 @@ model Template {
   templateData       Json          @default("{}")
   sampleData         Json?
   pageConfig         Json?
-  headerFooterConfig Json?
   organizationId     String?
   organization       Organization? @relation(fields: [organizationId], references: [id])
   ownerId            String?

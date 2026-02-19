@@ -56,13 +56,13 @@ function formatValue(value: unknown, format: DataTableColumn['format']): string 
     switch (format) {
       case 'number':
         return Number(value).toLocaleString('en-US');
-      
+
       case 'currency':
         return Number(value).toLocaleString('en-US', {
           style: 'currency',
           currency: 'USD',
         });
-      
+
       case 'date':
         if (typeof value === 'string' || typeof value === 'number') {
           const date = new Date(value);
@@ -71,7 +71,7 @@ function formatValue(value: unknown, format: DataTableColumn['format']): string 
           }
         }
         return String(value);
-      
+
       case 'text':
       default:
         return String(value);
@@ -101,6 +101,32 @@ function getNestedValue(obj: unknown, path: string): unknown {
   }
 
   return current;
+}
+
+/**
+ * Calculate total table width from column widths.
+ * Returns null if any column uses 'auto' or '%' (cannot determine fixed width).
+ */
+function calculateTableWidth(columns: DataTableColumn[]): number | null {
+  let totalPx = 0;
+
+  for (const col of columns) {
+    const width = col.width || 'auto';
+
+    if (width === 'auto' || width.includes('%')) {
+      return null; // Cannot determine fixed width
+    }
+
+    // Parse px values (e.g., "120px" → 120)
+    const match = width.match(/^(\d+(?:\.\d+)?)px$/);
+    if (match) {
+      totalPx += parseFloat(match[1]);
+    } else {
+      return null; // Unsupported unit
+    }
+  }
+
+  return totalPx;
 }
 
 export const DataTable: ComponentConfig<DataTableProps> = {
@@ -373,10 +399,30 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         break;
     }
 
+    // Calculate table width for PDF optimization and auto-scaling
+    const totalTableWidth = calculateTableWidth(columns);
+    const MAX_PAGE_WIDTH = 1067; // Approximate page content width in px (A4 portrait @ 96 DPI)
+
+    let scaleTransform: string | undefined;
+    if (totalTableWidth && totalTableWidth > MAX_PAGE_WIDTH) {
+      const scaleFactor = MAX_PAGE_WIDTH / totalTableWidth;
+      scaleTransform = `scale(${scaleFactor.toFixed(3)})`;
+
+      // Log warning in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `DataTable width (${totalTableWidth}px) exceeds page width. ` +
+          `Scaling to ${(scaleFactor * 100).toFixed(1)}%.`
+        );
+      }
+    }
+
     // Table container styles
     const containerStyle: React.CSSProperties = {
       maxWidth: '100%',
-      overflowX: 'auto',
+      overflowX: 'visible', // Changed from 'auto' for PDF to prevent clipping
+      transform: scaleTransform,
+      transformOrigin: 'top left',
       ...pageBreakStyle,
     };
 
@@ -505,14 +551,14 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                       const verticalPadding = currentPadding[0];
                       const horizontalPadding = currentPadding[1] || currentPadding[0];
                       const additionalIndent = indent * INDENT_STEP_PX;
-                      
+
                       // Parse the horizontal padding and add indent
                       const paddingValue = parseInt(horizontalPadding, 10);
-                      
+
                       // Only apply indentation if padding value is valid
                       if (!isNaN(paddingValue)) {
                         const totalPaddingLeft = paddingValue + additionalIndent;
-                        
+
                         cellStyle.paddingLeft = `${totalPaddingLeft}px`;
                         cellStyle.paddingRight = horizontalPadding;
                         cellStyle.paddingTop = verticalPadding;

@@ -11,15 +11,13 @@ describe('registry helpers', () => {
     expect(names).toContain('Spacer');
     expect(names).toContain('Divider');
     expect(names).toContain('PageBreak');
-    expect(names).toContain('ReportHeader');
-    expect(names).toContain('ReportFooter');
     expect(names).toContain('DataTable');
     expect(names).toContain('ChartBlock');
     expect(names).toContain('Container');
     expect(names).toContain('GridRow');
     expect(names).toContain('GridColumn');
     expect(names).toContain('Section');
-    expect(names).toHaveLength(14);
+    expect(names).toHaveLength(12);
   });
 
   it('getComponentsByCategory returns components for a valid category', () => {

@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { type createUsePuck } from '@puckeditor/core';
 import type { PageConfig } from '@/lib/types/page-config';
-import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
 import { PageSettingsPanel } from './page-settings-panel';
 import { BlockFieldsPanel } from './block-fields-panel';
 
@@ -13,8 +12,6 @@ export interface RightPanelProps {
   onConfigChange: (config: PageConfig) => void;
   pageTitle: string;
   onPageTitleChange: (title: string) => void;
-  headerFooterConfig: HeaderFooterConfig;
-  onHeaderFooterConfigChange: (config: HeaderFooterConfig) => void;
   children?: React.ReactNode;
 }
 
@@ -28,8 +25,6 @@ export function RightPanel({
   onConfigChange,
   pageTitle,
   onPageTitleChange,
-  headerFooterConfig,
-  onHeaderFooterConfigChange,
   children,
 }: RightPanelProps) {
   const selectedItem = usePuck((s) => s.selectedItem);
@@ -60,8 +55,6 @@ export function RightPanel({
             onConfigChange={onConfigChange}
             pageTitle={pageTitle}
             onPageTitleChange={onPageTitleChange}
-            headerFooterConfig={headerFooterConfig}
-            onHeaderFooterConfigChange={onHeaderFooterConfigChange}
           />
         </div>
       )}

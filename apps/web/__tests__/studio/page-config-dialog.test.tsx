@@ -36,7 +36,7 @@ describe('PageConfigDialog', () => {
 
   it('shows dimensions label for named paper sizes', () => {
     render(<PageConfigDialog {...defaultProps} />);
-    const labels = screen.getAllByText(/A4 \(595 × 842 px\)/);
+    const labels = screen.getAllByText(/A4 \(794 × 1123 px\)/);
     expect(labels[0]).toBeInTheDocument();
   });
 
@@ -76,10 +76,10 @@ describe('PageConfigDialog', () => {
     const bottomInput = screen.getAllByTestId('margin-bottom')[0] as HTMLInputElement;
     const leftInput = screen.getAllByTestId('margin-left')[0] as HTMLInputElement;
 
-    expect(topInput.value).toBe('16');
-    expect(rightInput.value).toBe('16');
-    expect(bottomInput.value).toBe('16');
-    expect(leftInput.value).toBe('16');
+    expect(topInput.value).toBe('21');
+    expect(rightInput.value).toBe('21');
+    expect(bottomInput.value).toBe('21');
+    expect(leftInput.value).toBe('21');
   });
 
   it('highlights correct margin preset', () => {
@@ -93,9 +93,9 @@ describe('PageConfigDialog', () => {
     const narrowPreset = screen.getAllByTestId('margin-preset-narrow')[0];
     fireEvent.click(narrowPreset);
 
-    // Check that all margins are updated to narrow preset (8px)
+    // Check that all margins are updated to narrow preset (11px)
     const topInput = screen.getAllByTestId('margin-top')[0] as HTMLInputElement;
-    expect(topInput.value).toBe('8');
+    expect(topInput.value).toBe('11');
   });
 
   it('updates margin inputs when values are changed', () => {
@@ -151,11 +151,11 @@ describe('PageConfigDialog', () => {
   it('auto-detects margin preset when values match', () => {
     render(<PageConfigDialog {...defaultProps} />);
 
-    // Set all margins to narrow preset values manually (8px)
-    fireEvent.change(screen.getAllByTestId('margin-top')[0], { target: { value: '8' } });
-    fireEvent.change(screen.getAllByTestId('margin-right')[0], { target: { value: '8' } });
-    fireEvent.change(screen.getAllByTestId('margin-bottom')[0], { target: { value: '8' } });
-    fireEvent.change(screen.getAllByTestId('margin-left')[0], { target: { value: '8' } });
+    // Set all margins to narrow preset values manually (11px)
+    fireEvent.change(screen.getAllByTestId('margin-top')[0], { target: { value: '11' } });
+    fireEvent.change(screen.getAllByTestId('margin-right')[0], { target: { value: '11' } });
+    fireEvent.change(screen.getAllByTestId('margin-bottom')[0], { target: { value: '11' } });
+    fireEvent.change(screen.getAllByTestId('margin-left')[0], { target: { value: '11' } });
 
     // Narrow preset should be highlighted
     const narrowPreset = screen.getAllByTestId('margin-preset-narrow')[0];
