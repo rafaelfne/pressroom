@@ -625,7 +625,6 @@ function StudioContent({
               iframe={{ enabled: false }}
               overrides={{
                 header: () => <></>,
-                actionBar: () => <></>,
                 puck: ({ children }) => (
                   <>
                     <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
