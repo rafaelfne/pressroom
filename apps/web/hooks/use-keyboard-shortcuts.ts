@@ -31,6 +31,13 @@ interface UseKeyboardShortcutsOptions {
   onToast?: (message: string) => void;
   /** Set of valid component types in the current config (for cross-template paste validation) */
   validComponentTypes?: Set<string>;
+  /**
+   * Callback to request delete confirmation via UI (e.g., AlertDialog).
+   * Called when deleting more than DELETE_CONFIRMATION_THRESHOLD components.
+   * Receives the count and a callback to execute the actual deletion.
+   * If not provided, falls back to window.confirm.
+   */
+  onDeleteConfirm?: (count: number, onConfirm: () => void) => void;
   /** Whether the shortcut system is enabled (e.g., false during inline editing) */
   enabled?: boolean;
 }
@@ -332,25 +339,31 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions): void
         e.preventDefault();
         const selectedIds = currentState.selectedIds;
         const count = selectedIds.size;
-        
+
+        const executeDelete = () => {
+          const data = currentOptions.getData();
+          const newData = removeComponents(data, selectedIds);
+          currentOptions.setData(newData);
+
+          // Clear selection
+          dispatch({ type: 'CLEAR_SELECTION' });
+
+          currentOptions.onToast?.(
+            `${count} component${count === 1 ? '' : 's'} deleted`
+          );
+        };
+
         // Confirm if more than threshold components selected
         if (count > DELETE_CONFIRMATION_THRESHOLD) {
-          const confirmed = window.confirm(
-            `Delete ${count} components?`
-          );
-          if (!confirmed) return;
+          if (currentOptions.onDeleteConfirm) {
+            currentOptions.onDeleteConfirm(count, executeDelete);
+          } else {
+            const confirmed = window.confirm(`Delete ${count} components?`);
+            if (confirmed) executeDelete();
+          }
+        } else {
+          executeDelete();
         }
-
-        const data = currentOptions.getData();
-        const newData = removeComponents(data, selectedIds);
-        currentOptions.setData(newData);
-
-        // Clear selection
-        dispatch({ type: 'CLEAR_SELECTION' });
-
-        currentOptions.onToast?.(
-          `${count} component${count === 1 ? '' : 's'} deleted`
-        );
         return;
       }
     };

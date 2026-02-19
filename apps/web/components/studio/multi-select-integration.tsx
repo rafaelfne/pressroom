@@ -6,6 +6,16 @@ import { useMultiSelect } from '@/hooks/use-multi-select';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useCanvasInteraction } from '@/hooks/use-canvas-interaction';
 import { SelectionContextMenu } from '@/components/studio/selection-context-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { collectAllIds, collectAllIdsDeep } from '@/lib/studio/multi-select-operations';
 import { toast } from 'sonner';
 
@@ -76,6 +86,13 @@ export function MultiSelectIntegration({
     position: { x: number; y: number };
   }>({ open: false, position: { x: 0, y: 0 } });
 
+  // Delete confirmation dialog state
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    count: number;
+    onConfirm: (() => void) | null;
+  }>({ open: false, count: 0, onConfirm: null });
+
   // Clear selection when page switches
   useEffect(() => {
     if (prevPageId.current !== activePageId) {
@@ -110,6 +127,14 @@ export function MultiSelectIntegration({
     toast.success(message);
   }, []);
 
+  // Delete confirmation callback — opens AlertDialog instead of window.confirm
+  const handleDeleteConfirm = useCallback(
+    (count: number, onConfirm: () => void) => {
+      setDeleteConfirm({ open: true, count, onConfirm });
+    },
+    [],
+  );
+
   // Wire up keyboard shortcuts
   useKeyboardShortcuts({
     getData,
@@ -118,6 +143,7 @@ export function MultiSelectIntegration({
     activePageId,
     activePageName,
     onToast: handleToast,
+    onDeleteConfirm: handleDeleteConfirm,
     enabled: true,
   });
 
@@ -179,18 +205,48 @@ export function MultiSelectIntegration({
   }, [puckDataRef, state.selectedIds, multiSelectDispatch]);
 
   return (
-    <SelectionContextMenu
-      open={contextMenu.open}
-      position={contextMenu.position}
-      onClose={handleContextMenuClose}
-      onCopy={handleCopy}
-      onCut={handleCut}
-      onPaste={handlePaste}
-      onDuplicate={handleDuplicate}
-      onDelete={handleDelete}
-      onSelectAll={handleSelectAll}
-      hasClipboard={state.clipboard !== null}
-      hasSelection={state.selectedIds.size > 0}
-    />
+    <>
+      <SelectionContextMenu
+        open={contextMenu.open}
+        position={contextMenu.position}
+        onClose={handleContextMenuClose}
+        onCopy={handleCopy}
+        onCut={handleCut}
+        onPaste={handlePaste}
+        onDuplicate={handleDuplicate}
+        onDelete={handleDelete}
+        onSelectAll={handleSelectAll}
+        hasClipboard={state.clipboard !== null}
+        hasSelection={state.selectedIds.size > 0}
+      />
+
+      <AlertDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => {
+          if (!open) setDeleteConfirm({ open: false, count: 0, onConfirm: null });
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleteConfirm.count} components?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will remove {deleteConfirm.count} components from the page. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                deleteConfirm.onConfirm?.();
+                setDeleteConfirm({ open: false, count: 0, onConfirm: null });
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
