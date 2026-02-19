@@ -19,6 +19,10 @@ import {
 } from '@/lib/types/page-config';
 import { Toaster, toast } from 'sonner';
 import { CustomActionBar } from '@/components/studio/custom-action-bar';
+import { MultiSelectProvider } from '@/contexts/multi-select-context';
+import { MarqueeSelection } from '@/components/studio/marquee-selection';
+import { SelectionCountBadge } from '@/components/studio/selection-count-badge';
+import { MultiSelectIntegration } from '@/components/studio/multi-select-integration';
 
 const usePuck = createUsePuck();
 
@@ -486,41 +490,44 @@ export default function StudioPage() {
   const displayUser = user || { name: 'User', email: null, id: 'loading' };
 
   return (
-    <StudioContent
-      activePage={activePage}
-      displayUser={displayUser}
-      templateName={templateName}
-      onTemplateNameChange={handleTemplateNameChange}
-      canUndo={canUndo}
-      canRedo={canRedo}
-      onUndo={handleUndo}
-      onRedo={handleRedo}
-      onToggleSampleData={handleToggleSampleData}
-      onDownloadPdf={handleDownloadPdf}
-      isDownloadingPdf={isDownloadingPdf}
-      onPreview={handlePreview}
-      onPublish={handlePublishFromHeader}
-      isSaving={isSaving}
-      puckWrapperRef={puckWrapperRef}
-      puckDataRef={puckDataRef}
-      handleHistoryChange={handleHistoryChange}
-      pageConfig={pageConfig}
-      zoom={zoom}
-      onZoomChange={setZoom}
-      handlePageConfigChange={handlePageConfigChange}
-      handleRenamePage={handleRenamePage}
-      handlePublish={handlePublish}
-      pages={pages}
-      activePageId={activePage.id}
-      handleSelectPage={handleSelectPage}
-      handleAddPage={handleAddPage}
-      handleDeletePage={handleDeletePage}
-      handleDuplicatePage={handleDuplicatePage}
-      handleReorderPage={handleReorderPage}
-      sampleData={sampleData}
-      handleSampleDataChange={handleSampleDataChange}
-      isSampleDataOpen={isSampleDataOpen}
-    />
+    <MultiSelectProvider>
+      <StudioContent
+        activePage={activePage}
+        displayUser={displayUser}
+        templateName={templateName}
+        onTemplateNameChange={handleTemplateNameChange}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onToggleSampleData={handleToggleSampleData}
+        onDownloadPdf={handleDownloadPdf}
+        isDownloadingPdf={isDownloadingPdf}
+        onPreview={handlePreview}
+        onPublish={handlePublishFromHeader}
+        isSaving={isSaving}
+        puckWrapperRef={puckWrapperRef}
+        puckDataRef={puckDataRef}
+        handleHistoryChange={handleHistoryChange}
+        pageConfig={pageConfig}
+        zoom={zoom}
+        onZoomChange={setZoom}
+        handlePageConfigChange={handlePageConfigChange}
+        handleRenamePage={handleRenamePage}
+        handlePublish={handlePublish}
+        pages={pages}
+        activePageId={activePage.id}
+        handleSelectPage={handleSelectPage}
+        handleAddPage={handleAddPage}
+        handleDeletePage={handleDeletePage}
+        handleDuplicatePage={handleDuplicatePage}
+        handleReorderPage={handleReorderPage}
+        sampleData={sampleData}
+        handleSampleDataChange={handleSampleDataChange}
+        isSampleDataOpen={isSampleDataOpen}
+        templateId={templateId}
+      />
+    </MultiSelectProvider>
   );
 }
 
@@ -561,6 +568,7 @@ function StudioContent({
   sampleData,
   handleSampleDataChange,
   isSampleDataOpen,
+  templateId,
 }: {
   activePage: PageItem;
   displayUser: UserSession;
@@ -595,6 +603,7 @@ function StudioContent({
   sampleData: Record<string, unknown>;
   handleSampleDataChange: (data: Record<string, unknown>) => void;
   isSampleDataOpen: boolean;
+  templateId: string;
 }) {
   return (
     <div className="flex h-screen flex-col" data-testid="studio-editor">
@@ -630,6 +639,13 @@ function StudioContent({
                 puck: ({ children }) => (
                   <>
                     <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
+                    <MultiSelectIntegration
+                      usePuck={usePuck}
+                      puckDataRef={puckDataRef}
+                      templateId={templateId}
+                      activePageId={activePageId}
+                      activePageName={activePage.name}
+                    />
                     {children}
                   </>
                 ),
@@ -639,6 +655,8 @@ function StudioContent({
                     zoom={zoom}
                     onZoomChange={onZoomChange}
                   >
+                    <SelectionCountBadge />
+                    <MarqueeSelection />
                     <Puck.Preview />
                   </PaperCanvas>
                 ),

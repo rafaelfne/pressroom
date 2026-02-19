@@ -61,8 +61,8 @@ describe('PageSettingsPanel', () => {
         const panel = within(container).getByTestId('page-settings-panel');
         const trigger = within(panel).getByTestId('paper-size-select');
 
-        // Open the Radix Select dropdown
-        fireEvent.pointerDown(trigger, { pointerType: 'mouse', button: 0 });
+        // Open the Radix Select dropdown via fireEvent.click
+        fireEvent.click(trigger);
 
         // Click the "Letter" option from the portal
         const option = screen.getByRole('option', { name: 'Letter' });
