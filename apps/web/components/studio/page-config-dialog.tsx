@@ -12,6 +12,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type {
   PageConfig,
   PaperSize,
@@ -113,19 +120,21 @@ export function PageConfigDialog({
           {/* Paper Size Section */}
           <div className="space-y-3">
             <Label htmlFor="paper-size">Paper Size</Label>
-            <select
-              id="paper-size"
-              data-testid="paper-size-select"
+            <Select
               value={localConfig.paperSize}
-              onChange={(e) => handlePaperSizeChange(e.target.value as PaperSize)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              onValueChange={(value) => handlePaperSizeChange(value as PaperSize)}
             >
-              <option value="A4">A4</option>
-              <option value="Letter">Letter</option>
-              <option value="Legal">Legal</option>
-              <option value="A3">A3</option>
-              <option value="Custom">Custom</option>
-            </select>
+              <SelectTrigger id="paper-size" data-testid="paper-size-select" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="A4">A4</SelectItem>
+                <SelectItem value="Letter">Letter</SelectItem>
+                <SelectItem value="Legal">Legal</SelectItem>
+                <SelectItem value="A3">A3</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* Show dimensions label for named sizes */}
             {localConfig.paperSize !== 'Custom' && (

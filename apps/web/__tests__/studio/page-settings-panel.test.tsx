@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, cleanup, within } from '@testing-library/react';
+import { render, fireEvent, cleanup, within, screen } from '@testing-library/react';
 import { PageSettingsPanel } from '@/components/studio/page-settings-panel';
 import { DEFAULT_PAGE_CONFIG } from '@/lib/types/page-config';
 
@@ -47,8 +47,8 @@ describe('PageSettingsPanel', () => {
     it('displays current paper size in select', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
-        const select = within(panel).getByTestId('paper-size-select') as HTMLSelectElement;
-        expect(select.value).toBe('A4');
+        const trigger = within(panel).getByTestId('paper-size-select');
+        expect(trigger).toHaveTextContent('A4');
     });
 
     it('shows dimensions label for named paper sizes', () => {
@@ -59,8 +59,14 @@ describe('PageSettingsPanel', () => {
     it('calls onConfigChange when paper size is changed', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
-        const select = within(panel).getByTestId('paper-size-select');
-        fireEvent.change(select, { target: { value: 'Letter' } });
+        const trigger = within(panel).getByTestId('paper-size-select');
+
+        // Open the Radix Select dropdown
+        fireEvent.pointerDown(trigger, { pointerType: 'mouse', button: 0 });
+
+        // Click the "Letter" option from the portal
+        const option = screen.getByRole('option', { name: 'Letter' });
+        fireEvent.click(option);
 
         expect(mockOnConfigChange).toHaveBeenCalledWith(
             expect.objectContaining({

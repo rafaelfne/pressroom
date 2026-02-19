@@ -6,3 +6,11 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
   disconnect() {}
 };
+
+// Mock pointer capture methods for Radix UI components (Select, Dropdown, etc.)
+HTMLElement.prototype.hasPointerCapture = () => false;
+HTMLElement.prototype.setPointerCapture = () => {};
+HTMLElement.prototype.releasePointerCapture = () => {};
+
+// Mock scrollIntoView for Radix UI components
+Element.prototype.scrollIntoView = () => {};

@@ -89,17 +89,19 @@ describe('GridRow component', () => {
     cleanup();
   });
 
+  /** Helper: shorthand for all default props so each test only overrides what it needs. */
+  const gridDefaults = () => puckConfig.components.GridRow.defaultProps!;
+
   it('renders 2 equal columns by default', () => {
     const Component = puckConfig.components.GridRow.render;
-    const defaultProps = puckConfig.components.GridRow.defaultProps!;
     const { container } = render(
-      <Component {...defaultProps} id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
-      gap: '16px',
+      columnGap: '16px',
     });
     expect(screen.getByTestId('dropzone-test-grid-column-0')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-1')).toBeInTheDocument();
@@ -108,7 +110,7 @@ describe('GridRow component', () => {
   it('renders 3 equal columns', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="3-equal" customColumns="" gap="8" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} columns="3-equal" columnGap="8" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 1fr 1fr' });
@@ -120,7 +122,7 @@ describe('GridRow component', () => {
   it('renders 4 equal columns', () => {
     const Component = puckConfig.components.GridRow.render;
     render(
-      <Component columns="4-equal" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} columns="4-equal" id="test-grid" puck={mockPuckContext} />,
     );
     expect(screen.getByTestId('dropzone-test-grid-column-0')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-1')).toBeInTheDocument();
@@ -131,7 +133,7 @@ describe('GridRow component', () => {
   it('renders asymmetric columns (1/3 + 2/3)', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="1-3_2-3" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} columns="1-3_2-3" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 2fr' });
@@ -140,7 +142,7 @@ describe('GridRow component', () => {
   it('renders asymmetric columns (2/3 + 1/3)', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="2-3_1-3" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} columns="2-3_1-3" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '2fr 1fr' });
@@ -149,10 +151,10 @@ describe('GridRow component', () => {
   it('supports custom column template', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="custom" customColumns="1fr 2fr 1fr" gap="12" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} columns="custom" customColumns="1fr 2fr 1fr" columnGap="12" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 2fr 1fr', gap: '12px' });
+    expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 2fr 1fr', columnGap: '12px' });
     expect(screen.getByTestId('dropzone-test-grid-column-0')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-1')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-2')).toBeInTheDocument();
@@ -161,7 +163,7 @@ describe('GridRow component', () => {
   it('falls back to 1fr 1fr when custom is empty', () => {
     const Component = puckConfig.components.GridRow.render;
     const { container } = render(
-      <Component columns="custom" customColumns="" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} columns="custom" customColumns="" id="test-grid" puck={mockPuckContext} />,
     );
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveStyle({ gridTemplateColumns: '1fr 1fr' });
@@ -170,11 +172,126 @@ describe('GridRow component', () => {
   it('parses repeat() syntax for column count', () => {
     const Component = puckConfig.components.GridRow.render;
     render(
-      <Component columns="custom" customColumns="repeat(3, 1fr)" gap="16" pageBreakBehavior="auto" id="test-grid" puck={mockPuckContext} />,
+      <Component {...gridDefaults()} columns="custom" customColumns="repeat(3, 1fr)" id="test-grid" puck={mockPuckContext} />,
     );
     expect(screen.getByTestId('dropzone-test-grid-column-0')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-1')).toBeInTheDocument();
     expect(screen.getByTestId('dropzone-test-grid-column-2')).toBeInTheDocument();
+  });
+
+  /* --- grid-template-rows --- */
+
+  it('applies gridTemplateRows when set', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} gridTemplateRows="100px auto" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ gridTemplateRows: '100px auto' });
+  });
+
+  it('does not set gridTemplateRows when empty', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.style.gridTemplateRows).toBe('');
+  });
+
+  /* --- Gap (column & row) --- */
+
+  it('applies separate columnGap and rowGap', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} columnGap="24" rowGap="12" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ columnGap: '24px', rowGap: '12px' });
+  });
+
+  /* --- Alignment: items --- */
+
+  it('applies justifyItems and alignItems', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} justifyItems="center" alignItems="end" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ justifyItems: 'center', alignItems: 'end' });
+  });
+
+  /* --- Alignment: content --- */
+
+  it('applies justifyContent and alignContent', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} justifyContent="space-between" alignContent="center" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ justifyContent: 'space-between', alignContent: 'center' });
+  });
+
+  /* --- Auto flow --- */
+
+  it('applies gridAutoFlow', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} gridAutoFlow="column" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ gridAutoFlow: 'column' });
+  });
+
+  it('applies gridAutoRows and gridAutoColumns when set', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} gridAutoRows="minmax(100px, auto)" gridAutoColumns="200px" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ gridAutoRows: 'minmax(100px, auto)', gridAutoColumns: '200px' });
+  });
+
+  /* --- Sizing --- */
+
+  it('applies height, minHeight, and maxHeight when set', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} height="400" minHeight="200" maxHeight="600" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ height: '400px', minHeight: '200px', maxHeight: '600px' });
+  });
+
+  it('does not set sizing props when empty', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.style.height).toBe('');
+    expect(wrapper.style.minHeight).toBe('');
+    expect(wrapper.style.maxHeight).toBe('');
+  });
+
+  /* --- Padding --- */
+
+  it('applies padding when set', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} padding="24" id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveStyle({ padding: '24px' });
+  });
+
+  it('does not set padding when empty', () => {
+    const Component = puckConfig.components.GridRow.render;
+    const { container } = render(
+      <Component {...gridDefaults()} id="test-grid" puck={mockPuckContext} />,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.style.padding).toBe('');
   });
 });
 

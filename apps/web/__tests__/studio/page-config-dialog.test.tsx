@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { PageConfigDialog } from '@/components/studio/page-config-dialog';
 import { DEFAULT_PAGE_CONFIG } from '@/lib/types/page-config';
 
@@ -30,8 +31,8 @@ describe('PageConfigDialog', () => {
 
   it('displays current paper size in select', () => {
     render(<PageConfigDialog {...defaultProps} />);
-    const select = screen.getAllByTestId('paper-size-select')[0] as HTMLSelectElement;
-    expect(select.value).toBe('A4');
+    const trigger = screen.getAllByTestId('paper-size-select')[0];
+    expect(trigger).toHaveTextContent('A4');
   });
 
   it('shows dimensions label for named paper sizes', () => {
@@ -40,10 +41,15 @@ describe('PageConfigDialog', () => {
     expect(labels[0]).toBeInTheDocument();
   });
 
-  it('shows custom dimension inputs when Custom paper size is selected', () => {
+  it('shows custom dimension inputs when Custom paper size is selected', async () => {
+    const user = userEvent.setup();
     render(<PageConfigDialog {...defaultProps} />);
-    const select = screen.getAllByTestId('paper-size-select')[0];
-    fireEvent.change(select, { target: { value: 'Custom' } });
+    const trigger = screen.getAllByTestId('paper-size-select')[0];
+    await user.click(trigger);
+    const option = document.querySelector('[data-slot="select-item"][data-value="Custom"]');
+    if (option) {
+      await user.click(option as HTMLElement);
+    }
 
     expect(screen.getAllByTestId('custom-width')[0]).toBeInTheDocument();
     expect(screen.getAllByTestId('custom-height')[0]).toBeInTheDocument();
