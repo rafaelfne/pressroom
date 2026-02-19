@@ -1,10 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { createUsePuck, Data } from '@puckeditor/core';
 import { useMultiSelect } from '@/hooks/use-multi-select';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { useCanvasInteraction } from '@/hooks/use-canvas-interaction';
+import { SelectionContextMenu } from '@/components/studio/selection-context-menu';
+import { collectAllIds, collectAllIdsDeep } from '@/lib/studio/multi-select-operations';
 import { toast } from 'sonner';
+
+/** Puck's root zone compound for root-level content */
+const PUCK_ROOT_ZONE = 'root:default-zone';
 
 export interface MultiSelectIntegrationProps {
   usePuck: ReturnType<typeof createUsePuck>;
@@ -12,6 +18,34 @@ export interface MultiSelectIntegrationProps {
   templateId: string;
   activePageId: string;
   activePageName: string;
+  canvasRef: React.RefObject<HTMLElement | null>;
+}
+
+/**
+ * Finds the Puck itemSelector (zone + index) for a component by its ID.
+ * Searches root content first, then all zones.
+ */
+function findPuckItemSelector(
+  data: Data,
+  componentId: string,
+): { zone: string; index: number } | null {
+  // Check root content
+  const rootIndex = (data.content || []).findIndex(
+    (c) => (c.props.id as string) === componentId,
+  );
+  if (rootIndex !== -1) {
+    return { zone: PUCK_ROOT_ZONE, index: rootIndex };
+  }
+
+  // Check zones
+  for (const [zoneKey, components] of Object.entries(data.zones || {})) {
+    const idx = components.findIndex((c) => (c.props.id as string) === componentId);
+    if (idx !== -1) {
+      return { zone: zoneKey, index: idx };
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -20,6 +54,7 @@ export interface MultiSelectIntegrationProps {
  *
  * Responsibilities:
  * - Wires keyboard shortcuts to Puck dispatch
+ * - Wires canvas interactions (click selection, marquee, context menu)
  * - Syncs Puck's itemSelector with multi-select state
  * - Clears selection on page switches
  */
@@ -29,10 +64,17 @@ export function MultiSelectIntegration({
   templateId,
   activePageId,
   activePageName,
+  canvasRef,
 }: MultiSelectIntegrationProps) {
   const dispatch = usePuck((s) => s.dispatch);
   const { state, dispatch: multiSelectDispatch, isMultiSelected } = useMultiSelect();
   const prevPageId = useRef(activePageId);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    open: boolean;
+    position: { x: number; y: number };
+  }>({ open: false, position: { x: 0, y: 0 } });
 
   // Clear selection when page switches
   useEffect(() => {
@@ -79,14 +121,76 @@ export function MultiSelectIntegration({
     enabled: true,
   });
 
+  // Wire up canvas interactions (click selection, marquee, context menu)
+  const handleContextMenuOpen = useCallback(
+    (position: { x: number; y: number }) => {
+      setContextMenu({ open: true, position });
+    },
+    [],
+  );
+
+  useCanvasInteraction({
+    canvasRef,
+    onContextMenu: handleContextMenuOpen,
+    enabled: true,
+  });
+
   // Sync: when selection becomes exactly 1 item, restore Puck's itemSelector
   useEffect(() => {
     if (state.selectedIds.size === 1) {
-      // We don't try to set itemSelector here because we don't have
-      // the selector (zone + index) readily available. Puck's native
-      // click handling will set it when the user clicks a single component.
+      const [selectedId] = state.selectedIds;
+      const selector = findPuckItemSelector(puckDataRef.current, selectedId);
+      if (selector) {
+        dispatch({
+          type: 'setUi',
+          ui: { itemSelector: selector },
+        });
+      }
     }
-  }, [state.selectedIds.size]);
+  }, [state.selectedIds, dispatch, puckDataRef]);
 
-  return null;
+  // Context menu action handlers - synthesize keyboard events to reuse shortcut logic
+  const handleContextMenuClose = useCallback(() => {
+    setContextMenu({ open: false, position: { x: 0, y: 0 } });
+  }, []);
+
+  const synthesizeKeyEvent = useCallback((key: string, ctrlKey = false) => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key, ctrlKey, metaKey: false, bubbles: true }));
+  }, []);
+
+  const handleCopy = useCallback(() => synthesizeKeyEvent('c', true), [synthesizeKeyEvent]);
+  const handleCut = useCallback(() => synthesizeKeyEvent('x', true), [synthesizeKeyEvent]);
+  const handlePaste = useCallback(() => synthesizeKeyEvent('v', true), [synthesizeKeyEvent]);
+  const handleDuplicate = useCallback(() => synthesizeKeyEvent('d', true), [synthesizeKeyEvent]);
+  const handleDelete = useCallback(() => synthesizeKeyEvent('Delete'), [synthesizeKeyEvent]);
+
+  const handleSelectAll = useCallback(() => {
+    const data = puckDataRef.current;
+    const rootIds = collectAllIds(data);
+    const allRootSelected =
+      rootIds.length > 0 && rootIds.every((id) => state.selectedIds.has(id));
+
+    if (allRootSelected) {
+      const allIds = collectAllIdsDeep(data);
+      multiSelectDispatch({ type: 'SELECT_ALL', allIds });
+    } else {
+      multiSelectDispatch({ type: 'SELECT_ALL', allIds: rootIds });
+    }
+  }, [puckDataRef, state.selectedIds, multiSelectDispatch]);
+
+  return (
+    <SelectionContextMenu
+      open={contextMenu.open}
+      position={contextMenu.position}
+      onClose={handleContextMenuClose}
+      onCopy={handleCopy}
+      onCut={handleCut}
+      onPaste={handlePaste}
+      onDuplicate={handleDuplicate}
+      onDelete={handleDelete}
+      onSelectAll={handleSelectAll}
+      hasClipboard={state.clipboard !== null}
+      hasSelection={state.selectedIds.size > 0}
+    />
+  );
 }

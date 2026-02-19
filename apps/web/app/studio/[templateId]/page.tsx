@@ -23,6 +23,7 @@ import { MultiSelectProvider } from '@/contexts/multi-select-context';
 import { MarqueeSelection } from '@/components/studio/marquee-selection';
 import { SelectionCountBadge } from '@/components/studio/selection-count-badge';
 import { MultiSelectIntegration } from '@/components/studio/multi-select-integration';
+import { SelectionHighlight } from '@/components/studio/selection-highlight';
 
 const usePuck = createUsePuck();
 
@@ -605,6 +606,8 @@ function StudioContent({
   isSampleDataOpen: boolean;
   templateId: string;
 }) {
+  const canvasWorkspaceRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className="flex h-screen flex-col" data-testid="studio-editor">
       <Toaster position="top-right" richColors />
@@ -645,7 +648,9 @@ function StudioContent({
                       templateId={templateId}
                       activePageId={activePageId}
                       activePageName={activePage.name}
+                      canvasRef={canvasWorkspaceRef}
                     />
+                    <SelectionHighlight />
                     {children}
                   </>
                 ),
@@ -654,9 +659,14 @@ function StudioContent({
                     pageConfig={pageConfig}
                     zoom={zoom}
                     onZoomChange={onZoomChange}
+                    canvasRef={canvasWorkspaceRef}
+                    overlayContent={
+                      <>
+                        <MarqueeSelection />
+                        <SelectionCountBadge />
+                      </>
+                    }
                   >
-                    <SelectionCountBadge />
-                    <MarqueeSelection />
                     <Puck.Preview />
                   </PaperCanvas>
                 ),

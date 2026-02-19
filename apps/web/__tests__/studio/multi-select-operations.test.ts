@@ -24,6 +24,14 @@ function makeData(
   return { root: {}, content, zones: zones || {} };
 }
 
+/**
+ * Constructs a Puck-style zone key: `{ownerId}:{ownerId}-{slotSuffix}`.
+ * Mirrors the real Puck v0.21.1 format used in data.zones.
+ */
+function zk(ownerId: string, slotSuffix: string): string {
+  return `${ownerId}:${ownerId}-${slotSuffix}`;
+}
+
 describe('multi-select-operations', () => {
   describe('generateComponentId', () => {
     it('generates unique IDs', () => {
@@ -72,21 +80,21 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('a')],
         {
-          'a-slot': [makeComponent('child1'), makeComponent('child2')],
+          [zk('a', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
         }
       );
 
       const result = removeComponents(data, new Set(['child1']));
 
-      expect(result.zones?.['a-slot']).toHaveLength(1);
-      expect(result.zones?.['a-slot']?.[0].props.id).toBe('child2');
+      expect(result.zones?.[zk('a', 'slot')]).toHaveLength(1);
+      expect(result.zones?.[zk('a', 'slot')]?.[0].props.id).toBe('child2');
     });
 
     it('handles parent+child both selected (only parent removed, not double-removal)', () => {
       const data = makeData(
         [makeComponent('parent'), makeComponent('other')],
         {
-          'parent-slot': [makeComponent('child')],
+          [zk('parent', 'slot')]: [makeComponent('child')],
         }
       );
 
@@ -98,15 +106,15 @@ describe('multi-select-operations', () => {
       expect(result.content[0].props.id).toBe('other');
 
       // Parent's zone should be cleaned up entirely
-      expect(result.zones?.['parent-slot']).toBeUndefined();
+      expect(result.zones?.[zk('parent', 'slot')]).toBeUndefined();
     });
 
     it('cleans up zones belonging to removed components', () => {
       const data = makeData(
         [makeComponent('a'), makeComponent('b')],
         {
-          'a-slot': [makeComponent('a-child')],
-          'b-slot': [makeComponent('b-child')],
+          [zk('a', 'slot')]: [makeComponent('a-child')],
+          [zk('b', 'slot')]: [makeComponent('b-child')],
         }
       );
 
@@ -116,12 +124,12 @@ describe('multi-select-operations', () => {
       expect(result.content).toHaveLength(1);
       expect(result.content[0].props.id).toBe('b');
 
-      // Zone 'a-slot' cleaned up
-      expect(result.zones?.['a-slot']).toBeUndefined();
+      // Zone 'a:a-slot' cleaned up
+      expect(result.zones?.[zk('a', 'slot')]).toBeUndefined();
 
-      // Zone 'b-slot' preserved
-      expect(result.zones?.['b-slot']).toHaveLength(1);
-      expect(result.zones?.['b-slot']?.[0].props.id).toBe('b-child');
+      // Zone 'b:b-slot' preserved
+      expect(result.zones?.[zk('b', 'slot')]).toHaveLength(1);
+      expect(result.zones?.[zk('b', 'slot')]?.[0].props.id).toBe('b-child');
     });
 
     it('returns original data when idsToRemove is empty', () => {
@@ -144,14 +152,14 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('a')],
         {
-          'a-slot': [makeComponent('child')],
+          [zk('a', 'slot')]: [makeComponent('child')],
         }
       );
 
       const result = removeComponents(data, new Set(['child']));
 
       // Zone should be removed when empty
-      expect(result.zones?.['a-slot']).toBeUndefined();
+      expect(result.zones?.[zk('a', 'slot')]).toBeUndefined();
     });
   });
 
@@ -210,7 +218,7 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('parent')],
         {
-          'parent-slot': [makeComponent('child1'), makeComponent('child2')],
+          [zk('parent', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
         }
       );
 
@@ -222,14 +230,14 @@ describe('multi-select-operations', () => {
       const duplicateId = newIds[0];
 
       // Original parent's zone still exists
-      expect(newData.zones?.['parent-slot']).toHaveLength(2);
-      expect(newData.zones?.['parent-slot']?.[0].props.id).toBe('child1');
-      expect(newData.zones?.['parent-slot']?.[1].props.id).toBe('child2');
+      expect(newData.zones?.[zk('parent', 'slot')]).toHaveLength(2);
+      expect(newData.zones?.[zk('parent', 'slot')]?.[0].props.id).toBe('child1');
+      expect(newData.zones?.[zk('parent', 'slot')]?.[1].props.id).toBe('child2');
 
       // Duplicate parent has its own zone with new child IDs
-      expect(newData.zones?.[`${duplicateId}-slot`]).toHaveLength(2);
-      const duplicateChild1 = newData.zones?.[`${duplicateId}-slot`]?.[0].props.id as string;
-      const duplicateChild2 = newData.zones?.[`${duplicateId}-slot`]?.[1].props.id as string;
+      expect(newData.zones?.[zk(duplicateId, 'slot')]).toHaveLength(2);
+      const duplicateChild1 = newData.zones?.[zk(duplicateId, 'slot')]?.[0].props.id as string;
+      const duplicateChild2 = newData.zones?.[zk(duplicateId, 'slot')]?.[1].props.id as string;
 
       expect(duplicateChild1).not.toBe('child1');
       expect(duplicateChild2).not.toBe('child2');
@@ -295,8 +303,8 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('parent')],
         {
-          'parent-slot': [makeComponent('child1'), makeComponent('child2')],
-          'child1-nested': [makeComponent('grandchild')],
+          [zk('parent', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
+          [zk('child1', 'nested')]: [makeComponent('grandchild')],
         }
       );
 
@@ -321,7 +329,7 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('parent')],
         {
-          'parent-zone': [makeComponent('child')],
+          [zk('parent', 'zone')]: [makeComponent('child')],
         }
       );
 
@@ -353,6 +361,57 @@ describe('multi-select-operations', () => {
       expect(result[0].props.title).toBe('Test');
       expect(result[0].props.value).toBe(42);
     });
+
+    it('filters out descendants when parent and child are both selected', () => {
+      const data = makeData(
+        [makeComponent('parent'), makeComponent('sibling')],
+        {
+          [zk('parent', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
+          [zk('child1', 'nested')]: [makeComponent('grandchild')],
+        }
+      );
+
+      // Select parent + child1 + grandchild — only parent should be extracted as top-level
+      const result = extractComponents(data, new Set(['parent', 'child1', 'grandchild']));
+
+      expect(result).toHaveLength(1);
+      expect(result[0].originalId).toBe('parent');
+      // Children are still inside the parent's serialized slots
+      expect(result[0].slots.slot).toHaveLength(2);
+      expect(result[0].slots.slot[0].originalId).toBe('child1');
+      expect(result[0].slots.slot[0].slots.nested[0].originalId).toBe('grandchild');
+    });
+
+    it('extracts child without parent when only child is selected', () => {
+      const data = makeData(
+        [makeComponent('parent')],
+        {
+          [zk('parent', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
+        }
+      );
+
+      // Only child1 selected, parent NOT selected → child1 extracted as top-level
+      const result = extractComponents(data, new Set(['child1']));
+
+      expect(result).toHaveLength(1);
+      expect(result[0].originalId).toBe('child1');
+    });
+
+    it('extracts sibling children without duplicating when parent not selected', () => {
+      const data = makeData(
+        [makeComponent('parent')],
+        {
+          [zk('parent', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
+        }
+      );
+
+      // Both children selected but NOT parent
+      const result = extractComponents(data, new Set(['child1', 'child2']));
+
+      expect(result).toHaveLength(2);
+      expect(result[0].originalId).toBe('child1');
+      expect(result[1].originalId).toBe('child2');
+    });
   });
 
   describe('pasteComponents + regenerateIds', () => {
@@ -360,7 +419,7 @@ describe('multi-select-operations', () => {
       const originalData = makeData(
         [makeComponent('parent')],
         {
-          'parent-slot': [makeComponent('child')],
+          [zk('parent', 'slot')]: [makeComponent('child')],
         }
       );
 
@@ -376,8 +435,8 @@ describe('multi-select-operations', () => {
 
       // Check zones exist
       const pastedId = newData.content[0].props.id as string;
-      expect(newData.zones?.[`${pastedId}-slot`]).toHaveLength(1);
-      expect(newData.zones?.[`${pastedId}-slot`]?.[0].type).toBe('TextBlock');
+      expect(newData.zones?.[zk(pastedId, 'slot')]).toHaveLength(1);
+      expect(newData.zones?.[zk(pastedId, 'slot')]?.[0].type).toBe('TextBlock');
     });
 
     it('all IDs are regenerated (no original IDs reused)', () => {
@@ -407,7 +466,7 @@ describe('multi-select-operations', () => {
       expect(newData.content[0].props.id).toBe(newIds[0]);
 
       // Child component gets new ID
-      const zoneKey = `${newIds[0]}-content`;
+      const zoneKey = zk(newIds[0], 'content');
       expect(newData.zones?.[zoneKey]).toHaveLength(1);
       expect(newData.zones?.[zoneKey]?.[0].props.id).not.toBe('child-original');
     });
@@ -471,7 +530,7 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('parent')],
         {
-          'parent-slot': [makeComponent('existing-child')],
+          [zk('parent', 'slot')]: [makeComponent('existing-child')],
         }
       );
 
@@ -484,19 +543,19 @@ describe('multi-select-operations', () => {
         },
       ];
 
-      const { newData, newIds } = pasteComponents(data, serialized, 'parent-slot');
+      const { newData, newIds } = pasteComponents(data, serialized, zk('parent', 'slot'));
 
       // Should append to the zone
-      expect(newData.zones?.['parent-slot']).toHaveLength(2);
-      expect(newData.zones?.['parent-slot']?.[0].props.id).toBe('existing-child');
-      expect(newData.zones?.['parent-slot']?.[1].props.id).toBe(newIds[0]);
+      expect(newData.zones?.[zk('parent', 'slot')]).toHaveLength(2);
+      expect(newData.zones?.[zk('parent', 'slot')]?.[0].props.id).toBe('existing-child');
+      expect(newData.zones?.[zk('parent', 'slot')]?.[1].props.id).toBe(newIds[0]);
     });
 
     it('inserts into zone after specified component', () => {
       const data = makeData(
         [makeComponent('parent')],
         {
-          'parent-slot': [makeComponent('child1'), makeComponent('child2')],
+          [zk('parent', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
         }
       );
 
@@ -509,12 +568,12 @@ describe('multi-select-operations', () => {
         },
       ];
 
-      const { newData, newIds } = pasteComponents(data, serialized, 'parent-slot', 'child1');
+      const { newData, newIds } = pasteComponents(data, serialized, zk('parent', 'slot'), 'child1');
 
-      expect(newData.zones?.['parent-slot']).toHaveLength(3);
-      expect(newData.zones?.['parent-slot']?.[0].props.id).toBe('child1');
-      expect(newData.zones?.['parent-slot']?.[1].props.id).toBe(newIds[0]);
-      expect(newData.zones?.['parent-slot']?.[2].props.id).toBe('child2');
+      expect(newData.zones?.[zk('parent', 'slot')]).toHaveLength(3);
+      expect(newData.zones?.[zk('parent', 'slot')]?.[0].props.id).toBe('child1');
+      expect(newData.zones?.[zk('parent', 'slot')]?.[1].props.id).toBe(newIds[0]);
+      expect(newData.zones?.[zk('parent', 'slot')]?.[2].props.id).toBe('child2');
     });
   });
 
@@ -523,8 +582,8 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('a'), makeComponent('b'), makeComponent('c')],
         {
-          'a-slot': [makeComponent('child1')],
-          'b-slot': [makeComponent('child2')],
+          [zk('a', 'slot')]: [makeComponent('child1')],
+          [zk('b', 'slot')]: [makeComponent('child2')],
         }
       );
 
@@ -538,8 +597,8 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('root1'), makeComponent('root2')],
         {
-          'root1-slot': [makeComponent('child1'), makeComponent('child2')],
-          'child1-nested': [makeComponent('grandchild')],
+          [zk('root1', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
+          [zk('child1', 'nested')]: [makeComponent('grandchild')],
         }
       );
 
@@ -565,9 +624,9 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('level0')],
         {
-          'level0-slot': [makeComponent('level1')],
-          'level1-slot': [makeComponent('level2')],
-          'level2-slot': [makeComponent('level3')],
+          [zk('level0', 'slot')]: [makeComponent('level1')],
+          [zk('level1', 'slot')]: [makeComponent('level2')],
+          [zk('level2', 'slot')]: [makeComponent('level3')],
         }
       );
 
@@ -586,7 +645,7 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('parent'), makeComponent('other')],
         {
-          'parent-slot': [makeComponent('child')],
+          [zk('parent', 'slot')]: [makeComponent('child')],
         }
       );
 
@@ -599,9 +658,9 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('grandparent')],
         {
-          'grandparent-slot': [makeComponent('parent')],
-          'parent-slot': [makeComponent('child')],
-          'child-slot': [makeComponent('grandchild')],
+          [zk('grandparent', 'slot')]: [makeComponent('parent')],
+          [zk('parent', 'slot')]: [makeComponent('child')],
+          [zk('child', 'slot')]: [makeComponent('grandchild')],
         }
       );
 
@@ -615,8 +674,8 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('a'), makeComponent('b')],
         {
-          'a-slot': [makeComponent('a-child')],
-          'b-slot': [makeComponent('b-child')],
+          [zk('a', 'slot')]: [makeComponent('a-child')],
+          [zk('b', 'slot')]: [makeComponent('b-child')],
         }
       );
 
@@ -629,7 +688,7 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('parent')],
         {
-          'parent-slot': [makeComponent('child')],
+          [zk('parent', 'slot')]: [makeComponent('child')],
         }
       );
 
@@ -658,7 +717,7 @@ describe('multi-select-operations', () => {
       const data = makeData(
         [makeComponent('parent'), makeComponent('sibling')],
         {
-          'parent-slot': [makeComponent('child1'), makeComponent('child2')],
+          [zk('parent', 'slot')]: [makeComponent('child1'), makeComponent('child2')],
         }
       );
 
@@ -679,17 +738,17 @@ describe('multi-select-operations', () => {
       expect(afterRemove.content.map((c) => c.props.id)).toContain('sibling');
 
       // Original parent's zone should be gone
-      expect(afterRemove.zones?.['parent-slot']).toBeUndefined();
+      expect(afterRemove.zones?.[zk('parent', 'slot')]).toBeUndefined();
 
       // Duplicate's zone should still exist
-      expect(afterRemove.zones?.[`${newIds[0]}-slot`]).toHaveLength(2);
+      expect(afterRemove.zones?.[zk(newIds[0], 'slot')]).toHaveLength(2);
     });
 
     it('complex workflow: extract, regenerate, and paste', () => {
       const sourceData = makeData(
         [makeComponent('component-a'), makeComponent('component-b')],
         {
-          'component-a-slot': [makeComponent('child')],
+          [zk('component-a', 'slot')]: [makeComponent('child')],
         }
       );
 
@@ -705,10 +764,10 @@ describe('multi-select-operations', () => {
 
       expect(newData.content).toHaveLength(2);
       expect(newIds[0]).not.toBe('component-a'); // ID regenerated
-      expect(newData.zones?.[`${newIds[0]}-slot`]).toHaveLength(1);
+      expect(newData.zones?.[zk(newIds[0], 'slot')]).toHaveLength(1);
 
       // Child should also have new ID
-      const childId = newData.zones?.[`${newIds[0]}-slot`]?.[0].props.id as string;
+      const childId = newData.zones?.[zk(newIds[0], 'slot')]?.[0].props.id as string;
       expect(childId).not.toBe('child');
     });
   });

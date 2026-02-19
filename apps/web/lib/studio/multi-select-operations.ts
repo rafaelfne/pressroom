@@ -39,11 +39,35 @@ export function generateComponentId(): string {
 }
 
 /**
+ * Puck zone key separator. Zone keys in data.zones follow the format:
+ * `{componentId}:{zoneName}` where zoneName is typically `{componentId}-{slotSuffix}`.
+ */
+const ZONE_SEPARATOR = ':';
+
+/**
  * Finds all zone keys that belong to a specific component.
- * Zone keys follow the pattern `{componentId}-{zoneName}`.
+ * Zone keys follow the Puck format `{componentId}:{zoneName}`.
  */
 function findComponentZones(zones: Record<string, ComponentData[]>, componentId: string): string[] {
-  return Object.keys(zones).filter((key) => key.startsWith(`${componentId}-`));
+  return Object.keys(zones).filter((key) => key.startsWith(`${componentId}${ZONE_SEPARATOR}`));
+}
+
+/**
+ * Extracts the slot suffix from a zone name.
+ * Zone names follow the convention `{componentId}-{slotSuffix}`.
+ * Returns the slotSuffix (e.g., "content", "column-0") or the full zone name as fallback.
+ */
+function extractSlotSuffix(zoneName: string, componentId: string): string {
+  const prefix = componentId + '-';
+  return zoneName.startsWith(prefix) ? zoneName.slice(prefix.length) : zoneName;
+}
+
+/**
+ * Constructs a Puck zone key from component ID and slot suffix.
+ * Produces: `{componentId}:{componentId}-{slotSuffix}`
+ */
+function buildZoneKey(componentId: string, slotSuffix: string): string {
+  return `${componentId}${ZONE_SEPARATOR}${componentId}-${slotSuffix}`;
 }
 
 
@@ -124,7 +148,7 @@ export function removeComponents(data: Data, idsToRemove: Set<string>): Data {
   
   for (const [zoneKey, components] of Object.entries(data.zones || {})) {
     // Check if this zone belongs to a removed component
-    const zoneOwnerId = zoneKey.split('-')[0];
+    const zoneOwnerId = zoneKey.split(ZONE_SEPARATOR)[0];
     if (filteredIds.has(zoneOwnerId)) {
       // Skip this zone entirely (component and all its zones removed)
       continue;
@@ -174,8 +198,9 @@ function deepCloneComponent(
   const componentZones = findComponentZones(zones, oldId);
   
   for (const zoneKey of componentZones) {
-    const zoneSuffix = zoneKey.slice(oldId.length);
-    const newZoneKey = `${newId}${zoneSuffix}`;
+    const zoneName = zoneKey.slice(oldId.length + 1); // Zone name after "id:"
+    const slotSuffix = extractSlotSuffix(zoneName, oldId);
+    const newZoneKey = buildZoneKey(newId, slotSuffix);
     const children = zones[zoneKey] || [];
     const clonedChildren: ComponentData[] = [];
     
@@ -287,10 +312,11 @@ function serializeComponent(
   const componentZones = findComponentZones(zones, componentId);
   
   for (const zoneKey of componentZones) {
-    const zoneSuffix = zoneKey.slice(componentId.length + 1); // Remove "id-" prefix
+    const zoneName = zoneKey.slice(componentId.length + 1); // Zone name after "id:"
+    const slotSuffix = extractSlotSuffix(zoneName, componentId);
     const children = zones[zoneKey] || [];
-    
-    slots[zoneSuffix] = children.map((child) => serializeComponent(child, zones));
+
+    slots[slotSuffix] = children.map((child) => serializeComponent(child, zones));
   }
   
   return {
@@ -310,29 +336,33 @@ export function extractComponents(data: Data, ids: Set<string>): SerializedCompo
   if (ids.size === 0) {
     return [];
   }
-  
+
+  // Filter out descendants: if parent is selected, its children are already
+  // included in the parent's serialized slots — don't extract them separately.
+  const topLevelIds = filterDescendants(data, ids);
+
   const serialized: SerializedComponent[] = [];
-  
+
   // Extract from root content (preserves order)
   for (const component of data.content || []) {
     const componentId = component.props.id as string;
-    
-    if (ids.has(componentId)) {
+
+    if (topLevelIds.has(componentId)) {
       serialized.push(serializeComponent(component, data.zones || {}));
     }
   }
-  
-  // Also check zones for any missed components
+
+  // Also check zones for any missed components (children selected without parent)
   for (const components of Object.values(data.zones || {})) {
     for (const component of components) {
       const componentId = component.props.id as string;
-      
-      if (ids.has(componentId) && !serialized.some((s) => s.originalId === componentId)) {
+
+      if (topLevelIds.has(componentId) && !serialized.some((s) => s.originalId === componentId)) {
         serialized.push(serializeComponent(component, data.zones || {}));
       }
     }
   }
-  
+
   return serialized;
 }
 
@@ -349,7 +379,7 @@ export function regenerateIds(component: SerializedComponent): {
   
   // Process nested slots
   for (const [slotName, slotComponents] of Object.entries(component.slots)) {
-    const zoneKey = `${newId}-${slotName}`;
+    const zoneKey = buildZoneKey(newId, slotName);
     const zoneComponents: ComponentData[] = [];
     
     for (const slotComponent of slotComponents) {

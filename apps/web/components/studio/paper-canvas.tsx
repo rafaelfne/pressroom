@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useImperativeHandle, useRef } from 'react';
 import { PageConfig, getPageDimensionsPx, pxToScreen, ZOOM_LEVELS } from '@/lib/types/page-config';
 import { Button } from '@/components/ui/button';
 
@@ -15,10 +15,17 @@ export interface PaperCanvasProps {
   zoom: number;
   onZoomChange: (zoom: number) => void;
   children: React.ReactNode;
+  /** Optional ref to the scrollable workspace container (used for marquee interaction) */
+  canvasRef?: React.Ref<HTMLDivElement>;
+  /** Content rendered as overlay in the workspace (outside the scaled paper, for marquee/badges) */
+  overlayContent?: React.ReactNode;
 }
 
-export function PaperCanvas({ pageConfig, zoom, onZoomChange, children }: PaperCanvasProps) {
+export function PaperCanvas({ pageConfig, zoom, onZoomChange, children, canvasRef, overlayContent }: PaperCanvasProps) {
   const workspaceRef = useRef<HTMLDivElement>(null);
+
+  // Merge internal ref with external canvasRef
+  useImperativeHandle(canvasRef, () => workspaceRef.current!, []);
 
   const paperDimensions = getPageDimensionsPx(pageConfig);
 
@@ -91,10 +98,16 @@ export function PaperCanvas({ pageConfig, zoom, onZoomChange, children }: PaperC
       {/* Scrollable workspace */}
       <div
         ref={workspaceRef}
-        className="flex-1 overflow-auto bg-[#f5f5f5] flex justify-center items-start py-8 px-4"
+        className="flex-1 overflow-auto bg-[#f5f5f5] flex justify-center items-start py-8 px-4 relative"
         onWheel={handleWheel}
         data-testid="canvas-workspace"
       >
+        {/* Overlay layer - outside scale transform, for marquee and badges */}
+        {overlayContent && (
+          <div className="absolute inset-0 pointer-events-none z-30">
+            {overlayContent}
+          </div>
+        )}
         {/* Scaled wrapper - matches visual size to prevent extra scroll */}
         <div
           style={{
