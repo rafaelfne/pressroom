@@ -12,6 +12,9 @@ import { PaperCanvas } from '@/components/studio/paper-canvas';
 import { DEFAULT_SAMPLE_DATA } from '@/lib/templates/default-sample-data';
 import { StudioHeader } from '@/components/studio/studio-header';
 import { RightPanel } from '@/components/studio/right-panel';
+import { MultiSelectProvider, useMultiSelect } from '@/lib/puck/multi-select-context';
+import { MultiSelectBridge } from '@/components/studio/multi-select-bridge';
+import { MultiSelectToolbar } from '@/components/studio/multi-select-toolbar';
 import {
   DEFAULT_PAGE_CONFIG,
   parseStoredPageConfig,
@@ -473,6 +476,10 @@ export default function StudioPage() {
     pagesRef.current = updated;
   }, []);
 
+  // Helpers for multi-select toolbar (need stable references)
+  // Must be declared before the early return to maintain consistent hook order
+  const getDataForToolbar = useCallback(() => puckDataRef.current, []);
+
   if (!pages) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -485,12 +492,12 @@ export default function StudioPage() {
   const displayUser = user || { name: 'User', email: null, id: 'loading' };
 
   return (
-    <div className="flex h-screen flex-col" data-testid="studio-editor">
-      <Toaster position="top-right" richColors />
-      <StudioHeader
+    <MultiSelectProvider>
+      <StudioContent
+        activePage={activePage}
+        displayUser={displayUser}
         templateName={templateName}
         onTemplateNameChange={handleTemplateNameChange}
-        user={displayUser}
         canUndo={canUndo}
         canRedo={canRedo}
         onUndo={handleUndo}
@@ -501,9 +508,140 @@ export default function StudioPage() {
         onPreview={handlePreview}
         onPublish={handlePublishFromHeader}
         isSaving={isSaving}
+        puckWrapperRef={puckWrapperRef}
+        puckDataRef={puckDataRef}
+        handleHistoryChange={handleHistoryChange}
+        pageConfig={pageConfig}
+        zoom={zoom}
+        onZoomChange={setZoom}
+        handlePageConfigChange={handlePageConfigChange}
+        handleRenamePage={handleRenamePage}
+        handlePublish={handlePublish}
+        pages={pages}
+        activePageId={activePage.id}
+        handleSelectPage={handleSelectPage}
+        handleAddPage={handleAddPage}
+        handleDeletePage={handleDeletePage}
+        handleDuplicatePage={handleDuplicatePage}
+        handleReorderPage={handleReorderPage}
+        sampleData={sampleData}
+        handleSampleDataChange={handleSampleDataChange}
+        isSampleDataOpen={isSampleDataOpen}
+        getDataForToolbar={getDataForToolbar}
+      />
+    </MultiSelectProvider>
+  );
+}
+
+/**
+ * Inner component that consumes MultiSelectProvider context.
+ * Separated so that useMultiSelect() can be called inside the provider tree.
+ */
+function StudioContent({
+  activePage,
+  displayUser,
+  templateName,
+  onTemplateNameChange,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+  onToggleSampleData,
+  onDownloadPdf,
+  isDownloadingPdf,
+  onPreview,
+  onPublish,
+  isSaving,
+  puckWrapperRef,
+  puckDataRef,
+  handleHistoryChange,
+  pageConfig,
+  zoom,
+  onZoomChange,
+  handlePageConfigChange,
+  handleRenamePage,
+  handlePublish,
+  pages,
+  activePageId,
+  handleSelectPage,
+  handleAddPage,
+  handleDeletePage,
+  handleDuplicatePage,
+  handleReorderPage,
+  sampleData,
+  handleSampleDataChange,
+  isSampleDataOpen,
+  getDataForToolbar,
+}: {
+  activePage: PageItem;
+  displayUser: UserSession;
+  templateName: string;
+  onTemplateNameChange: (name: string) => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
+  onToggleSampleData: () => void;
+  onDownloadPdf: () => void;
+  isDownloadingPdf: boolean;
+  onPreview: () => void;
+  onPublish: () => void;
+  isSaving: boolean;
+  puckWrapperRef: React.RefObject<HTMLDivElement | null>;
+  puckDataRef: React.MutableRefObject<Data>;
+  handleHistoryChange: (canUndo: boolean, canRedo: boolean, undo: () => void, redo: () => void) => void;
+  pageConfig: PageConfig;
+  zoom: number;
+  onZoomChange: (zoom: number) => void;
+  handlePageConfigChange: (config: PageConfig) => void;
+  handleRenamePage: (pageId: string, name: string) => void;
+  handlePublish: (data: Data) => void;
+  pages: PageItem[];
+  activePageId: string;
+  handleSelectPage: (pageId: string) => void;
+  handleAddPage: () => void;
+  handleDeletePage: (pageId: string) => void;
+  handleDuplicatePage: (pageId: string) => void;
+  handleReorderPage: (pageId: string, direction: 'up' | 'down') => void;
+  sampleData: Record<string, unknown>;
+  handleSampleDataChange: (data: Record<string, unknown>) => void;
+  isSampleDataOpen: boolean;
+  getDataForToolbar: () => Data;
+}) {
+  const multiSelect = useMultiSelect();
+  const dispatchRef = useRef<((action: Record<string, unknown>) => void) | null>(null);
+  const getDispatchForToolbar = useCallback(() => dispatchRef.current, []);
+
+  // Clear multi-select when switching pages
+  useEffect(() => {
+    multiSelect.clearSelection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePageId]);
+
+  return (
+    <div className="flex h-screen flex-col" data-testid="studio-editor">
+      <Toaster position="top-right" richColors />
+      <StudioHeader
+        templateName={templateName}
+        onTemplateNameChange={onTemplateNameChange}
+        user={displayUser}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={onUndo}
+        onRedo={onRedo}
+        onToggleSampleData={onToggleSampleData}
+        onDownloadPdf={onDownloadPdf}
+        isDownloadingPdf={isDownloadingPdf}
+        onPreview={onPreview}
+        onPublish={onPublish}
+        isSaving={isSaving}
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden relative">
+          <MultiSelectToolbar
+            getData={getDataForToolbar}
+            getDispatch={getDispatchForToolbar}
+          />
           <div ref={puckWrapperRef} className="flex-1 min-h-0 overflow-hidden">
             <Puck
               key={activePage.id}
@@ -518,6 +656,12 @@ export default function StudioPage() {
                 puck: ({ children }) => (
                   <>
                     <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
+                    <MultiSelectBridge
+                      usePuck={usePuck}
+                      dataRef={puckDataRef}
+                      wrapperRef={puckWrapperRef}
+                      dispatchRef={dispatchRef}
+                    />
                     {children}
                   </>
                 ),
@@ -525,7 +669,7 @@ export default function StudioPage() {
                   <PaperCanvas
                     pageConfig={pageConfig}
                     zoom={zoom}
-                    onZoomChange={setZoom}
+                    onZoomChange={onZoomChange}
                   >
                     <Puck.Preview />
                   </PaperCanvas>
@@ -537,6 +681,7 @@ export default function StudioPage() {
                     onConfigChange={handlePageConfigChange}
                     pageTitle={activePage.name}
                     onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
+                    multiSelectCount={multiSelect.selectedIds.size}
                   >
                     {children}
                   </RightPanel>
@@ -547,7 +692,7 @@ export default function StudioPage() {
           {/* Page Tab Bar at bottom of canvas */}
           <PageTabBar
             pages={pages}
-            activePageId={activePage.id}
+            activePageId={activePageId}
             onSelectPage={handleSelectPage}
             onAddPage={handleAddPage}
             onDeletePage={handleDeletePage}
@@ -562,7 +707,7 @@ export default function StudioPage() {
                 sampleData={sampleData}
                 onSampleDataChange={handleSampleDataChange}
                 isOpen={isSampleDataOpen}
-                onToggle={handleToggleSampleData}
+                onToggle={onToggleSampleData}
               />
             </div>
           )}

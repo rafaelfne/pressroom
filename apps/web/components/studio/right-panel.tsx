@@ -5,6 +5,7 @@ import { type createUsePuck } from '@puckeditor/core';
 import type { PageConfig } from '@/lib/types/page-config';
 import { PageSettingsPanel } from './page-settings-panel';
 import { BlockFieldsPanel } from './block-fields-panel';
+import { MultiSelectSummary } from './multi-select-summary';
 
 export interface RightPanelProps {
   usePuck: ReturnType<typeof createUsePuck>;
@@ -12,6 +13,8 @@ export interface RightPanelProps {
   onConfigChange: (config: PageConfig) => void;
   pageTitle: string;
   onPageTitleChange: (title: string) => void;
+  /** Number of multi-selected component IDs (0 = not active) */
+  multiSelectCount?: number;
   children?: React.ReactNode;
 }
 
@@ -25,20 +28,26 @@ export function RightPanel({
   onConfigChange,
   pageTitle,
   onPageTitleChange,
+  multiSelectCount = 0,
   children,
 }: RightPanelProps) {
   const selectedItem = usePuck((s) => s.selectedItem);
 
-  // Show block fields panel when a component is selected
-  // Puck passes children (the fields) to this override
-  const showBlockFields = selectedItem !== null;
+  // Multi-select takes priority over single item selection
+  const showMultiSelect = multiSelectCount > 1;
+  // Show block fields panel when a single component is selected (and not multi-selecting)
+  const showBlockFields = !showMultiSelect && selectedItem !== null;
 
   return (
     <div
       className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-20"
       data-testid="right-panel"
     >
-      {showBlockFields ? (
+      {showMultiSelect ? (
+        <div data-testid="multi-select-view">
+          <MultiSelectSummary count={multiSelectCount} />
+        </div>
+      ) : showBlockFields ? (
         <div data-testid="block-fields-view">
           <BlockFieldsPanel
             usePuck={usePuck}

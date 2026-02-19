@@ -91,6 +91,32 @@
   outline: none !important;
 }
 
+/* ─── Multi-Select Highlight ──────────────────────────────────────────────── */
+
+/* Highlight for multi-selected components in the Puck canvas */
+[data-multi-selected='true'] {
+  outline: 2px solid hsl(var(--primary)) !important;
+  outline-offset: 2px;
+  border-radius: 2px;
+  transition: outline-color 150ms ease, outline-offset 150ms ease;
+}
+
+/* Subtle background tint for multi-selected items */
+[data-multi-selected='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: hsl(var(--primary) / 0.05);
+  pointer-events: none;
+  border-radius: 2px;
+  z-index: 0;
+}
+
+/* When Puck's overlay is visible together with multi-select, ensure they don't clash */
+[data-multi-selected='true'] [data-puck-overlay] {
+  border-color: hsl(var(--primary)) !important;
+}
+
 
 
 
