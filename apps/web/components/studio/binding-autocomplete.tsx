@@ -33,7 +33,7 @@ export function BindingAutocomplete({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [cursorPosition, setCursorPosition] = useState(0);
   const [filteredItems, setFilteredItems] = useState<SuggestionItem[]>([]);
-  
+
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,7 +57,7 @@ export function BindingAutocomplete({
       // Find the last {{ before cursor
       const textBeforeCursor = text.slice(0, position);
       const lastOpenBrace = textBeforeCursor.lastIndexOf('{{');
-      
+
       // Check if we're inside a binding context
       if (lastOpenBrace === -1) {
         setShowSuggestions(false);
@@ -68,7 +68,7 @@ export function BindingAutocomplete({
       const textAfterOpen = text.slice(lastOpenBrace);
       const closeIndex = textAfterOpen.indexOf('}}');
       const positionInBinding = position - lastOpenBrace;
-      
+
       // If we found a close before cursor, we're not in binding context
       if (closeIndex !== -1 && closeIndex < positionInBinding) {
         setShowSuggestions(false);
@@ -77,12 +77,12 @@ export function BindingAutocomplete({
 
       // Extract the partial text after {{
       const bindingContent = textBeforeCursor.slice(lastOpenBrace + 2);
-      
+
       // Check if user is typing a function call (contains opening parenthesis)
       const functionMatch = bindingContent.match(/(\w+)\(([^)]*)$/);
-      
+
       let items: SuggestionItem[] = [];
-      
+
       if (functionMatch) {
         // User is typing a function - filter function suggestions
         const functionName = functionMatch[1];
@@ -105,7 +105,7 @@ export function BindingAutocomplete({
 
       // Limit to 10 suggestions
       const limitedItems = items.slice(0, 10);
-      
+
       setFilteredItems(limitedItems);
       setShowSuggestions(limitedItems.length > 0);
       setSelectedIndex(0);
@@ -119,7 +119,7 @@ export function BindingAutocomplete({
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-      
+
       debounceTimerRef.current = setTimeout(() => {
         updateSuggestions(text, position);
       }, 100);
@@ -133,7 +133,7 @@ export function BindingAutocomplete({
   ) => {
     const newValue = e.target.value;
     const newPosition = e.target.selectionStart ?? newValue.length;
-    
+
     onChange(newValue);
     setCursorPosition(newPosition);
     debouncedUpdate(newValue, newPosition);
@@ -155,11 +155,11 @@ export function BindingAutocomplete({
       const textBeforeCursor = value.slice(0, cursorPosition);
       const textAfterCursor = value.slice(cursorPosition);
       const lastOpenBrace = textBeforeCursor.lastIndexOf('{{');
-      
+
       if (lastOpenBrace === -1) return;
 
       const textBeforeBinding = value.slice(0, lastOpenBrace + 2);
-      
+
       let insertText = '';
       if (item.type === 'path') {
         // Insert path and close with }}
@@ -168,13 +168,13 @@ export function BindingAutocomplete({
         // Insert function name and opening parenthesis
         insertText = item.suggestion.name + '(';
       }
-      
+
       const newValue = textBeforeBinding + insertText + textAfterCursor;
       const newCursorPosition = textBeforeBinding.length + insertText.length;
-      
+
       onChange(newValue);
       setShowSuggestions(false);
-      
+
       // Restore cursor position after React updates
       setTimeout(() => {
         if (inputRef.current) {
@@ -202,28 +202,28 @@ export function BindingAutocomplete({
           prev < filteredItems.length - 1 ? prev + 1 : 0
         );
         break;
-      
+
       case 'ArrowUp':
         e.preventDefault();
         setSelectedIndex((prev) =>
           prev > 0 ? prev - 1 : filteredItems.length - 1
         );
         break;
-      
+
       case 'Enter':
         if (showSuggestions) {
           e.preventDefault();
           insertSuggestion(filteredItems[selectedIndex]);
         }
         break;
-      
+
       case 'Tab':
         if (showSuggestions) {
           e.preventDefault();
           insertSuggestion(filteredItems[selectedIndex]);
         }
         break;
-      
+
       case 'Escape':
         e.preventDefault();
         setShowSuggestions(false);
