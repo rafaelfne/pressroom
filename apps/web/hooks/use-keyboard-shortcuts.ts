@@ -13,6 +13,9 @@ import {
   type PressroomClipboard,
 } from '@/lib/studio/multi-select-operations';
 
+/** Threshold for showing delete confirmation dialog */
+const DELETE_CONFIRMATION_THRESHOLD = 5;
+
 interface UseKeyboardShortcutsOptions {
   /** Get the current Puck data - called when shortcuts need to read it */
   getData: () => Data;
@@ -330,8 +333,8 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions): void
         const selectedIds = currentState.selectedIds;
         const count = selectedIds.size;
         
-        // Confirm if more than 5 components selected
-        if (count > 5) {
+        // Confirm if more than threshold components selected
+        if (count > DELETE_CONFIRMATION_THRESHOLD) {
           const confirmed = window.confirm(
             `Delete ${count} components?`
           );
