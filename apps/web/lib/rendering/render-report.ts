@@ -4,7 +4,7 @@ import { generateHtml, generateMultiPageHtml } from './html-generator';
 import { renderPdf, type PdfRenderOptions } from './pdf-renderer';
 import { generateHeaderHtml, generateFooterHtml } from './header-footer-generator';
 import type { PageConfig } from '@/lib/types/page-config';
-import { pageConfigToRenderOptions } from '@/lib/types/page-config';
+import { pageConfigToRenderOptions, pxToMm } from '@/lib/types/page-config';
 import type { HeaderFooterConfig } from '@/lib/types/header-footer-config';
 
 export interface TemplatePage {
@@ -66,26 +66,31 @@ export async function renderReport(
     const hasHeader = headerConfig?.enabled === true;
     const hasFooter = footerConfig?.enabled === true;
 
+    // Page margins for header/footer horizontal alignment
+    const pageMargins = templatePageConfig
+      ? { left: templatePageConfig.margins.left, right: templatePageConfig.margins.right }
+      : undefined;
+
     if (hasHeader || hasFooter) {
       resolvedPdfOptions.displayHeaderFooter = true;
 
       if (hasHeader && headerConfig) {
-        resolvedPdfOptions.headerTemplate = generateHeaderHtml(headerConfig, data);
-        // Auto-adjust top margin to accommodate header height
-        const headerHeight = headerConfig.height ?? 15;
+        resolvedPdfOptions.headerTemplate = generateHeaderHtml(headerConfig, data, pageMargins);
+        // Auto-adjust top margin to accommodate header height (convert 72 DPI px → mm)
+        const headerHeight = headerConfig.height ?? 43;
         resolvedPdfOptions.margin = {
           ...resolvedPdfOptions.margin,
-          top: `${headerHeight}mm`,
+          top: `${pxToMm(headerHeight).toFixed(4)}mm`,
         };
       }
 
       if (hasFooter && footerConfig) {
-        resolvedPdfOptions.footerTemplate = generateFooterHtml(footerConfig, data);
-        // Auto-adjust bottom margin to accommodate footer height
-        const footerHeight = footerConfig.height ?? 12;
+        resolvedPdfOptions.footerTemplate = generateFooterHtml(footerConfig, data, pageMargins);
+        // Auto-adjust bottom margin to accommodate footer height (convert 72 DPI px → mm)
+        const footerHeight = footerConfig.height ?? 34;
         resolvedPdfOptions.margin = {
           ...resolvedPdfOptions.margin,
-          bottom: `${footerHeight}mm`,
+          bottom: `${pxToMm(footerHeight).toFixed(4)}mm`,
         };
       }
     }

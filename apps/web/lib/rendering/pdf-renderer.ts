@@ -45,10 +45,10 @@ const PAPER_SIZES_MM: Record<string, { width: number; height: number }> = {
  * Unit handling:
  * - "mm": used as-is (Puppeteer native unit)
  * - "in": converted via exact factor (1in = 25.4mm)
- * - "px": treated as CSS reference pixels (96 DPI) per W3C spec.
+ * - "px": treated as viewport pixels at VIEWPORT_DPI (72 DPI).
  *   Note: The studio stores dimensions at 72 DPI (PDF points). Those values
  *   are converted to mm strings by `pageConfigToRenderOptions()` before
- *   reaching this function, so the 96 DPI path here is only for raw CSS px.
+ *   reaching this function, so this px path is only for raw CSS px values.
  */
 function parseMarginToMm(value: string): number {
   const num = parseFloat(value);
@@ -60,11 +60,11 @@ function parseMarginToMm(value: string): number {
 }
 
 /**
- * CSS reference pixel density (96 DPI) used for Puppeteer viewport calculations.
- * Note: The studio stores dimensions at 72 DPI (PDF points). Conversion from
- * 72 DPI px → mm happens in pageConfigToRenderOptions() before reaching this module.
+ * Viewport pixel density for Puppeteer, set to 72 DPI to match the studio's
+ * coordinate system (PDF points). This ensures the Puppeteer viewport width
+ * equals the studio content width, so CSS layouts render at the same scale.
  */
-const VIEWPORT_DPI = 96;
+const VIEWPORT_DPI = 72;
 /** Millimeters per inch conversion factor */
 const MM_PER_INCH = 25.4;
 

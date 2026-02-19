@@ -1,5 +1,4 @@
 import type { ComponentConfig } from '@puckeditor/core';
-import { DropZone } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type GridColumnProps = {
@@ -55,7 +54,7 @@ export const GridColumn: ComponentConfig<GridColumnProps> = {
     verticalAlign: 'top',
     pageBreakBehavior: 'auto',
   },
-  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign, pageBreakBehavior, id = 'grid-column' }) => (
+  render: ({ backgroundColor, padding, borderWidth, borderColor, verticalAlign, pageBreakBehavior, puck, id = 'grid-column' }) => (
     <div
       style={{
         display: 'flex',
@@ -69,7 +68,7 @@ export const GridColumn: ComponentConfig<GridColumnProps> = {
         ...getPageBreakStyle(pageBreakBehavior),
       }}
     >
-      <DropZone zone={`${id}-content`} minEmptyHeight={40} />
+      {puck.renderDropZone({ zone: `${id}-content` })}
     </div>
   ),
 };

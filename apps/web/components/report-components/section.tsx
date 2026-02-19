@@ -1,5 +1,4 @@
 import type { ComponentConfig } from '@puckeditor/core';
-import { DropZone } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type SectionProps = {
@@ -42,7 +41,7 @@ export const Section: ComponentConfig<SectionProps> = {
     padding: '16',
     pageBreakBehavior: 'auto',
   },
-  render: ({ title, showDivider, backgroundColor, padding, pageBreakBehavior, id = 'section' }) => (
+  render: ({ title, showDivider, backgroundColor, padding, pageBreakBehavior, puck, id = 'section' }) => (
     <div
       role="region"
       aria-label={title}
@@ -76,7 +75,7 @@ export const Section: ComponentConfig<SectionProps> = {
             }}
           />
         )}
-        <DropZone zone={`${id}-content`} minEmptyHeight={40} />
+        {puck.renderDropZone({ zone: `${id}-content` })}
       </div>
   ),
 };

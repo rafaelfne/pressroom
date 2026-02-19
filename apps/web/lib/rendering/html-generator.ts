@@ -1,4 +1,4 @@
-import type { Data } from '@puckeditor/core';
+import type { Data, Config } from '@puckeditor/core';
 
 export interface HtmlGeneratorOptions {
   title?: string;
@@ -6,32 +6,76 @@ export interface HtmlGeneratorOptions {
 }
 
 /**
+ * Render a Puck data tree to an HTML string using our server-safe component config.
+ *
+ * This is a custom renderer that replaces Puck's <Render> component.
+ * We avoid importing @puckeditor/core at runtime because:
+ * - In Next.js API routes (RSC context), Turbopack resolves @puckeditor/core
+ *   to its "react-server" export (rsc.mjs), which uses RSC React with hooks
+ *   set to null (useMemo, useContext, etc.), breaking renderToStaticMarkup.
+ * - Our custom renderer uses only createElement + renderToStaticMarkup — zero hooks.
+ *
+ * The renderer walks data.content, looks up each component in the config,
+ * and calls its render function with a puck.renderDropZone that resolves
+ * nested zones from data.zones.
+ */
+function renderPuckData(
+  data: Data,
+  config: Config,
+  createElement: typeof import('react').createElement,
+  renderToStaticMarkup: (element: import('react').ReactElement) => string,
+): string {
+  type ComponentItem = { type: string; props: Record<string, unknown> };
+
+  function renderZone(items: ComponentItem[]): import('react').ReactNode[] {
+    return items.map((item, index) => {
+      const componentConfig = config.components[item.type];
+      if (!componentConfig?.render) return null;
+
+      const RenderFn = componentConfig.render as import('react').FC<Record<string, unknown>>;
+
+      const itemId = item.props?.id as string | undefined;
+
+      const puck = {
+        renderDropZone: ({ zone }: { zone: string }) => {
+          // Puck stores zones as "<parentComponentId>:<zoneName>"
+          const zoneKey = itemId ? `${itemId}:${zone}` : zone;
+          const children = (data.zones?.[zoneKey] ?? []) as ComponentItem[];
+          if (children.length === 0) return null;
+          return createElement('div', { key: `zone-${zone}` }, ...renderZone(children));
+        },
+      };
+
+      return createElement(RenderFn, {
+        key: itemId ?? `item-${index}`,
+        ...item.props,
+        puck,
+      });
+    });
+  }
+
+  const content = (data.content ?? []) as ComponentItem[];
+  const rootElement = createElement('div', null, ...renderZone(content));
+  return renderToStaticMarkup(rootElement);
+}
+
+/**
  * Generate a full HTML document from Puck template data.
- * Renders the Puck component tree to a static HTML string, 
+ * Renders the Puck component tree to a static HTML string,
  * then wraps it in a complete HTML document with styles.
  */
 export async function generateHtml(
   templateData: Data,
   options: HtmlGeneratorOptions = {},
 ): Promise<string> {
-  // Dynamic imports to avoid bundling issues with react-dom/server in Next.js
   const { createElement } = await import('react');
   const { renderToStaticMarkup } = await import('react-dom/server');
-  const { Render } = await import('@puckeditor/core');
   const { serverPuckConfig } = await import('@/lib/puck/server-config');
 
   const { title = 'Report', cssStyles = '' } = options;
 
-  // Render Puck component tree to HTML using server-safe config
-  // (no DropZone, no browser-only hooks)
-  const element = createElement(Render, {
-    config: serverPuckConfig,
-    data: templateData,
-  });
+  const bodyHtml = renderPuckData(templateData, serverPuckConfig, createElement, renderToStaticMarkup);
 
-  const bodyHtml = renderToStaticMarkup(element);
-
-  // Wrap in full HTML document
   return buildHtmlDocument(bodyHtml, title, cssStyles);
 }
 
@@ -45,18 +89,13 @@ export async function generateMultiPageHtml(
 ): Promise<string> {
   const { createElement } = await import('react');
   const { renderToStaticMarkup } = await import('react-dom/server');
-  const { Render } = await import('@puckeditor/core');
   const { serverPuckConfig } = await import('@/lib/puck/server-config');
 
   const { title = 'Report', cssStyles = '' } = options;
 
   const bodyParts: string[] = [];
   for (let i = 0; i < pages.length; i++) {
-    const element = createElement(Render, {
-      config: serverPuckConfig,
-      data: pages[i],
-    });
-    const pageHtml = renderToStaticMarkup(element);
+    const pageHtml = renderPuckData(pages[i], serverPuckConfig, createElement, renderToStaticMarkup);
     bodyParts.push(pageHtml);
   }
 

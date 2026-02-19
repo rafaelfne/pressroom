@@ -1,5 +1,4 @@
 import type { ComponentConfig } from '@puckeditor/core';
-import { DropZone } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type ContainerProps = {
@@ -69,7 +68,7 @@ export const Container: ComponentConfig<ContainerProps> = {
     minHeight: '40',
     pageBreakBehavior: 'auto',
   },
-  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, pageBreakBehavior, id = 'container' }) => (
+  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, pageBreakBehavior, puck, id = 'container' }) => (
     <div
       style={{
         padding: `${padding}px`,
@@ -83,7 +82,7 @@ export const Container: ComponentConfig<ContainerProps> = {
         ...getPageBreakStyle(pageBreakBehavior),
       }}
     >
-      <DropZone zone={`${id}-content`} minEmptyHeight={40} />
+      {puck.renderDropZone({ zone: `${id}-content` })}
     </div>
   ),
 };

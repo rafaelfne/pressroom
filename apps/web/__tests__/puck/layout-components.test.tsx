@@ -1,23 +1,14 @@
+import React from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-
-// Mock DropZone before importing components
-vi.mock('@puckeditor/core', async () => {
-  const actual = await vi.importActual<Record<string, unknown>>('@puckeditor/core');
-  return {
-    ...actual,
-    DropZone: ({ zone }: { zone: string }) => (
-      <div data-testid={`dropzone-${zone}`} />
-    ),
-  };
-});
 
 import { puckConfig } from '@/lib/puck/config';
 
 const mockPuckContext = {
   isEditing: false,
   dragRef: null,
-  renderDropZone: vi.fn(),
+  renderDropZone: ({ zone }: { zone: string }) =>
+    React.createElement('div', { 'data-testid': `dropzone-${zone}` }),
   metadata: {},
 };
 

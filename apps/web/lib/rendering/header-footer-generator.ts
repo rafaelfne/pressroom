@@ -126,6 +126,12 @@ function generateBorderStyle(
   return `border-${position}: ${thickness}px solid ${escapeHtml(color)}`;
 }
 
+/** Page margins in 72 DPI pixels for header/footer horizontal padding */
+export interface PageMarginsForTemplate {
+  left: number;  // in px at 72 DPI
+  right: number; // in px at 72 DPI
+}
+
 /**
  * Builds the three-column table HTML shared by header and footer generators.
  */
@@ -135,6 +141,7 @@ function buildTemplateHtml(
     height: number;
     backgroundColor?: string;
     borderStyle: string;
+    pageMargins?: PageMarginsForTemplate;
   },
   data: Record<string, unknown>,
 ): string {
@@ -142,11 +149,19 @@ function buildTemplateHtml(
   const centerHtml = generateZoneHtml(zones.center, data);
   const rightHtml = generateZoneHtml(zones.right, data);
 
+  // Convert page margins from 72 DPI px to mm for horizontal padding
+  const paddingLeft = options.pageMargins
+    ? `${pxToMm(options.pageMargins.left).toFixed(4)}mm`
+    : '15mm';
+  const paddingRight = options.pageMargins
+    ? `${pxToMm(options.pageMargins.right).toFixed(4)}mm`
+    : '15mm';
+
   const wrapperStyles: string[] = [
     'width: 100%',
     'font-size: 10pt',
     'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    'padding: 0 15mm',
+    `padding: 0 ${paddingRight} 0 ${paddingLeft}`,
     'box-sizing: border-box',
     '-webkit-print-color-adjust: exact',
     'print-color-adjust: exact',
@@ -189,6 +204,7 @@ function buildTemplateHtml(
 export function generateHeaderHtml(
   config: HeaderConfig,
   data: Record<string, unknown> = {},
+  pageMargins?: PageMarginsForTemplate,
 ): string {
   if (!config.enabled) {
     return '<span></span>';
@@ -198,6 +214,7 @@ export function generateHeaderHtml(
     height: config.height,
     backgroundColor: config.backgroundColor,
     borderStyle: generateBorderStyle(config.bottomBorder, 'bottom'),
+    pageMargins,
   }, data);
 }
 
@@ -212,6 +229,7 @@ export function generateHeaderHtml(
 export function generateFooterHtml(
   config: FooterConfig,
   data: Record<string, unknown> = {},
+  pageMargins?: PageMarginsForTemplate,
 ): string {
   if (!config.enabled) {
     return '<span></span>';
@@ -221,5 +239,6 @@ export function generateFooterHtml(
     height: config.height,
     backgroundColor: config.backgroundColor,
     borderStyle: generateBorderStyle(config.topBorder, 'top'),
+    pageMargins,
   }, data);
 }

@@ -1,5 +1,4 @@
 import type { ComponentConfig } from '@puckeditor/core';
-import { DropZone } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
 export type GridRowProps = {
@@ -53,7 +52,7 @@ export const GridRow: ComponentConfig<GridRowProps> = {
     gap: '16',
     pageBreakBehavior: 'auto',
   },
-  render: ({ columns, customColumns, gap, pageBreakBehavior, id = 'grid-row' }) => {
+  render: ({ columns, customColumns, gap, pageBreakBehavior, puck, id = 'grid-row' }) => {
     let template: string;
     let count: number;
 
@@ -89,7 +88,7 @@ export const GridRow: ComponentConfig<GridRowProps> = {
       >
         {Array.from({ length: count }, (_, i) => (
           <div key={i} style={{ minHeight: '40px' }}>
-            <DropZone zone={`${id}-column-${i}`} minEmptyHeight={40} />
+            {puck.renderDropZone({ zone: `${id}-column-${i}` })}
           </div>
         ))}
       </div>

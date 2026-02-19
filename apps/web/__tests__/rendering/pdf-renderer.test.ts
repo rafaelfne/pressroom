@@ -227,7 +227,7 @@ describe('renderPdf', () => {
     await renderPdf(html);
 
     // A4 (210mm) - default margins (15mm left + 15mm right) = 180mm content width
-    // 180mm / 25.4 * 96 ≈ 680px
+    // 180mm / 25.4 * 72 ≈ 510px
     expect(mockPage.setViewport).toHaveBeenCalledWith(
       expect.objectContaining({
         width: expect.any(Number),
@@ -235,17 +235,18 @@ describe('renderPdf', () => {
       }),
     );
     const { width } = vi.mocked(mockPage.setViewport).mock.calls[0][0] as { width: number; height: number };
-    expect(width).toBeGreaterThan(600);
-    expect(width).toBeLessThan(800);
+    expect(width).toBeGreaterThan(450);
+    expect(width).toBeLessThan(600);
   });
 
   it('sets viewport for landscape orientation', async () => {
     const html = '<html><body>Test</body></html>';
     await renderPdf(html, { orientation: 'landscape' });
 
-    // A4 landscape (297mm) - default margins = 267mm
+    // A4 landscape (297mm) - default margins (15mm left + 15mm right) = 267mm
+    // 267mm / 25.4 * 72 ≈ 757px
     const { width } = vi.mocked(mockPage.setViewport).mock.calls[0][0] as { width: number; height: number };
-    expect(width).toBeGreaterThan(900);
+    expect(width).toBeGreaterThan(700);
   });
 
   it('emulates screen media type', async () => {
