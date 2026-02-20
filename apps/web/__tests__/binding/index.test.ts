@@ -366,4 +366,75 @@ describe('resolveBindings', () => {
       expect(result.a).toBe('test');
     });
   });
+
+  describe('pipe expressions integration', () => {
+    it('resolves pipe expressions in strings', () => {
+      const result = resolveBindings('Total: {{amount | currency:"USD"}}', {
+        amount: 1234.56,
+      });
+      expect(result).toBe('Total: $1,234.56');
+    });
+
+    it('resolves chained pipes in object', () => {
+      const template = {
+        percentage: '{{value | abs | percent:2}}',
+      };
+      const result = resolveBindings(template, { value: -0.4567 });
+      expect(result).toEqual({
+        percentage: '45.67%',
+      });
+    });
+
+    it('resolves pipes in nested arrays', () => {
+      const template = {
+        items: [
+          { name: '{{items[0].name | uppercase}}' },
+          { name: '{{items[1].name | lowercase}}' },
+        ],
+      };
+      const result = resolveBindings(template, {
+        items: [{ name: 'Apple' }, { name: 'BANANA' }],
+      });
+      expect(result).toEqual({
+        items: [{ name: 'APPLE' }, { name: 'banana' }],
+      });
+    });
+
+    it('resolves pipes with mixed syntax', () => {
+      const template =
+        'Function: {{formatCurrency(total, "BRL")}} | Pipe: {{total | currency:"USD"}}';
+      const result = resolveBindings(template, { total: 99.99 });
+      expect(result).toMatch(/Function:.*R\$.*\| Pipe: \$99\.99/);
+    });
+
+    it('resolves complex pipes in deeply nested structure', () => {
+      const template = {
+        report: {
+          sections: [
+            {
+              data: {
+                value: '{{metrics.sales | formatNumber:2}}',
+                trend: '{{metrics.growth | percent:1}}',
+              },
+            },
+          ],
+        },
+      };
+      const result = resolveBindings(template, {
+        metrics: { sales: 123456.789, growth: 0.125 },
+      });
+      expect(result).toEqual({
+        report: {
+          sections: [
+            {
+              data: {
+                value: '123,456.79',
+                trend: '12.5%',
+              },
+            },
+          ],
+        },
+      });
+    });
+  });
 });

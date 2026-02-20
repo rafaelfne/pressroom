@@ -134,6 +134,37 @@ function join(value: unknown, separator: unknown): string {
 }
 
 /**
+ * Format as percentage (value * 100)
+ */
+function percent(value: unknown, decimals: unknown = 2): string {
+  const num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
+  if (isNaN(num)) return String(value ?? '');
+  
+  const dec = typeof decimals === 'number' ? decimals : parseInt(String(decimals ?? '2'), 10);
+  const validDecimals = isNaN(dec) ? 2 : dec;
+  
+  const percentage = num * 100;
+  return `${percentage.toFixed(validDecimals)}%`;
+}
+
+/**
+ * Absolute value
+ */
+function abs(value: unknown): number | string {
+  const num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
+  if (isNaN(num)) return String(value ?? '');
+  
+  return Math.abs(num);
+}
+
+/**
+ * Alias for formatCurrency - pipe-friendly name
+ */
+function currency(value: unknown, locale: unknown = 'USD'): string {
+  return formatCurrency(value, locale);
+}
+
+/**
  * Registry of built-in functions
  */
 export const builtInFunctions: Record<string, BuiltInFunction> = {
@@ -144,6 +175,9 @@ export const builtInFunctions: Record<string, BuiltInFunction> = {
   uppercase,
   lowercase,
   join,
+  percent,
+  abs,
+  currency,
 };
 
 /**

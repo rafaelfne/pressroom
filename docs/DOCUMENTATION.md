@@ -479,18 +479,45 @@ Template JSON com {{...}}
 | Acesso a array       | `{{items[0].name}}`                         | `"Widget A"`         |
 | Texto misto          | `Total: {{summary.total}}`                  | `"Total: 1500"`      |
 | Função               | `{{formatCurrency(summary.total, 'BRL')}}`  | `"R$ 1.500,00"`      |
+| Pipe simples         | `{{value \| uppercase}}`                     | `"VALUE"`            |
+| Pipe com argumento   | `{{value \| currency:"BRL"}}`                | `"R$ 1.234,56"`      |
+| Pipe encadeado       | `{{value \| abs \| percent}}`                | `"45.00%"`           |
 | Condicional          | `{{if(active, 'Sim', 'Não')}}`              | `"Sim"` ou `"Não"`   |
 | Formatação de data   | `{{formatDate(report.date, 'dd/MM/yyyy')}}` | `"15/01/2025"`       |
 | Uppercase            | `{{uppercase(company.name)}}`               | `"ACME CORP"`        |
 | Join                 | `{{join(tags, ', ')}}`                      | `"tag1, tag2, tag3"` |
+
+### Sintaxe Pipe
+
+A sintaxe pipe (`|`) permite encadear transformações de forma mais legível:
+
+```
+{{valor | função}}
+{{valor | função:arg1}}
+{{valor | função:arg1:arg2}}
+{{valor | função1 | função2 | função3}}
+```
+
+**Exemplos:**
+- `{{price | currency:"USD"}}` → `"$1,234.56"`
+- `{{percentage | percent:2}}` → `"45.67%"`
+- `{{name | uppercase}}` → `"JOHN DOE"`
+- `{{value | abs | percent:0}}` → `"57%"`
+
+**Diferenças entre sintaxe de função e pipe:**
+- Função: `{{formatCurrency(price, "USD")}}` — valor como primeiro argumento
+- Pipe: `{{price | currency:"USD"}}` — valor é passado automaticamente
 
 ### Funções Built-in
 
 | Função           | Assinatura                       | Descrição                          |
 | ---------------- | -------------------------------- | ---------------------------------- |
 | `formatCurrency` | `(value, currency?)`             | Formata moeda (BRL, USD, EUR, GBP) |
+| `currency`       | `(value, currency?)`             | Alias para `formatCurrency`        |
 | `formatDate`     | `(value, format?)`               | Formata data (padrão ou locale)    |
 | `formatNumber`   | `(value, decimals?)`             | Formata número com decimais        |
+| `percent`        | `(value, decimals?)`             | Formata como porcentagem (x100)    |
+| `abs`            | `(value)`                        | Valor absoluto                     |
 | `if`             | `(condition, trueVal, falseVal)` | Condicional ternário               |
 | `uppercase`      | `(value)`                        | Converte para maiúsculas           |
 | `lowercase`      | `(value)`                        | Converte para minúsculas           |
