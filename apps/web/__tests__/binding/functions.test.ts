@@ -393,12 +393,16 @@ describe('built-in functions', () => {
   });
 
   describe('sign', () => {
-    it('passes through positive number', () => {
-      expect(builtInFunctions.sign(0.0233)).toBe(0.0233);
+    it('adds + prefix to positive number', () => {
+      expect(builtInFunctions.sign(0.0233)).toBe('+0.0233');
     });
 
-    it('passes through negative number', () => {
-      expect(builtInFunctions.sign(-5)).toBe(-5);
+    it('keeps - prefix for negative number', () => {
+      expect(builtInFunctions.sign(-5)).toBe('-5');
+    });
+
+    it('returns "0" for zero', () => {
+      expect(builtInFunctions.sign(0)).toBe('0');
     });
 
     it('handles null/undefined', () => {
@@ -453,6 +457,20 @@ describe('built-in functions', () => {
 
     it('handles invalid input', () => {
       expect(builtInFunctions.multiply('invalid', 100)).toBe('invalid');
+    });
+  });
+
+  describe('sign | percent chain', () => {
+    it('produces +2,33% for positive value', () => {
+      const signed = builtInFunctions.sign(0.0233);
+      const result = builtInFunctions.percent(signed);
+      expect(result).toBe('+2,33%');
+    });
+
+    it('produces -3,60% for negative value', () => {
+      const signed = builtInFunctions.sign(-0.036);
+      const result = builtInFunctions.percent(signed);
+      expect(result).toBe('-3,60%');
     });
   });
 });

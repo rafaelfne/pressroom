@@ -147,10 +147,20 @@ function join(value: unknown, separator: unknown): string {
 }
 
 /**
- * Format as percentage (value * 100) with pt-BR locale formatting
+ * Format as percentage (value * 100) with pt-BR locale formatting.
+ * Preserves '+' prefix from sign pipe if present.
  */
 function percent(value: unknown, decimals: unknown = 2): string {
-  const num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
+  let showPlus = false;
+  let num: number;
+
+  if (typeof value === 'string' && value.startsWith('+')) {
+    showPlus = true;
+    num = parseFloat(value.slice(1));
+  } else {
+    num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
+  }
+
   if (isNaN(num)) return String(value ?? '');
   
   const dec = typeof decimals === 'number' ? decimals : parseInt(String(decimals ?? '2'), 10);
@@ -161,7 +171,8 @@ function percent(value: unknown, decimals: unknown = 2): string {
     minimumFractionDigits: validDecimals,
     maximumFractionDigits: validDecimals,
   });
-  return `${formatted}%`;
+  const prefix = showPlus && num > 0 ? '+' : '';
+  return `${prefix}${formatted}%`;
 }
 
 /**
@@ -205,12 +216,14 @@ function cpf(value: unknown): string {
 }
 
 /**
- * Add sign prefix (+/-) to a number
+ * Add sign prefix to a number: positive → "+N", negative → "-N", zero → "0"
+ * Used in pipe chains like {{value | sign | percent}} to produce "+2,33%"
  */
-function sign(value: unknown): number | string {
+function sign(value: unknown): string {
   const num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
   if (isNaN(num)) return String(value ?? '');
-  return num;
+  if (num > 0) return `+${num}`;
+  return String(num);
 }
 
 /**
