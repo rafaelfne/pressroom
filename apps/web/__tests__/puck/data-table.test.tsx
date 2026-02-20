@@ -138,8 +138,8 @@ describe('DataTable component', () => {
 
     it('renders plain field without pipes as raw value', () => {
       const columns = [
-        { field: 'name', header: 'Name', width: 'auto', align: 'left' as const, bold: 'false', italic: 'false', fontColor: '' },
-        { field: 'price', header: 'Price', width: '120px', align: 'right' as const, bold: 'false', italic: 'false', fontColor: '' },
+        { field: 'name', header: 'Name', width: 'auto', align: 'left' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+        { field: 'price', header: 'Price', width: '120px', align: 'right' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
       ];
       renderWithData({ columns });
       // price without pipe renders as plain number string
@@ -149,7 +149,7 @@ describe('DataTable component', () => {
 
     it('supports custom pipe expression in column field', () => {
       const columns = [
-        { field: 'name | uppercase', header: 'Name', width: 'auto', align: 'left' as const, bold: 'false', italic: 'false', fontColor: '' },
+        { field: 'name | uppercase', header: 'Name', width: 'auto', align: 'left' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
       ];
       renderWithData({ columns });
       expect(screen.getByText('TREASURY BOND IPCA+')).toBeInTheDocument();
@@ -162,8 +162,8 @@ describe('DataTable component', () => {
         { name: 'Item B' },
       ];
       const columns = [
-        { field: 'name', header: 'Name', width: 'auto', align: 'left' as const, bold: 'false', italic: 'false', fontColor: '' },
-        { field: 'value | currency:\'BRL\'', header: 'Value', width: '120px', align: 'right' as const, bold: 'false', italic: 'false', fontColor: '' },
+        { field: 'name', header: 'Name', width: 'auto', align: 'left' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+        { field: 'value | currency:\'BRL\'', header: 'Value', width: '120px', align: 'right' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
       ];
       const { container } = renderWithData({ dataExpression: data as unknown as string, columns });
       const valueCells = container.querySelectorAll('tbody td:nth-child(2)');
@@ -265,6 +265,39 @@ describe('DataTable component', () => {
       const { container } = renderWithData({ density: 'normal' });
       const table = container.querySelector('table');
       expect(table).toHaveStyle({ fontSize: '14px' });
+    });
+
+    it('applies custom density with specified row height', () => {
+      const { container } = renderWithData({ density: 'custom', customRowHeight: '40' });
+      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !firstCell.hasAttribute('colspan');
+      });
+      const firstCell = dataRows[0].querySelector('td') as HTMLElement;
+      // Custom row height 40px: vPad = max(1, round((40 - 14*1.5)/2)) = max(1, round((40 - 21)/2)) = max(1, 10) = 10
+      expect(firstCell).toHaveStyle({ padding: '10px 12px' });
+    });
+
+    it('applies custom density with small row height', () => {
+      const { container } = renderWithData({ density: 'custom', customRowHeight: '20' });
+      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !firstCell.hasAttribute('colspan');
+      });
+      const firstCell = dataRows[0].querySelector('td') as HTMLElement;
+      // Custom row height 20px: vPad = max(1, round((20 - 21)/2)) = max(1, round(-0.5)) = max(1, 0) = 1
+      expect(firstCell).toHaveStyle({ padding: '1px 12px' });
+    });
+
+    it('falls back to default 32px when customRowHeight is empty', () => {
+      const { container } = renderWithData({ density: 'custom', customRowHeight: '' });
+      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !firstCell.hasAttribute('colspan');
+      });
+      const firstCell = dataRows[0].querySelector('td') as HTMLElement;
+      // Default 32px: vPad = max(1, round((32 - 21)/2)) = max(1, round(5.5)) = max(1, 6) = 6
+      expect(firstCell).toHaveStyle({ padding: '6px 12px' });
     });
   });
 
@@ -518,6 +551,78 @@ describe('DataTable component', () => {
       });
       const firstDataCell = dataRows[0].querySelector('td');
       expect(firstDataCell).toHaveStyle({ fontWeight: 'bold' });
+    });
+
+    it('applies column-level fontSize styling', () => {
+      const defaultProps = puckConfig.components.DataTable.defaultProps!;
+      const columnsWithFontSize = [
+        { ...defaultProps.columns[0], fontSize: '18px' },
+        ...defaultProps.columns.slice(1),
+      ];
+      const { container } = renderWithData({ columns: columnsWithFontSize });
+      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !firstCell.hasAttribute('colspan');
+      });
+      const firstDataCell = dataRows[0].querySelector('td');
+      expect(firstDataCell).toHaveStyle({ fontSize: '18px' });
+    });
+
+    it('does not apply fontSize when empty', () => {
+      const { container } = renderWithData();
+      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !firstCell.hasAttribute('colspan');
+      });
+      const firstDataCell = dataRows[0].querySelector('td');
+      // fontSize should not be set on the cell (inherits from table)
+      expect(firstDataCell?.style.fontSize).toBe('');
+    });
+
+    it('applies per-column headerFontSize', () => {
+      const defaultProps = puckConfig.components.DataTable.defaultProps!;
+      const columnsWithHeaderSize = [
+        { ...defaultProps.columns[0], headerFontSize: '20px' },
+        ...defaultProps.columns.slice(1),
+      ];
+      const { container } = renderWithData({ columns: columnsWithHeaderSize });
+      const headerCells = container.querySelectorAll('thead th');
+      expect(headerCells[0]).toHaveStyle({ fontSize: '20px' });
+      // Other headers should not have per-column override
+      expect(headerCells[1]?.style.fontSize).not.toBe('20px');
+    });
+
+    it('does not override header fontSize when headerFontSize is empty', () => {
+      const { container } = renderWithData();
+      const headerCells = container.querySelectorAll('thead th');
+      // Should not have per-column font size set (uses global headerFontSize or default)
+      expect(headerCells[0]?.style.fontSize).toBe('');
+    });
+
+    it('applies per-column padding', () => {
+      const defaultProps = puckConfig.components.DataTable.defaultProps!;
+      const columnsWithPadding = [
+        { ...defaultProps.columns[0], padding: '2px 4px' },
+        ...defaultProps.columns.slice(1),
+      ];
+      const { container } = renderWithData({ columns: columnsWithPadding });
+      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !firstCell.hasAttribute('colspan');
+      });
+      const firstDataCell = dataRows[0].querySelector('td');
+      expect(firstDataCell).toHaveStyle({ padding: '2px 4px' });
+    });
+
+    it('does not override padding when column padding is empty', () => {
+      const { container } = renderWithData({ density: 'normal' });
+      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !firstCell.hasAttribute('colspan');
+      });
+      const firstDataCell = dataRows[0].querySelector('td');
+      // Should use density-based padding (normal = 8px 12px)
+      expect(firstDataCell).toHaveStyle({ padding: '8px 12px' });
     });
   });
 

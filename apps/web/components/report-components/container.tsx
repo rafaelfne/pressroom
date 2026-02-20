@@ -71,6 +71,8 @@ export const Container: ComponentConfig<ContainerProps> = {
   render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, pageBreakBehavior, puck, id = 'container' }) => (
     <div
       style={{
+        display: 'flex',
+        flexDirection: 'column',
         padding: `${padding}px`,
         borderWidth: `${borderWidth}px`,
         borderStyle: borderWidth !== '0' ? 'solid' : 'none',

@@ -11,6 +11,9 @@ export type DataTableColumn = {
   bold: string;
   italic: string;
   fontColor: string;
+  fontSize: string;
+  headerFontSize: string;
+  padding: string;
 };
 
 export type FooterColumn = {
@@ -26,7 +29,8 @@ export type DataTableProps = {
   columns: DataTableColumn[];
   striped: string;
   bordered: string;
-  density: 'dense' | 'compact' | 'normal';
+  density: 'dense' | 'compact' | 'normal' | 'custom';
+  customRowHeight: string;
   // Header styling
   headerBgColor: string;
   headerTextColor: string;
@@ -216,6 +220,18 @@ export const DataTable: ComponentConfig<DataTableProps> = {
           type: 'text',
           label: 'Text Color',
         },
+        fontSize: {
+          type: 'text',
+          label: 'Font Size',
+        },
+        headerFontSize: {
+          type: 'text',
+          label: 'Header Font Size',
+        },
+        padding: {
+          type: 'text',
+          label: 'Cell Padding',
+        },
       },
       defaultItemProps: {
         field: 'field',
@@ -225,6 +241,9 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         bold: 'false',
         italic: 'false',
         fontColor: '',
+        fontSize: '',
+        headerFontSize: '',
+        padding: '',
       },
     },
     striped: {
@@ -250,7 +269,12 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         { label: 'Dense', value: 'dense' },
         { label: 'Compact', value: 'compact' },
         { label: 'Normal', value: 'normal' },
+        { label: 'Custom', value: 'custom' },
       ],
+    },
+    customRowHeight: {
+      type: 'text',
+      label: 'Custom Row Height (px)',
     },
     // --- Header styling fields ---
     headerBgColor: {
@@ -474,14 +498,15 @@ export const DataTable: ComponentConfig<DataTableProps> = {
   defaultProps: {
     dataExpression: '{{data.items}}',
     columns: [
-      { field: 'name', header: 'Name', width: 'auto', align: 'left', bold: 'false', italic: 'false', fontColor: '' },
-      { field: 'quantity', header: 'Quantity', width: '100px', align: 'center', bold: 'false', italic: 'false', fontColor: '' },
-      { field: 'price | currency:\'BRL\'', header: 'Price', width: '120px', align: 'right', bold: 'false', italic: 'false', fontColor: '' },
-      { field: 'date | date:\'DD/MM/YYYY\'', header: 'Date', width: '120px', align: 'center', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'name', header: 'Name', width: 'auto', align: 'left', bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+      { field: 'quantity', header: 'Quantity', width: '100px', align: 'center', bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+      { field: 'price | currency:\'BRL\'', header: 'Price', width: '120px', align: 'right', bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+      { field: 'date | date:\'DD/MM/YYYY\'', header: 'Date', width: '120px', align: 'center', bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
     ],
     striped: 'true',
     bordered: 'true',
     density: 'normal',
+    customRowHeight: '',
     headerBgColor: '#f3f4f6',
     headerTextColor: '#111827',
     headerFontSize: '',
@@ -523,6 +548,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     striped,
     bordered,
     density,
+    customRowHeight,
     headerBgColor,
     headerTextColor,
     headerFontSize,
@@ -655,6 +681,17 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         bodyCellPadding = '4px 8px';
         defaultHeaderCellPadding = '6px 8px';
         break;
+      case 'custom': {
+        const h = parseInt(customRowHeight, 10);
+        const rowH = !isNaN(h) && h > 0 ? h : 32;
+        // Vertical padding = (rowHeight - lineHeight*fontSize) / 2, clamped to min 1px
+        const vPad = Math.max(1, Math.round((rowH - 14 * 1.5) / 2));
+        fontSize = '14px';
+        lineHeight = '1.5';
+        bodyCellPadding = `${vPad}px 12px`;
+        defaultHeaderCellPadding = `${vPad}px 12px`;
+        break;
+      }
       case 'normal':
       default:
         fontSize = '14px';
@@ -694,6 +731,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     // Table styles
     const tableStyle: React.CSSProperties = {
       width: '100%',
+      tableLayout: 'fixed',
       borderCollapse: 'collapse',
       fontSize,
       lineHeight,
@@ -767,6 +805,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                     width: column.width || 'auto',
                     textAlign: column.align || 'left',
                     borderRight: ((isBordered || hasVerticalBorders) && index === columns.length - 1) ? 'none' : thStyle.borderRight,
+                    ...(column.headerFontSize && column.headerFontSize.trim() !== '' ? { fontSize: column.headerFontSize } : {}),
                   }}
                 >
                   {column.header}
@@ -864,6 +903,16 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                     // Apply font color if specified
                     if (column.fontColor && column.fontColor.trim() !== '') {
                       cellStyle.color = column.fontColor;
+                    }
+
+                    // Apply font size if specified
+                    if (column.fontSize && column.fontSize.trim() !== '') {
+                      cellStyle.fontSize = column.fontSize;
+                    }
+
+                    // Apply per-column padding if specified
+                    if (column.padding && column.padding.trim() !== '') {
+                      cellStyle.padding = column.padding;
                     }
 
                     // Apply indentation to first column
