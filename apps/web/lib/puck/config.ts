@@ -19,6 +19,7 @@ import { EditorialGrid, type EditorialGridProps } from '@/components/report-comp
 import { EditorialStack, type EditorialStackProps } from '@/components/report-components/editorial-stack';
 import { Repeater, type RepeaterProps } from '@/components/report-components/repeater';
 import { ConditionalBlock, type ConditionalBlockProps } from '@/components/report-components/conditional-block';
+import { withBindingResolution } from '@/lib/puck/with-binding-resolution';
 
 type PuckComponents = {
   TextBlock: TextBlockProps;
@@ -67,22 +68,22 @@ export const puckConfig: Config<PuckComponents> = {
     },
   },
   components: {
-    TextBlock,
-    HeadingBlock,
+    TextBlock: withBindingResolution<TextBlockProps>(TextBlock),
+    HeadingBlock: withBindingResolution<HeadingBlockProps>(HeadingBlock),
     ImageBlock,
     Spacer,
     Divider,
     PageBreak,
-    DataTable,
-    ChartBlock,
+    DataTable: withBindingResolution<DataTableProps>(DataTable),
+    ChartBlock: withBindingResolution<ChartBlockProps>(ChartBlock),
     Container,
     GridRow,
     GridColumn,
     Section,
-    MetricCard,
-    StatCard,
-    BenchmarkTable,
-    EditorialCard,
+    MetricCard: withBindingResolution<MetricCardProps>(MetricCard),
+    StatCard: withBindingResolution<StatCardProps>(StatCard),
+    BenchmarkTable: withBindingResolution<BenchmarkTableProps>(BenchmarkTable),
+    EditorialCard: withBindingResolution<EditorialCardProps>(EditorialCard),
     EditorialGrid,
     EditorialStack,
     Repeater,

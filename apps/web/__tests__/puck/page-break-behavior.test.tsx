@@ -9,6 +9,10 @@ const mockPuckContext = {
   metadata: {},
 };
 
+const RESOLVED_TABLE_DATA = [
+  { name: 'Item 1', quantity: 10, price: 29.99, date: '2024-01-15' },
+];
+
 describe('pageBreakBehavior prop', () => {
   afterEach(() => {
     cleanup();
@@ -49,7 +53,7 @@ describe('pageBreakBehavior prop', () => {
     const Component = puckConfig.components.DataTable.render;
     const defaultProps = puckConfig.components.DataTable.defaultProps!;
     const { container } = render(
-      <Component {...defaultProps} id="test-table" puck={mockPuckContext} />,
+      <Component {...defaultProps} dataExpression={RESOLVED_TABLE_DATA as unknown as string} id="test-table" puck={mockPuckContext} />,
     );
     const thead = container.querySelector('thead');
     expect(thead).toBeInTheDocument();
@@ -122,7 +126,7 @@ describe('pageBreakBehavior prop', () => {
     const Component = puckConfig.components.DataTable.render;
     const defaultProps = puckConfig.components.DataTable.defaultProps!;
     const { container } = render(
-      <Component {...defaultProps} pageBreakBehavior="avoid" id="test-table" puck={mockPuckContext} />,
+      <Component {...defaultProps} dataExpression={RESOLVED_TABLE_DATA as unknown as string} pageBreakBehavior="avoid" id="test-table" puck={mockPuckContext} />,
     );
     const el = container.firstChild as HTMLElement;
     expect(el).toHaveStyle({ pageBreakInside: 'avoid' });

@@ -1,6 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
-import { useResolvedValue } from '@/hooks/use-resolved-value';
 
 export type StatCardProps = {
   label: string;
@@ -35,9 +34,6 @@ export const StatCard: ComponentConfig<StatCardProps> = {
     pageBreakBehavior: 'auto',
   },
   render: ({ label, value, sublabel, trend, pageBreakBehavior }) => {
-    const resolvedLabel = useResolvedValue(label);
-    const resolvedValue = useResolvedValue(value);
-    const resolvedSublabel = useResolvedValue(sublabel);
     const trendColors: Record<string, string> = {
       up: '#059669',
       down: '#dc2626',
@@ -56,14 +52,14 @@ export const StatCard: ComponentConfig<StatCardProps> = {
     return (
       <div style={containerStyle}>
         <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '500', marginBottom: '0.5rem' }}>
-          {resolvedLabel}
+          {label}
         </div>
         <div style={{ fontSize: '1.5rem', fontWeight: '700', color: trendColors[trend] || '#374151', lineHeight: '1.2' }}>
-          {resolvedValue}
+          {value}
         </div>
-        {resolvedSublabel && (
+        {sublabel && (
           <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
-            {resolvedSublabel}
+            {sublabel}
           </div>
         )}
       </div>

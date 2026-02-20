@@ -1,6 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
-import { useResolvedValue } from '@/hooks/use-resolved-value';
 
 export type HeadingBlockProps = {
   text: string;
@@ -35,8 +34,7 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
     pageBreakBehavior: 'auto',
   },
   render: ({ text, level, color, pageBreakBehavior }) => {
-    const resolvedText = useResolvedValue(text);
     const Tag = level;
-    return <Tag style={{ color, ...getPageBreakStyle(pageBreakBehavior) }} className="p-2">{resolvedText}</Tag>;
+    return <Tag style={{ color, ...getPageBreakStyle(pageBreakBehavior) }} className="p-2">{text}</Tag>;
   },
 };

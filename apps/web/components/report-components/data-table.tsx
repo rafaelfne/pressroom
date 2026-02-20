@@ -1,31 +1,66 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { Database } from 'lucide-react';
+import { resolveBindings } from '@/lib/binding';
 
 export type DataTableColumn = {
   field: string;
   header: string;
   width: string;
   align: 'left' | 'center' | 'right';
-  format: 'text' | 'number' | 'currency' | 'date';
+  bold: string;
+  italic: string;
+  fontColor: string;
+};
+
+export type FooterColumn = {
+  content: string;
+  align: 'left' | 'center' | 'right';
   bold: string;
   italic: string;
   fontColor: string;
 };
 
 export type DataTableProps = {
-  dataExpression: string;
+  dataExpression: string | unknown[];
   columns: DataTableColumn[];
   striped: string;
   bordered: string;
   density: 'dense' | 'compact' | 'normal';
+  // Header styling
   headerBgColor: string;
   headerTextColor: string;
+  headerFontSize: string;
+  headerFontWeight: string;
+  headerFontFamily: string;
+  headerPadding: string;
+  headerBorderColor: string;
+  headerTextTransform: string;
+  // Group header styling
+  showGroupHeaders: string;
   groupHeaderBgColor: string;
   groupHeaderTextColor: string;
+  groupHeaderFontSize: string;
+  groupHeaderFontWeight: string;
+  groupHeaderFontFamily: string;
+  groupHeaderPadding: string;
+  groupHeaderBorderColor: string;
+  groupHeaderTextTransform: string;
+  groupHeaderTextAlign: string;
+  // Footer
   showFooterRow: string;
+  footerMode: 'columns' | 'freetext';
   footerLabel: string;
+  footerColumns: FooterColumn[];
   footerBgColor: string;
   footerTextColor: string;
+  footerFontSize: string;
+  footerFontWeight: string;
+  footerFontFamily: string;
+  footerPadding: string;
+  footerBorderColor: string;
+  footerTextTransform: string;
+  // Rows
   evenRowColor: string;
   oddRowColor: string;
   verticalBorders: string;
@@ -35,49 +70,49 @@ export type DataTableProps = {
 /** Pixels added per indent level for sub-item rows */
 const INDENT_STEP_PX = 12;
 
-// Sample data for Studio preview
-const SAMPLE_DATA = [
-  { _isGroupHeader: true, _groupLabel: 'Onshore (R$)', name: 'Onshore (R$)' },
-  { name: 'Treasury Bond IPCA+', quantity: 10, price: 29.99, date: '2024-01-15' },
-  { name: 'CDB Bank XYZ', quantity: 5, price: 49.99, date: '2024-02-20', _indent: 1 },
-  { _isGroupHeader: true, _groupLabel: 'Offshore (USD)', name: 'Offshore (USD)' },
-  { name: 'S&P 500 ETF', quantity: 8, price: 19.99, date: '2024-03-10' },
-];
+/**
+ * Parse a column field expression into a data path and optional pipe expression.
+ * Examples:
+ *   "name"                    → { path: "name", pipes: undefined }
+ *   "price | currency:'BRL'"  → { path: "price", pipes: "currency:'BRL'" }
+ *   "value | percent:2 | sign" → { path: "value", pipes: "percent:2 | sign" }
+ */
+function parseFieldExpression(field: string): { path: string; pipes: string | undefined } {
+  const pipeIndex = field.indexOf('|');
+  if (pipeIndex === -1) {
+    return { path: field.trim(), pipes: undefined };
+  }
+  return {
+    path: field.slice(0, pipeIndex).trim(),
+    pipes: field.slice(pipeIndex + 1).trim(),
+  };
+}
 
 /**
- * Format a cell value based on the specified format type
+ * Resolve a column value from a data row, applying optional pipe formatting.
+ * The field string can contain pipes: "price | currency:'BRL'"
  */
-function formatValue(value: unknown, format: DataTableColumn['format']): string {
-  if (value === null || value === undefined) {
+function resolveColumnValue(row: Record<string, unknown>, field: string): string {
+  const { path, pipes } = parseFieldExpression(field);
+  const rawValue = getNestedValue(row, path);
+
+  if (rawValue === null || rawValue === undefined) {
     return '';
   }
 
+  // No pipes — return plain string
+  if (!pipes) {
+    return String(rawValue);
+  }
+
+  // Build a synthetic binding expression and resolve it using the binding engine.
+  // e.g. field = "price | currency:'BRL'" → expression = "{{__val | currency:'BRL'}}"
   try {
-    switch (format) {
-      case 'number':
-        return Number(value).toLocaleString('en-US');
-
-      case 'currency':
-        return Number(value).toLocaleString('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        });
-
-      case 'date':
-        if (typeof value === 'string' || typeof value === 'number') {
-          const date = new Date(value);
-          if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString('en-US');
-          }
-        }
-        return String(value);
-
-      case 'text':
-      default:
-        return String(value);
-    }
+    const expression = `{{__val | ${pipes}}}`;
+    const result = resolveBindings(expression, { __val: rawValue });
+    return result !== null && result !== undefined ? String(result) : String(rawValue);
   } catch {
-    return String(value);
+    return String(rawValue);
   }
 }
 
@@ -161,16 +196,6 @@ export const DataTable: ComponentConfig<DataTableProps> = {
             { label: 'Right', value: 'right' },
           ],
         },
-        format: {
-          type: 'select',
-          label: 'Format',
-          options: [
-            { label: 'Text', value: 'text' },
-            { label: 'Number', value: 'number' },
-            { label: 'Currency', value: 'currency' },
-            { label: 'Date', value: 'date' },
-          ],
-        },
         bold: {
           type: 'radio',
           label: 'Bold',
@@ -197,7 +222,6 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         header: 'Column',
         width: 'auto',
         align: 'left' as const,
-        format: 'text' as const,
         bold: 'false',
         italic: 'false',
         fontColor: '',
@@ -228,6 +252,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         { label: 'Normal', value: 'normal' },
       ],
     },
+    // --- Header styling fields ---
     headerBgColor: {
       type: 'text',
       label: 'Header Background Color',
@@ -235,6 +260,45 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     headerTextColor: {
       type: 'text',
       label: 'Header Text Color',
+    },
+    headerFontSize: {
+      type: 'text',
+      label: 'Header Font Size',
+    },
+    headerFontWeight: {
+      type: 'text',
+      label: 'Header Font Weight',
+    },
+    headerFontFamily: {
+      type: 'text',
+      label: 'Header Font Family',
+    },
+    headerPadding: {
+      type: 'text',
+      label: 'Header Padding',
+    },
+    headerBorderColor: {
+      type: 'text',
+      label: 'Header Border Color',
+    },
+    headerTextTransform: {
+      type: 'select',
+      label: 'Header Text Transform',
+      options: [
+        { label: 'None', value: 'none' },
+        { label: 'Uppercase', value: 'uppercase' },
+        { label: 'Lowercase', value: 'lowercase' },
+        { label: 'Capitalize', value: 'capitalize' },
+      ],
+    },
+    // --- Group header fields ---
+    showGroupHeaders: {
+      type: 'radio',
+      label: 'Show Group Headers',
+      options: [
+        { label: 'Yes', value: 'true' },
+        { label: 'No', value: 'false' },
+      ],
     },
     groupHeaderBgColor: {
       type: 'text',
@@ -244,6 +308,46 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       type: 'text',
       label: 'Group Header Text Color',
     },
+    groupHeaderFontSize: {
+      type: 'text',
+      label: 'Group Header Font Size',
+    },
+    groupHeaderFontWeight: {
+      type: 'text',
+      label: 'Group Header Font Weight',
+    },
+    groupHeaderFontFamily: {
+      type: 'text',
+      label: 'Group Header Font Family',
+    },
+    groupHeaderPadding: {
+      type: 'text',
+      label: 'Group Header Padding',
+    },
+    groupHeaderBorderColor: {
+      type: 'text',
+      label: 'Group Header Border Color',
+    },
+    groupHeaderTextTransform: {
+      type: 'select',
+      label: 'Group Header Text Transform',
+      options: [
+        { label: 'None', value: 'none' },
+        { label: 'Uppercase', value: 'uppercase' },
+        { label: 'Lowercase', value: 'lowercase' },
+        { label: 'Capitalize', value: 'capitalize' },
+      ],
+    },
+    groupHeaderTextAlign: {
+      type: 'select',
+      label: 'Group Header Text Align',
+      options: [
+        { label: 'Left', value: 'left' },
+        { label: 'Center', value: 'center' },
+        { label: 'Right', value: 'right' },
+      ],
+    },
+    // --- Footer fields ---
     showFooterRow: {
       type: 'radio',
       label: 'Show Footer Row',
@@ -252,9 +356,63 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         { label: 'No', value: 'false' },
       ],
     },
+    footerMode: {
+      type: 'radio',
+      label: 'Footer Mode',
+      options: [
+        { label: 'Per Column', value: 'columns' },
+        { label: 'Free Text (Full Width)', value: 'freetext' },
+      ],
+    },
     footerLabel: {
       type: 'text',
       label: 'Footer Label',
+    },
+    footerColumns: {
+      type: 'array',
+      label: 'Footer Columns',
+      arrayFields: {
+        content: {
+          type: 'text',
+          label: 'Content / Expression',
+        },
+        align: {
+          type: 'select',
+          label: 'Alignment',
+          options: [
+            { label: 'Left', value: 'left' },
+            { label: 'Center', value: 'center' },
+            { label: 'Right', value: 'right' },
+          ],
+        },
+        bold: {
+          type: 'radio',
+          label: 'Bold',
+          options: [
+            { label: 'Yes', value: 'true' },
+            { label: 'No', value: 'false' },
+          ],
+        },
+        italic: {
+          type: 'radio',
+          label: 'Italic',
+          options: [
+            { label: 'Yes', value: 'true' },
+            { label: 'No', value: 'false' },
+          ],
+        },
+        fontColor: {
+          type: 'text',
+          label: 'Text Color',
+        },
+      },
+      defaultItemProps: {
+        content: '',
+        align: 'left' as const,
+        bold: 'false',
+        italic: 'false',
+        fontColor: '',
+      },
     },
     footerBgColor: {
       type: 'text',
@@ -264,6 +422,37 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       type: 'text',
       label: 'Footer Text Color',
     },
+    footerFontSize: {
+      type: 'text',
+      label: 'Footer Font Size',
+    },
+    footerFontWeight: {
+      type: 'text',
+      label: 'Footer Font Weight',
+    },
+    footerFontFamily: {
+      type: 'text',
+      label: 'Footer Font Family',
+    },
+    footerPadding: {
+      type: 'text',
+      label: 'Footer Padding',
+    },
+    footerBorderColor: {
+      type: 'text',
+      label: 'Footer Border Color',
+    },
+    footerTextTransform: {
+      type: 'select',
+      label: 'Footer Text Transform',
+      options: [
+        { label: 'None', value: 'none' },
+        { label: 'Uppercase', value: 'uppercase' },
+        { label: 'Lowercase', value: 'lowercase' },
+        { label: 'Capitalize', value: 'capitalize' },
+      ],
+    },
+    // --- Row colors ---
     evenRowColor: {
       type: 'text',
       label: 'Even Row Color',
@@ -285,22 +474,44 @@ export const DataTable: ComponentConfig<DataTableProps> = {
   defaultProps: {
     dataExpression: '{{data.items}}',
     columns: [
-      { field: 'name', header: 'Name', width: 'auto', align: 'left', format: 'text', bold: 'false', italic: 'false', fontColor: '' },
-      { field: 'quantity', header: 'Quantity', width: '100px', align: 'center', format: 'number', bold: 'false', italic: 'false', fontColor: '' },
-      { field: 'price', header: 'Price', width: '120px', align: 'right', format: 'currency', bold: 'false', italic: 'false', fontColor: '' },
-      { field: 'date', header: 'Date', width: '120px', align: 'center', format: 'date', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'name', header: 'Name', width: 'auto', align: 'left', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'quantity', header: 'Quantity', width: '100px', align: 'center', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'price | currency:\'BRL\'', header: 'Price', width: '120px', align: 'right', bold: 'false', italic: 'false', fontColor: '' },
+      { field: 'date | date:\'DD/MM/YYYY\'', header: 'Date', width: '120px', align: 'center', bold: 'false', italic: 'false', fontColor: '' },
     ],
     striped: 'true',
     bordered: 'true',
     density: 'normal',
     headerBgColor: '#f3f4f6',
     headerTextColor: '#111827',
+    headerFontSize: '',
+    headerFontWeight: '600',
+    headerFontFamily: '',
+    headerPadding: '',
+    headerBorderColor: '',
+    headerTextTransform: 'none',
+    showGroupHeaders: 'true',
     groupHeaderBgColor: '#1a5632',
     groupHeaderTextColor: '#ffffff',
+    groupHeaderFontSize: '',
+    groupHeaderFontWeight: 'bold',
+    groupHeaderFontFamily: '',
+    groupHeaderPadding: '',
+    groupHeaderBorderColor: '',
+    groupHeaderTextTransform: 'none',
+    groupHeaderTextAlign: 'left',
     showFooterRow: 'false',
+    footerMode: 'columns',
     footerLabel: 'Total',
+    footerColumns: [],
     footerBgColor: '#f3f4f6',
     footerTextColor: '#111827',
+    footerFontSize: '',
+    footerFontWeight: 'bold',
+    footerFontFamily: '',
+    footerPadding: '',
+    footerBorderColor: '',
+    footerTextTransform: 'none',
     evenRowColor: 'transparent',
     oddRowColor: '#f9fafb',
     verticalBorders: 'false',
@@ -314,12 +525,34 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     density,
     headerBgColor,
     headerTextColor,
+    headerFontSize,
+    headerFontWeight,
+    headerFontFamily,
+    headerPadding,
+    headerBorderColor,
+    headerTextTransform,
+    showGroupHeaders,
     groupHeaderBgColor,
     groupHeaderTextColor,
+    groupHeaderFontSize,
+    groupHeaderFontWeight,
+    groupHeaderFontFamily,
+    groupHeaderPadding,
+    groupHeaderBorderColor,
+    groupHeaderTextTransform,
+    groupHeaderTextAlign,
     showFooterRow,
+    footerMode,
     footerLabel,
+    footerColumns,
     footerBgColor,
     footerTextColor,
+    footerFontSize,
+    footerFontWeight,
+    footerFontFamily,
+    footerPadding,
+    footerBorderColor,
+    footerTextTransform,
     evenRowColor,
     oddRowColor,
     verticalBorders,
@@ -327,11 +560,42 @@ export const DataTable: ComponentConfig<DataTableProps> = {
   }) => {
     const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
 
-    // Use sample data for preview (in real rendering, binding resolution will replace this)
-    const data = SAMPLE_DATA;
+    // After resolveBindings() in the PDF pipeline, dataExpression becomes the actual array.
+    // In the Studio, the HOC wrapper in config.ts resolves bindings before rendering.
+    const data = Array.isArray(dataExpression)
+      ? (dataExpression as Record<string, unknown>[])
+      : null;
 
-    // Validate that we have data to display
-    if (!Array.isArray(data) || data.length === 0) {
+    // When binding is not resolved yet (Studio preview), show placeholder
+    if (!data) {
+      return (
+        <div
+          style={{
+            padding: '24px 16px',
+            border: '2px dashed #d1d5db',
+            borderRadius: '8px',
+            color: '#6b7280',
+            textAlign: 'center',
+            maxWidth: '100%',
+            fontSize: '14px',
+            lineHeight: '1.6',
+          }}
+        >
+          <div className='flex justify-center py-4'>
+            <Database size={36} />
+          </div>
+          <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+            Configure a data source to render the table
+          </div>
+          <div style={{ fontSize: '12px', fontFamily: 'monospace', color: '#9ca3af' }}>
+            {typeof dataExpression === 'string' ? dataExpression : 'No expression set'}
+          </div>
+        </div>
+      );
+    }
+
+    // Validate that we have rows
+    if (data.length === 0) {
       return (
         <div
           style={{
@@ -343,7 +607,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
             maxWidth: '100%',
           }}
         >
-          No data available. Configure data source: {dataExpression}
+          No data available. The data source returned an empty array.
         </div>
       );
     }
@@ -370,32 +634,33 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     const isBordered = bordered === 'true';
     const hasVerticalBorders = verticalBorders === 'true';
     const shouldShowFooter = showFooterRow === 'true';
+    const shouldShowGroupHeaders = showGroupHeaders !== 'false';
 
     // Density-based styles
     let fontSize: string;
     let lineHeight: string;
     let bodyCellPadding: string;
-    let headerCellPadding: string;
+    let defaultHeaderCellPadding: string;
 
     switch (density) {
       case 'dense':
         fontSize = '11px';
         lineHeight = '1.2';
         bodyCellPadding = '2px 6px';
-        headerCellPadding = '4px 6px';
+        defaultHeaderCellPadding = '4px 6px';
         break;
       case 'compact':
         fontSize = '12px';
         lineHeight = '1.4';
         bodyCellPadding = '4px 8px';
-        headerCellPadding = '6px 8px';
+        defaultHeaderCellPadding = '6px 8px';
         break;
       case 'normal':
       default:
         fontSize = '14px';
         lineHeight = '1.5';
         bodyCellPadding = '8px 12px';
-        headerCellPadding = '10px 12px';
+        defaultHeaderCellPadding = '10px 12px';
         break;
     }
 
@@ -434,16 +699,30 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       lineHeight,
     };
 
+    // Resolved header border color
+    const resolvedHeaderBorderColor = headerBorderColor || '#d1d5db';
+
     // Header cell styles
     const thStyle: React.CSSProperties = {
       backgroundColor: headerBgColor || '#f3f4f6',
       color: headerTextColor || '#111827',
-      fontWeight: 600,
-      padding: headerCellPadding,
+      fontWeight: headerFontWeight || 600,
+      padding: headerPadding || defaultHeaderCellPadding,
       textAlign: 'left',
-      borderBottom: isBordered ? '2px solid #d1d5db' : 'none',
+      borderBottom: isBordered ? `2px solid ${resolvedHeaderBorderColor}` : 'none',
       borderRight: (isBordered || hasVerticalBorders) ? '1px solid #e5e7eb' : 'none',
     };
+
+    // Apply optional header styling
+    if (headerFontSize) {
+      thStyle.fontSize = headerFontSize;
+    }
+    if (headerFontFamily) {
+      thStyle.fontFamily = headerFontFamily;
+    }
+    if (headerTextTransform && headerTextTransform !== 'none') {
+      thStyle.textTransform = headerTextTransform as React.CSSProperties['textTransform'];
+    }
 
     // Body cell styles
     const tdStyle: React.CSSProperties = {
@@ -451,6 +730,26 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       borderBottom: isBordered ? '1px solid #e5e7eb' : 'none',
       borderRight: (isBordered || hasVerticalBorders) ? '1px solid #e5e7eb' : 'none',
     };
+
+    // Footer base styles
+    const resolvedFooterBorderColor = footerBorderColor || '#d1d5db';
+    const footerRowStyle: React.CSSProperties = {
+      backgroundColor: footerBgColor || '#f3f4f6',
+      color: footerTextColor || '#111827',
+      fontWeight: footerFontWeight || 'bold',
+      borderTop: `2px solid ${resolvedFooterBorderColor}`,
+    };
+    if (footerFontSize) {
+      footerRowStyle.fontSize = footerFontSize;
+    }
+    if (footerFontFamily) {
+      footerRowStyle.fontFamily = footerFontFamily;
+    }
+    if (footerTextTransform && footerTextTransform !== 'none') {
+      footerRowStyle.textTransform = footerTextTransform as React.CSSProperties['textTransform'];
+    }
+
+    const footerCellPadding = footerPadding || bodyCellPadding;
 
     // Count only data rows (not group headers) for striping
     let dataRowIndex = 0;
@@ -480,20 +779,43 @@ export const DataTable: ComponentConfig<DataTableProps> = {
               const rowData = row as Record<string, unknown>;
               const isGroupHeader = rowData._isGroupHeader === true;
 
-              // If it's a group header row, render spanning cell
+              // If it's a group header row, render spanning cell (or skip if disabled)
               if (isGroupHeader) {
-                const groupLabel = (rowData._groupLabel || getNestedValue(row, columns[0].field)) as string;
+                if (!shouldShowGroupHeaders) {
+                  return null;
+                }
+                const groupLabel = (rowData._groupLabel || getNestedValue(row, parseFieldExpression(columns[0].field).path)) as string;
+
+                // Build group header cell style
+                const ghCellStyle: React.CSSProperties = {
+                  ...tdStyle,
+                  fontWeight: groupHeaderFontWeight || 'bold',
+                  backgroundColor: groupHeaderBgColor || '#1a5632',
+                  color: groupHeaderTextColor || '#ffffff',
+                  borderRight: 'none',
+                  textAlign: (groupHeaderTextAlign as React.CSSProperties['textAlign']) || 'left',
+                };
+                if (groupHeaderFontSize) {
+                  ghCellStyle.fontSize = groupHeaderFontSize;
+                }
+                if (groupHeaderFontFamily) {
+                  ghCellStyle.fontFamily = groupHeaderFontFamily;
+                }
+                if (groupHeaderPadding) {
+                  ghCellStyle.padding = groupHeaderPadding;
+                }
+                if (groupHeaderBorderColor) {
+                  ghCellStyle.borderBottom = `1px solid ${groupHeaderBorderColor}`;
+                }
+                if (groupHeaderTextTransform && groupHeaderTextTransform !== 'none') {
+                  ghCellStyle.textTransform = groupHeaderTextTransform as React.CSSProperties['textTransform'];
+                }
+
                 return (
                   <tr key={`row-${rowIndex}`}>
                     <td
                       colSpan={columns.length}
-                      style={{
-                        ...tdStyle,
-                        fontWeight: 'bold',
-                        backgroundColor: groupHeaderBgColor || '#1a5632',
-                        color: groupHeaderTextColor || '#ffffff',
-                        borderRight: 'none',
-                      }}
+                      style={ghCellStyle}
                     >
                       {groupLabel}
                     </td>
@@ -519,8 +841,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
                   }}
                 >
                   {columns.map((column, colIndex) => {
-                    const value = getNestedValue(row, column.field);
-                    const formattedValue = formatValue(value, column.format);
+                    const formattedValue = resolveColumnValue(rowData, column.field);
                     const indent = (rowData._indent as number) || 0;
 
                     // Apply column-level styling
@@ -581,34 +902,47 @@ export const DataTable: ComponentConfig<DataTableProps> = {
           </tbody>
           {shouldShowFooter && (
             <tfoot>
-              <tr
-                style={{
-                  backgroundColor: footerBgColor || '#f3f4f6',
-                  color: footerTextColor || '#111827',
-                  fontWeight: 'bold',
-                  borderTop: '2px solid #d1d5db',
-                }}
-              >
-                <td
-                  style={{
-                    ...tdStyle,
-                    borderRight: ((isBordered || hasVerticalBorders) && columns.length === 1) ? 'none' : tdStyle.borderRight,
-                  }}
-                >
-                  {footerLabel || 'Total'}
-                </td>
-                {columns.slice(1).map((column, index) => (
+              <tr style={footerRowStyle}>
+                {footerMode === 'freetext' ? (
                   <td
-                    key={`footer-${index}`}
+                    colSpan={columns.length}
                     style={{
                       ...tdStyle,
-                      textAlign: column.align || 'left',
-                      borderRight: ((isBordered || hasVerticalBorders) && index === columns.slice(1).length - 1) ? 'none' : tdStyle.borderRight,
+                      padding: footerCellPadding,
+                      borderRight: 'none',
                     }}
                   >
-                    {/* Empty cells - binding engine fills these at render time */}
+                    {footerLabel || 'Total'}
                   </td>
-                ))}
+                ) : (
+                  columns.map((column, colIndex) => {
+                    const fc = footerColumns?.[colIndex];
+                    const cellContent = fc?.content ?? (colIndex === 0 ? (footerLabel || 'Total') : '');
+
+                    const fCellStyle: React.CSSProperties = {
+                      ...tdStyle,
+                      padding: footerCellPadding,
+                      textAlign: fc?.align || column.align || 'left',
+                      borderRight: ((isBordered || hasVerticalBorders) && colIndex === columns.length - 1) ? 'none' : tdStyle.borderRight,
+                    };
+
+                    if (fc?.bold === 'true') {
+                      fCellStyle.fontWeight = 'bold';
+                    }
+                    if (fc?.italic === 'true') {
+                      fCellStyle.fontStyle = 'italic';
+                    }
+                    if (fc?.fontColor && fc.fontColor.trim() !== '') {
+                      fCellStyle.color = fc.fontColor;
+                    }
+
+                    return (
+                      <td key={`footer-${colIndex}`} style={fCellStyle}>
+                        {cellContent}
+                      </td>
+                    );
+                  })
+                )}
               </tr>
             </tfoot>
           )}

@@ -11,6 +11,7 @@ export interface BindingFieldOverrideProps {
   sampleData?: Record<string, unknown>;
   placeholder?: string;
   multiline?: boolean;
+  showExplorer?: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ export function BindingFieldOverride({
   sampleData: sampleDataProp,
   placeholder = 'Type {{ to insert binding...',
   multiline = false,
+  showExplorer = true,
 }: BindingFieldOverrideProps) {
   const contextData = useSampleData();
   const sampleData = sampleDataProp ?? contextData;
@@ -53,12 +55,14 @@ export function BindingFieldOverride({
           multiline={multiline}
         />
       </div>
-      <div className="mt-1">
-        <BindingPathExplorer
-          sampleData={sampleData}
-          onSelectPath={handlePathSelect}
-        />
-      </div>
+      {showExplorer && (
+        <div className="mt-1">
+          <BindingPathExplorer
+            sampleData={sampleData}
+            onSelectPath={handlePathSelect}
+          />
+        </div>
+      )}
     </div>
   );
 }

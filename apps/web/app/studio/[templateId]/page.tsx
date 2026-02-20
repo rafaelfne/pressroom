@@ -612,19 +612,37 @@ function StudioContent({
 
   const fieldTypes = useMemo(
     () => ({
-      text: ({ value, onChange }: { value: unknown; onChange: (val: string) => void }) => (
-        <BindingFieldOverride
-          value={value as string ?? ''}
-          onChange={onChange}
-        />
-      ),
-      textarea: ({ value, onChange }: { value: unknown; onChange: (val: string) => void }) => (
-        <BindingFieldOverride
-          value={value as string ?? ''}
-          onChange={onChange}
-          multiline
-        />
-      ),
+      text: ({ field, name, value, onChange }: { field: { label?: string }; name: string; value: unknown; onChange: (val: string) => void }) => {
+        const isArrayItem = name?.includes('[');
+        return (
+          <div>
+            {field?.label && (
+              <label className="mb-1 block text-sm font-medium text-gray-700">{field.label}</label>
+            )}
+            <BindingFieldOverride
+              value={value as string ?? ''}
+              onChange={onChange}
+              showExplorer={!isArrayItem}
+            />
+          </div>
+        );
+      },
+      textarea: ({ field, name, value, onChange }: { field: { label?: string }; name: string; value: unknown; onChange: (val: string) => void }) => {
+        const isArrayItem = name?.includes('[');
+        return (
+          <div>
+            {field?.label && (
+              <label className="mb-1 block text-sm font-medium text-gray-700">{field.label}</label>
+            )}
+            <BindingFieldOverride
+              value={value as string ?? ''}
+              onChange={onChange}
+              multiline
+              showExplorer={!isArrayItem}
+            />
+          </div>
+        );
+      },
     }),
     [],
   );
@@ -651,61 +669,61 @@ function StudioContent({
         <div className="flex flex-1 flex-col overflow-hidden relative">
           <div ref={puckWrapperRef} className="flex-1 min-h-0 overflow-hidden">
             <SampleDataProvider value={sampleData}>
-            <Puck
-              key={activePage.id}
-              config={puckConfig}
-              data={activePage.content}
-              onPublish={handlePublish}
-              viewports={[]}
-              iframe={{ enabled: false }}
-              overrides={{
-                header: () => <></>,
-                actionBar: () => <CustomActionBar usePuck={usePuck} />,
-                puck: ({ children }) => (
-                  <>
-                    <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
-                    <MultiSelectIntegration
-                      usePuck={usePuck}
-                      puckDataRef={puckDataRef}
-                      templateId={templateId}
-                      activePageId={activePageId}
-                      activePageName={activePage.name}
+              <Puck
+                key={activePage.id}
+                config={puckConfig}
+                data={activePage.content}
+                onPublish={handlePublish}
+                viewports={[]}
+                iframe={{ enabled: false }}
+                overrides={{
+                  header: () => <></>,
+                  actionBar: () => <CustomActionBar usePuck={usePuck} />,
+                  puck: ({ children }) => (
+                    <>
+                      <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
+                      <MultiSelectIntegration
+                        usePuck={usePuck}
+                        puckDataRef={puckDataRef}
+                        templateId={templateId}
+                        activePageId={activePageId}
+                        activePageName={activePage.name}
+                        canvasRef={canvasWorkspaceRef}
+                      />
+                      <SelectionHighlight />
+                      {children}
+                    </>
+                  ),
+                  preview: () => (
+                    <PaperCanvas
+                      pageConfig={pageConfig}
+                      zoom={zoom}
+                      onZoomChange={onZoomChange}
                       canvasRef={canvasWorkspaceRef}
-                    />
-                    <SelectionHighlight />
-                    {children}
-                  </>
-                ),
-                preview: () => (
-                  <PaperCanvas
-                    pageConfig={pageConfig}
-                    zoom={zoom}
-                    onZoomChange={onZoomChange}
-                    canvasRef={canvasWorkspaceRef}
-                    overlayContent={
-                      <>
-                        <MarqueeSelection />
-                        <SelectionCountBadge />
-                      </>
-                    }
-                  >
-                    <Puck.Preview />
-                  </PaperCanvas>
-                ),
-                fields: ({ children }) => (
-                  <RightPanel
-                    usePuck={usePuck}
-                    config={pageConfig}
-                    onConfigChange={handlePageConfigChange}
-                    pageTitle={activePage.name}
-                    onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
-                  >
-                    {children}
-                  </RightPanel>
-                ),
-                fieldTypes,
-              }}
-            />
+                      overlayContent={
+                        <>
+                          <MarqueeSelection />
+                          <SelectionCountBadge />
+                        </>
+                      }
+                    >
+                      <Puck.Preview />
+                    </PaperCanvas>
+                  ),
+                  fields: ({ children }) => (
+                    <RightPanel
+                      usePuck={usePuck}
+                      config={pageConfig}
+                      onConfigChange={handlePageConfigChange}
+                      pageTitle={activePage.name}
+                      onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
+                    >
+                      {children}
+                    </RightPanel>
+                  ),
+                  fieldTypes,
+                }}
+              />
             </SampleDataProvider>
           </div>
           {/* Page Tab Bar at bottom of canvas */}
