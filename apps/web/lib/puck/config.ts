@@ -11,6 +11,14 @@ import { Container, type ContainerProps } from '@/components/report-components/c
 import { GridRow, type GridRowProps } from '@/components/report-components/grid-row';
 import { GridColumn, type GridColumnProps } from '@/components/report-components/grid-column';
 import { Section, type SectionProps } from '@/components/report-components/section';
+import { MetricCard, type MetricCardProps } from '@/components/report-components/metric-card';
+import { StatCard, type StatCardProps } from '@/components/report-components/stat-card';
+import { BenchmarkTable, type BenchmarkTableProps } from '@/components/report-components/benchmark-table';
+import { EditorialCard, type EditorialCardProps } from '@/components/report-components/editorial-card';
+import { EditorialGrid, type EditorialGridProps } from '@/components/report-components/editorial-grid';
+import { EditorialStack, type EditorialStackProps } from '@/components/report-components/editorial-stack';
+import { Repeater, type RepeaterProps } from '@/components/report-components/repeater';
+import { ConditionalBlock, type ConditionalBlockProps } from '@/components/report-components/conditional-block';
 
 type PuckComponents = {
   TextBlock: TextBlockProps;
@@ -25,6 +33,14 @@ type PuckComponents = {
   GridRow: GridRowProps;
   GridColumn: GridColumnProps;
   Section: SectionProps;
+  MetricCard: MetricCardProps;
+  StatCard: StatCardProps;
+  BenchmarkTable: BenchmarkTableProps;
+  EditorialCard: EditorialCardProps;
+  EditorialGrid: EditorialGridProps;
+  EditorialStack: EditorialStackProps;
+  Repeater: RepeaterProps;
+  ConditionalBlock: ConditionalBlockProps;
 };
 
 export const puckConfig: Config<PuckComponents> = {
@@ -35,15 +51,19 @@ export const puckConfig: Config<PuckComponents> = {
     },
     content: {
       title: 'Content',
-      components: ['TextBlock', 'HeadingBlock', 'ImageBlock'],
+      components: ['TextBlock', 'HeadingBlock', 'ImageBlock', 'EditorialCard', 'EditorialGrid', 'EditorialStack'],
     },
     data: {
       title: 'Data',
-      components: ['DataTable'],
+      components: ['DataTable', 'MetricCard', 'StatCard', 'BenchmarkTable'],
     },
     charts: {
       title: 'Charts',
       components: ['ChartBlock'],
+    },
+    logic: {
+      title: 'Logic',
+      components: ['Repeater', 'ConditionalBlock'],
     },
   },
   components: {
@@ -59,5 +79,13 @@ export const puckConfig: Config<PuckComponents> = {
     GridRow,
     GridColumn,
     Section,
+    MetricCard,
+    StatCard,
+    BenchmarkTable,
+    EditorialCard,
+    EditorialGrid,
+    EditorialStack,
+    Repeater,
+    ConditionalBlock,
   },
 };

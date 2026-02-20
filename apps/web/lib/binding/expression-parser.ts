@@ -7,6 +7,7 @@
  * - Path expressions (a.b.c)
  * - Array access (items[0].name)
  * - Function calls (formatCurrency(total, 'BRL'))
+ * - Pipe expressions (value | currency:"BRL" | uppercase)
  */
 
 export type ASTNode =
@@ -15,7 +16,17 @@ export type ASTNode =
 
 export type Expression =
   | { type: 'path'; segments: PathSegment[] }
-  | { type: 'function'; name: string; args: FunctionArg[] };
+  | { type: 'function'; name: string; args: FunctionArg[] }
+  | { type: 'pipe'; value: Expression; pipes: PipeCall[] };
+
+export type PipeCall = {
+  name: string;
+  args: PipeArg[];
+};
+
+export type PipeArg =
+  | { type: 'string'; value: string }
+  | { type: 'number'; value: number };
 
 export type PathSegment =
   | { type: 'property'; name: string }
@@ -76,6 +87,13 @@ export function parse(template: string): ASTNode[] {
  * Parse an expression string (without {{ }})
  */
 function parseExpression(expr: string): Expression {
+  // Check if it contains pipe syntax (not inside strings or function calls)
+  const pipeIndex = findTopLevelPipe(expr);
+  
+  if (pipeIndex !== -1) {
+    return parsePipeExpression(expr);
+  }
+  
   // Check if it's a function call
   const funcMatch = expr.match(/^([a-zA-Z_]\w*)\s*\(/);
   if (funcMatch) {
@@ -239,3 +257,213 @@ function parseArgument(arg: string): FunctionArg {
   // Otherwise it's a path
   return { type: 'path', segments: parsePath(arg) };
 }
+
+/**
+ * Find the index of the first top-level pipe character (|)
+ * Returns -1 if no top-level pipe is found
+ */
+function findTopLevelPipe(expr: string): number {
+  let depth = 0;
+  let inString = false;
+  let stringChar: string | null = null;
+  
+  for (let i = 0; i < expr.length; i++) {
+    const char = expr[i];
+    
+    if (inString) {
+      if (char === '\\' && i + 1 < expr.length) {
+        i++; // Skip escaped character
+      } else if (char === stringChar) {
+        inString = false;
+        stringChar = null;
+      }
+    } else {
+      if (char === '"' || char === "'") {
+        inString = true;
+        stringChar = char;
+      } else if (char === '(') {
+        depth++;
+      } else if (char === ')') {
+        depth--;
+      } else if (char === '|' && depth === 0) {
+        return i;
+      }
+    }
+  }
+  
+  return -1;
+}
+
+/**
+ * Parse a pipe expression like "value | currency:'BRL' | uppercase"
+ */
+function parsePipeExpression(expr: string): Expression {
+  // Split by top-level pipes
+  const parts = splitByTopLevelPipe(expr);
+  
+  if (parts.length < 2) {
+    // No pipes found, shouldn't happen but handle gracefully
+    return { type: 'path', segments: parsePath(expr) };
+  }
+  
+  // First part is the value expression
+  const valueExpr = parts[0].trim();
+  
+  // Check if value is a function call or path
+  const funcMatch = valueExpr.match(/^([a-zA-Z_]\w*)\s*\(/);
+  const value: Expression = funcMatch
+    ? parseFunctionCall(valueExpr)
+    : { type: 'path', segments: parsePath(valueExpr) };
+  
+  // Rest are pipe calls
+  const pipes: PipeCall[] = [];
+  for (let i = 1; i < parts.length; i++) {
+    const pipeStr = parts[i].trim();
+    pipes.push(parsePipeCall(pipeStr));
+  }
+  
+  return { type: 'pipe', value, pipes };
+}
+
+/**
+ * Split expression by top-level pipe characters
+ */
+function splitByTopLevelPipe(expr: string): string[] {
+  const parts: string[] = [];
+  let current = '';
+  let depth = 0;
+  let inString = false;
+  let stringChar: string | null = null;
+  
+  for (let i = 0; i < expr.length; i++) {
+    const char = expr[i];
+    
+    if (inString) {
+      if (char === '\\' && i + 1 < expr.length) {
+        current += char + expr[i + 1];
+        i++; // Skip escaped character
+      } else if (char === stringChar) {
+        current += char;
+        inString = false;
+        stringChar = null;
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"' || char === "'") {
+        current += char;
+        inString = true;
+        stringChar = char;
+      } else if (char === '(') {
+        current += char;
+        depth++;
+      } else if (char === ')') {
+        current += char;
+        depth--;
+      } else if (char === '|' && depth === 0) {
+        parts.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+  }
+  
+  if (current) {
+    parts.push(current);
+  }
+  
+  return parts;
+}
+
+/**
+ * Parse a single pipe call like "currency:'BRL'" or "uppercase"
+ */
+function parsePipeCall(pipeStr: string): PipeCall {
+  const colonIndex = pipeStr.indexOf(':');
+  
+  if (colonIndex === -1) {
+    // No arguments, just pipe name
+    return { name: pipeStr.trim(), args: [] };
+  }
+  
+  const name = pipeStr.slice(0, colonIndex).trim();
+  const argsStr = pipeStr.slice(colonIndex + 1).trim();
+  
+  // Parse pipe arguments (similar to function args but simpler)
+  const args = parsePipeArguments(argsStr);
+  
+  return { name, args };
+}
+
+/**
+ * Parse pipe arguments (strings or numbers only)
+ */
+function parsePipeArguments(argsStr: string): PipeArg[] {
+  const args: PipeArg[] = [];
+  let current = '';
+  let inString = false;
+  let stringChar: string | null = null;
+  let stringValue = '';
+  
+  for (let i = 0; i < argsStr.length; i++) {
+    const char = argsStr[i];
+    
+    if (inString) {
+      if (char === '\\' && i + 1 < argsStr.length) {
+        stringValue += argsStr[i + 1];
+        i++;
+      } else if (char === stringChar) {
+        args.push({ type: 'string', value: stringValue });
+        stringValue = '';
+        current = '';
+        inString = false;
+        stringChar = null;
+      } else {
+        stringValue += char;
+      }
+    } else {
+      if (char === '"' || char === "'") {
+        inString = true;
+        stringChar = char;
+        stringValue = '';
+      } else if (char === ':') {
+        // Multiple arguments separated by colon
+        const trimmed = current.trim();
+        if (trimmed) {
+          args.push(parsePipeArg(trimmed));
+        }
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+  }
+  
+  // Add last argument
+  const trimmed = current.trim();
+  if (trimmed) {
+    args.push(parsePipeArg(trimmed));
+  }
+  
+  return args;
+}
+
+/**
+ * Parse a single pipe argument (string or number only)
+ * Note: Only accepts standard numeric notation (e.g., "123", "-45.67")
+ * Scientific notation (e.g., "1e5") is treated as a string for predictability
+ */
+function parsePipeArg(arg: string): PipeArg {
+  const num = parseFloat(arg);
+  
+  // Strict numeric pattern - only standard notation, no scientific
+  // This ensures predictable behavior in templates
+  if (!isNaN(num) && isFinite(num) && /^-?\d+(\.\d+)?$/.test(arg)) {
+    return { type: 'number', value: num };
+  }
+  
+  // If not a number, treat as string (unquoted string literal)
+  return { type: 'string', value: arg };
+}
+

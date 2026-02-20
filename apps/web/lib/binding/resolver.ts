@@ -5,7 +5,7 @@
  * Blocks access to __proto__, prototype, constructor.
  */
 
-import type { Expression, PathSegment, FunctionArg } from './expression-parser';
+import type { Expression, PathSegment, FunctionArg, PipeCall, PipeArg } from './expression-parser';
 import { getFunction } from './functions';
 
 // Blocked property names for sandboxing
@@ -24,6 +24,10 @@ export function resolveExpression(
 
   if (expression.type === 'function') {
     return resolveFunction(expression.name, expression.args, data);
+  }
+
+  if (expression.type === 'pipe') {
+    return resolvePipeExpression(expression, data);
   }
 
   return undefined;
@@ -110,3 +114,57 @@ function resolveArg(arg: FunctionArg, data: Record<string, unknown>): unknown {
 
   return undefined;
 }
+
+/**
+ * Resolve a pipe expression
+ */
+function resolvePipeExpression(
+  expression: Expression & { type: 'pipe' },
+  data: Record<string, unknown>,
+): unknown {
+  // First resolve the value expression
+  let current = resolveExpression(expression.value, data);
+  
+  // Then apply each pipe in sequence
+  for (const pipe of expression.pipes) {
+    current = resolvePipe(pipe, current);
+  }
+  
+  return current;
+}
+
+/**
+ * Resolve a single pipe call
+ */
+function resolvePipe(pipe: PipeCall, value: unknown): unknown {
+  const fn = getFunction(pipe.name);
+  if (!fn) {
+    return undefined;
+  }
+  
+  // Resolve pipe arguments
+  const resolvedArgs = pipe.args.map((arg) => resolvePipeArg(arg));
+  
+  // Call function with value as first argument, followed by pipe args
+  try {
+    return fn(value, ...resolvedArgs);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Resolve a pipe argument
+ */
+function resolvePipeArg(arg: PipeArg): unknown {
+  if (arg.type === 'string') {
+    return arg.value;
+  }
+  
+  if (arg.type === 'number') {
+    return arg.value;
+  }
+  
+  return undefined;
+}
+
