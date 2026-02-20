@@ -110,9 +110,8 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
           ...getPageBreakStyle(pageBreakBehavior),
         }}
         className="p-2"
-      >
-        {text}
-      </div>
+        dangerouslySetInnerHTML={{ __html: text }}
+      />
     );
   },
 };

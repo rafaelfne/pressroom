@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   generatePathSuggestions,
   filterSuggestions,
@@ -20,7 +20,8 @@ export interface BindingAutocompleteProps {
 
 type SuggestionItem =
   | { type: 'path'; suggestion: PathSuggestion }
-  | { type: 'function'; suggestion: FunctionSuggestion };
+  | { type: 'function'; suggestion: FunctionSuggestion }
+  | { type: 'pipe'; suggestion: FunctionSuggestion };
 
 export function BindingAutocomplete({
   value,
@@ -37,6 +38,7 @@ export function BindingAutocomplete({
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const selectionRef = useRef<number | null>(null);
 
   // Generate path suggestions from sample data (memoized)
   const pathSuggestions = useMemo(() => {
@@ -81,9 +83,23 @@ export function BindingAutocomplete({
       // Check if user is typing a function call (contains opening parenthesis)
       const functionMatch = bindingContent.match(/(\w+)\(([^)]*)$/);
 
+      // Check if user is typing a pipe expression (e.g. "value | cur")
+      const pipeMatch = bindingContent.match(/\|\s*(\w*)$/);
+
       let items: SuggestionItem[] = [];
 
-      if (functionMatch) {
+      if (pipeMatch) {
+        // User is typing after a pipe - show function suggestions for pipe syntax
+        const partial = pipeMatch[1];
+        const filtered = filterFunctionSuggestions(
+          functionSuggestions,
+          partial
+        );
+        items = filtered.map((suggestion) => ({
+          type: 'pipe' as const,
+          suggestion,
+        }));
+      } else if (functionMatch) {
         // User is typing a function - filter function suggestions
         const functionName = functionMatch[1];
         const filtered = filterFunctionSuggestions(
@@ -134,6 +150,7 @@ export function BindingAutocomplete({
     const newValue = e.target.value;
     const newPosition = e.target.selectionStart ?? newValue.length;
 
+    selectionRef.current = newPosition;
     onChange(newValue);
     setCursorPosition(newPosition);
     debouncedUpdate(newValue, newPosition);
@@ -154,8 +171,31 @@ export function BindingAutocomplete({
     (item: SuggestionItem) => {
       const textBeforeCursor = value.slice(0, cursorPosition);
       const textAfterCursor = value.slice(cursorPosition);
-      const lastOpenBrace = textBeforeCursor.lastIndexOf('{{');
 
+      if (item.type === 'pipe') {
+        // For pipe suggestions, replace the partial text after the last |
+        const pipeMatch = textBeforeCursor.match(/^([\s\S]*\|\s*)\w*$/);
+        if (!pipeMatch) return;
+
+        const textBeforePipePartial = pipeMatch[1];
+        const insertText = item.suggestion.name;
+        const newValue = textBeforePipePartial + insertText + textAfterCursor;
+        const newCursorPosition = textBeforePipePartial.length + insertText.length;
+
+        onChange(newValue);
+        setShowSuggestions(false);
+
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+            setCursorPosition(newCursorPosition);
+          }
+        }, 0);
+        return;
+      }
+
+      const lastOpenBrace = textBeforeCursor.lastIndexOf('{{');
       if (lastOpenBrace === -1) return;
 
       const textBeforeBinding = value.slice(0, lastOpenBrace + 2);
@@ -265,6 +305,14 @@ export function BindingAutocomplete({
     };
   }, []);
 
+  // Restore cursor position after React re-renders the controlled input
+  useLayoutEffect(() => {
+    if (selectionRef.current !== null && inputRef.current) {
+      inputRef.current.setSelectionRange(selectionRef.current, selectionRef.current);
+      selectionRef.current = null;
+    }
+  });
+
   // Get type badge color
   const getTypeBadgeClass = (type: string): string => {
     if (type.startsWith('array')) {
@@ -334,11 +382,10 @@ export function BindingAutocomplete({
                   : item.suggestion.name
               }
               onClick={() => handleSuggestionClick(item, index)}
-              className={`cursor-pointer px-3 py-2 text-sm ${
-                index === selectedIndex
+              className={`cursor-pointer px-3 py-2 text-sm ${index === selectedIndex
                   ? 'bg-blue-50 text-blue-900'
                   : 'text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
               data-testid="suggestion-item"
             >
               {item.type === 'path' ? (
