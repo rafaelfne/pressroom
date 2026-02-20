@@ -11,6 +11,7 @@ import { Container, type ContainerProps } from '@/components/report-components/c
 import { GridRow, type GridRowProps } from '@/components/report-components/grid-row';
 import { GridColumn, type GridColumnProps } from '@/components/report-components/grid-column';
 import { Section, type SectionProps } from '@/components/report-components/section';
+import { MetricCard, type MetricCardProps } from '@/components/report-components/metric-card';
 
 type PuckComponents = {
   TextBlock: TextBlockProps;
@@ -25,6 +26,7 @@ type PuckComponents = {
   GridRow: GridRowProps;
   GridColumn: GridColumnProps;
   Section: SectionProps;
+  MetricCard: MetricCardProps;
 };
 
 export const puckConfig: Config<PuckComponents> = {
@@ -39,7 +41,7 @@ export const puckConfig: Config<PuckComponents> = {
     },
     data: {
       title: 'Data',
-      components: ['DataTable'],
+      components: ['DataTable', 'MetricCard'],
     },
     charts: {
       title: 'Charts',
@@ -59,5 +61,6 @@ export const puckConfig: Config<PuckComponents> = {
     GridRow,
     GridColumn,
     Section,
+    MetricCard,
   },
 };
