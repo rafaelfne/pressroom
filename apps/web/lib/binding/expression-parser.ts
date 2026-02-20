@@ -451,10 +451,14 @@ function parsePipeArguments(argsStr: string): PipeArg[] {
 
 /**
  * Parse a single pipe argument (string or number only)
+ * Note: Only accepts standard numeric notation (e.g., "123", "-45.67")
+ * Scientific notation (e.g., "1e5") is treated as a string for predictability
  */
 function parsePipeArg(arg: string): PipeArg {
   const num = parseFloat(arg);
   
+  // Strict numeric pattern - only standard notation, no scientific
+  // This ensures predictable behavior in templates
   if (!isNaN(num) && isFinite(num) && /^-?\d+(\.\d+)?$/.test(arg)) {
     return { type: 'number', value: num };
   }

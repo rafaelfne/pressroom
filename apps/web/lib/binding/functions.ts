@@ -160,8 +160,8 @@ function abs(value: unknown): number | string {
 /**
  * Alias for formatCurrency - pipe-friendly name
  */
-function currency(value: unknown, locale: unknown = 'USD'): string {
-  return formatCurrency(value, locale);
+function currency(value: unknown, currencyCode: unknown = 'USD'): string {
+  return formatCurrency(value, currencyCode);
 }
 
 /**
