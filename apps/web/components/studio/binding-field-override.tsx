@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { BindingAutocomplete } from './binding-autocomplete';
 import { BindingPathExplorer } from './binding-path-explorer';
+import { useSampleData } from '@/contexts/sample-data-context';
 
 export interface BindingFieldOverrideProps {
   value: string;
@@ -15,14 +16,17 @@ export interface BindingFieldOverrideProps {
 /**
  * Custom Puck field override for binding inputs.
  * Combines the autocomplete input with the path explorer button.
+ * Falls back to SampleDataContext when sampleData prop is not provided.
  */
 export function BindingFieldOverride({
   value,
   onChange,
-  sampleData,
+  sampleData: sampleDataProp,
   placeholder = 'Type {{ to insert binding...',
   multiline = false,
 }: BindingFieldOverrideProps) {
+  const contextData = useSampleData();
+  const sampleData = sampleDataProp ?? contextData;
   const handlePathSelect = useCallback(
     (path: string) => {
       // Insert as a binding expression

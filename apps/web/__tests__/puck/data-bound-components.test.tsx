@@ -60,6 +60,29 @@ describe('Data-bound Components', () => {
       render(<Component {...defaults} id="test" puck={mockPuckContext} dataPath="{{test.data}}" />);
       expect(screen.getByText(/{{test.data}}/)).toBeInTheDocument();
     });
+
+    it('renders actual data rows when dataPath is a resolved array', () => {
+      const Component = puckConfig.components.BenchmarkTable.render;
+      const benchmarks = [
+        { name: 'CDI', monthly: 1.15, annual: 13.65, inception: 45.2 },
+        { name: 'IBOV', monthly: -2.3, annual: 8.1, inception: 32.5 },
+      ];
+      render(
+        <Component
+          {...defaults}
+          id="test"
+          puck={mockPuckContext}
+          dataPath={benchmarks as unknown as string}
+          period1Key="monthly"
+          period2Key="annual"
+          period3Key="inception"
+        />,
+      );
+      expect(screen.getByText('CDI')).toBeInTheDocument();
+      expect(screen.getByText('IBOV')).toBeInTheDocument();
+      expect(screen.getByText('+1.15%')).toBeInTheDocument();
+      expect(screen.getByText('-2.30%')).toBeInTheDocument();
+    });
   });
 
   describe('EditorialCard', () => {
@@ -192,10 +215,27 @@ describe('Data-bound Components', () => {
       expect(screen.getByText(/No items found/)).toBeInTheDocument();
     });
 
-    it('shows repeater component label', () => {
+    it('shows repeater label', () => {
       const Component = puckConfig.components.Repeater.render;
       render(<Component {...defaults} id="test" puck={mockPuckContext} />);
-      expect(screen.getByText('Repeater Component')).toBeInTheDocument();
+      expect(screen.getByText('Repeater')).toBeInTheDocument();
+    });
+
+    it('renders items as table when dataPath is an array of objects', () => {
+      const Component = puckConfig.components.Repeater.render;
+      const items = [
+        { name: 'Item A', price: 10 },
+        { name: 'Item B', price: 20 },
+      ];
+      render(<Component {...defaults} id="test" puck={mockPuckContext} dataPath={items as unknown as string} />);
+      expect(screen.getByText('Item A')).toBeInTheDocument();
+      expect(screen.getByText('Item B')).toBeInTheDocument();
+    });
+
+    it('renders empty message when dataPath is an empty array', () => {
+      const Component = puckConfig.components.Repeater.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} dataPath={[] as unknown as string} emptyMessage="Nothing here" />);
+      expect(screen.getByText('Nothing here')).toBeInTheDocument();
     });
   });
 
@@ -240,6 +280,34 @@ describe('Data-bound Components', () => {
       const Component = puckConfig.components.ConditionalBlock.render;
       render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(screen.getByText('Conditional Block')).toBeInTheDocument();
+    });
+
+    it('renders nothing when condition is not met (resolved mode)', () => {
+      const Component = puckConfig.components.ConditionalBlock.render;
+      const { container } = render(
+        <Component {...defaults} id="test" puck={mockPuckContext} expression="" operator="notEmpty" />,
+      );
+      // Empty expression with notEmpty operator → condition false → renders empty fragment
+      expect(container.textContent).toBe('');
+    });
+
+    it('renders drop zone when condition is met (resolved mode)', () => {
+      const Component = puckConfig.components.ConditionalBlock.render;
+      const { container } = render(
+        <Component {...defaults} id="test" puck={mockPuckContext} expression="hello" operator="notEmpty" />,
+      );
+      // Condition met → renderDropZone is called
+      expect(mockPuckContext.renderDropZone).toHaveBeenCalled();
+      expect(container.querySelector('div')).toBeTruthy();
+    });
+
+    it('renders fallback text when condition met and no renderDropZone', () => {
+      const Component = puckConfig.components.ConditionalBlock.render;
+      const noPuckContext = { ...mockPuckContext, renderDropZone: null };
+      render(
+        <Component {...defaults} id="test" puck={noPuckContext} expression="hello" operator="notEmpty" />,
+      );
+      expect(screen.getByText(/Condition met/)).toBeInTheDocument();
     });
   });
 });

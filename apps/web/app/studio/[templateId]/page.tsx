@@ -20,10 +20,12 @@ import {
 import { Toaster, toast } from 'sonner';
 import { CustomActionBar } from '@/components/studio/custom-action-bar';
 import { MultiSelectProvider } from '@/contexts/multi-select-context';
+import { SampleDataProvider } from '@/contexts/sample-data-context';
 import { MarqueeSelection } from '@/components/studio/marquee-selection';
 import { SelectionCountBadge } from '@/components/studio/selection-count-badge';
 import { MultiSelectIntegration } from '@/components/studio/multi-select-integration';
 import { SelectionHighlight } from '@/components/studio/selection-highlight';
+import { BindingFieldOverride } from '@/components/studio/binding-field-override';
 
 const usePuck = createUsePuck();
 
@@ -629,6 +631,7 @@ function StudioContent({
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden relative">
           <div ref={puckWrapperRef} className="flex-1 min-h-0 overflow-hidden">
+            <SampleDataProvider value={sampleData}>
             <Puck
               key={activePage.id}
               config={puckConfig}
@@ -681,8 +684,24 @@ function StudioContent({
                     {children}
                   </RightPanel>
                 ),
+                fieldTypes: {
+                  text: ({ value, onChange }) => (
+                    <BindingFieldOverride
+                      value={value as string ?? ''}
+                      onChange={onChange}
+                    />
+                  ),
+                  textarea: ({ value, onChange }) => (
+                    <BindingFieldOverride
+                      value={value as string ?? ''}
+                      onChange={onChange}
+                      multiline
+                    />
+                  ),
+                },
               }}
             />
+            </SampleDataProvider>
           </div>
           {/* Page Tab Bar at bottom of canvas */}
           <PageTabBar

@@ -21,6 +21,14 @@ import { GridRow } from '@/components/report-components/grid-row';
 import { GridColumn } from '@/components/report-components/grid-column';
 import { Section } from '@/components/report-components/section';
 import { ServerChartBlock } from '@/components/report-components/server-chart-block';
+import { MetricCard } from '@/components/report-components/metric-card';
+import { StatCard } from '@/components/report-components/stat-card';
+import { BenchmarkTable } from '@/components/report-components/benchmark-table';
+import { EditorialCard } from '@/components/report-components/editorial-card';
+import { EditorialGrid } from '@/components/report-components/editorial-grid';
+import { EditorialStack } from '@/components/report-components/editorial-stack';
+import { Repeater } from '@/components/report-components/repeater';
+import { ConditionalBlock } from '@/components/report-components/conditional-block';
 
 export const serverPuckConfig: Config = {
   categories: {
@@ -30,15 +38,19 @@ export const serverPuckConfig: Config = {
     },
     content: {
       title: 'Content',
-      components: ['TextBlock', 'HeadingBlock', 'ImageBlock'],
+      components: ['TextBlock', 'HeadingBlock', 'ImageBlock', 'EditorialCard', 'EditorialGrid', 'EditorialStack'],
     },
     data: {
       title: 'Data',
-      components: ['DataTable'],
+      components: ['DataTable', 'MetricCard', 'StatCard', 'BenchmarkTable'],
     },
     charts: {
       title: 'Charts',
       components: ['ChartBlock'],
+    },
+    logic: {
+      title: 'Logic',
+      components: ['Repeater', 'ConditionalBlock'],
     },
   },
   components: {
@@ -54,5 +66,13 @@ export const serverPuckConfig: Config = {
     GridRow,
     GridColumn,
     Section,
+    MetricCard,
+    StatCard,
+    BenchmarkTable,
+    EditorialCard,
+    EditorialGrid,
+    EditorialStack,
+    Repeater,
+    ConditionalBlock,
   },
 };

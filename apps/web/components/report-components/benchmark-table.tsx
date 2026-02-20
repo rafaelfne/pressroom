@@ -13,6 +13,15 @@ export type BenchmarkTableProps = {
   pageBreakBehavior: PageBreakBehavior;
 };
 
+function formatCellValue(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'number') {
+    const sign = value > 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
+  }
+  return String(value);
+}
+
 export const BenchmarkTable: ComponentConfig<BenchmarkTableProps> = {
   label: 'Benchmark Table',
   fields: {
@@ -41,8 +50,11 @@ export const BenchmarkTable: ComponentConfig<BenchmarkTableProps> = {
     title,
     dataPath,
     period1Label,
+    period1Key,
     period2Label,
+    period2Key,
     period3Label,
+    period3Key,
     pageBreakBehavior,
   }) => {
     const containerStyle: React.CSSProperties = {
@@ -81,6 +93,46 @@ export const BenchmarkTable: ComponentConfig<BenchmarkTableProps> = {
       color: '#6b7280',
     };
 
+    // After resolveBindings(), dataPath becomes the actual array data
+    const rows = Array.isArray(dataPath) ? (dataPath as Record<string, unknown>[]) : null;
+
+    if (rows) {
+      // Resolved mode: render actual data
+      return (
+        <div style={containerStyle}>
+          <div style={titleStyle}>{title}</div>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thStyle}>Índice</th>
+                <th style={thStyle}>{period1Label}</th>
+                <th style={thStyle}>{period2Label}</th>
+                <th style={thStyle}>{period3Label}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <tr key={index}>
+                  <td style={tdStyle}>{String(row.name ?? row.label ?? row.index ?? `Item ${index + 1}`)}</td>
+                  <td style={tdStyle}>{formatCellValue(row[period1Key])}</td>
+                  <td style={tdStyle}>{formatCellValue(row[period2Key])}</td>
+                  <td style={tdStyle}>{formatCellValue(row[period3Key])}</td>
+                </tr>
+              ))}
+              {rows.length === 0 && (
+                <tr>
+                  <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af' }} colSpan={4}>
+                    No data available
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // Editor mode: show placeholder with binding info
     const noteStyle: React.CSSProperties = {
       marginTop: '1rem',
       fontSize: '0.75rem',
@@ -103,20 +155,20 @@ export const BenchmarkTable: ComponentConfig<BenchmarkTableProps> = {
           <tbody>
             <tr>
               <td style={tdStyle}>Sample Index 1</td>
-              <td style={tdStyle}>+5.2%</td>
-              <td style={tdStyle}>+12.8%</td>
-              <td style={tdStyle}>+45.3%</td>
+              <td style={tdStyle}>+5.20%</td>
+              <td style={tdStyle}>+12.80%</td>
+              <td style={tdStyle}>+45.30%</td>
             </tr>
             <tr>
               <td style={tdStyle}>Sample Index 2</td>
-              <td style={tdStyle}>-2.1%</td>
-              <td style={tdStyle}>+8.5%</td>
-              <td style={tdStyle}>+32.1%</td>
+              <td style={tdStyle}>-2.10%</td>
+              <td style={tdStyle}>+8.50%</td>
+              <td style={tdStyle}>+32.10%</td>
             </tr>
           </tbody>
         </table>
         <div style={noteStyle}>
-          Data binding: {dataPath} (actual benchmark data will be resolved by the rendering engine)
+          Data binding: {dataPath}
         </div>
       </div>
     );
