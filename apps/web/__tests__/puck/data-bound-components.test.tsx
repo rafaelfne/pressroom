@@ -1,34 +1,50 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import { BenchmarkTable } from '@/components/report-components/benchmark-table';
-import { EditorialCard } from '@/components/report-components/editorial-card';
-import { EditorialGrid } from '@/components/report-components/editorial-grid';
-import { EditorialStack } from '@/components/report-components/editorial-stack';
-import { Repeater } from '@/components/report-components/repeater';
-import { ConditionalBlock } from '@/components/report-components/conditional-block';
+import { puckConfig } from '@/lib/puck/config';
+import type { BenchmarkTableProps } from '@/components/report-components/benchmark-table';
+import type { EditorialCardProps } from '@/components/report-components/editorial-card';
+import type { EditorialGridProps } from '@/components/report-components/editorial-grid';
+import type { EditorialStackProps } from '@/components/report-components/editorial-stack';
+import type { RepeaterProps } from '@/components/report-components/repeater';
+import type { ConditionalBlockProps } from '@/components/report-components/conditional-block';
+
+const mockPuckContext = {
+  isEditing: false,
+  dragRef: null,
+  renderDropZone: vi.fn(),
+  metadata: {},
+};
+
+function getDefaults<T>(component: { defaultProps?: Partial<T> }): T {
+  return component.defaultProps as T;
+}
 
 describe('Data-bound Components', () => {
   afterEach(() => {
     cleanup();
   });
   describe('BenchmarkTable', () => {
+    const defaults = getDefaults<BenchmarkTableProps>(puckConfig.components.BenchmarkTable);
+
     it('renders with default props', () => {
-      const Component = BenchmarkTable.render;
-      const { container } = render(<Component {...BenchmarkTable.defaultProps} />);
+      const Component = puckConfig.components.BenchmarkTable.render;
+      const { container } = render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(container).toBeTruthy();
     });
 
     it('shows the title', () => {
-      const Component = BenchmarkTable.render;
-      render(<Component {...BenchmarkTable.defaultProps} title="Test Benchmark" />);
+      const Component = puckConfig.components.BenchmarkTable.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} title="Test Benchmark" />);
       expect(screen.getByText('Test Benchmark')).toBeInTheDocument();
     });
 
     it('shows period labels in table headers', () => {
-      const Component = BenchmarkTable.render;
+      const Component = puckConfig.components.BenchmarkTable.render;
       render(
         <Component
-          {...BenchmarkTable.defaultProps}
+          {...defaults}
+          id="test"
+          puck={mockPuckContext}
           period1Label="Month"
           period2Label="Year"
           period3Label="Inception"
@@ -40,39 +56,45 @@ describe('Data-bound Components', () => {
     });
 
     it('shows data path binding information', () => {
-      const Component = BenchmarkTable.render;
-      render(<Component {...BenchmarkTable.defaultProps} dataPath="{{test.data}}" />);
+      const Component = puckConfig.components.BenchmarkTable.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} dataPath="{{test.data}}" />);
       expect(screen.getByText(/{{test.data}}/)).toBeInTheDocument();
     });
   });
 
   describe('EditorialCard', () => {
+    const defaults = getDefaults<EditorialCardProps>(puckConfig.components.EditorialCard);
+
     it('renders with default props', () => {
-      const Component = EditorialCard.render;
-      const { container } = render(<Component {...EditorialCard.defaultProps} />);
+      const Component = puckConfig.components.EditorialCard.render;
+      const { container } = render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(container).toBeTruthy();
     });
 
     it('shows title and description', () => {
-      const Component = EditorialCard.render;
-      render(<Component {...EditorialCard.defaultProps} title="Test Title" description="Test Description" />);
+      const Component = puckConfig.components.EditorialCard.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} title="Test Title" description="Test Description" />);
       expect(screen.getByText('Test Title')).toBeInTheDocument();
       expect(screen.getByText('Test Description')).toBeInTheDocument();
     });
   });
 
   describe('EditorialGrid', () => {
+    const defaults = getDefaults<EditorialGridProps>(puckConfig.components.EditorialGrid);
+
     it('renders with default props', () => {
-      const Component = EditorialGrid.render;
-      const { container } = render(<Component {...EditorialGrid.defaultProps} />);
+      const Component = puckConfig.components.EditorialGrid.render;
+      const { container } = render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(container).toBeTruthy();
     });
 
     it('renders 4 cards', () => {
-      const Component = EditorialGrid.render;
+      const Component = puckConfig.components.EditorialGrid.render;
       render(
         <Component
-          {...EditorialGrid.defaultProps}
+          {...defaults}
+          id="test"
+          puck={mockPuckContext}
           card1Title="Grid Card 1"
           card2Title="Grid Card 2"
           card3Title="Grid Card 3"
@@ -86,10 +108,12 @@ describe('Data-bound Components', () => {
     });
 
     it('renders descriptions for all cards', () => {
-      const Component = EditorialGrid.render;
+      const Component = puckConfig.components.EditorialGrid.render;
       render(
         <Component
-          {...EditorialGrid.defaultProps}
+          {...defaults}
+          id="test"
+          puck={mockPuckContext}
           card1Description="Grid Desc 1"
           card2Description="Grid Desc 2"
           card3Description="Grid Desc 3"
@@ -104,17 +128,21 @@ describe('Data-bound Components', () => {
   });
 
   describe('EditorialStack', () => {
+    const defaults = getDefaults<EditorialStackProps>(puckConfig.components.EditorialStack);
+
     it('renders with default props', () => {
-      const Component = EditorialStack.render;
-      const { container } = render(<Component {...EditorialStack.defaultProps} />);
+      const Component = puckConfig.components.EditorialStack.render;
+      const { container } = render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(container).toBeTruthy();
     });
 
     it('renders 3 cards', () => {
-      const Component = EditorialStack.render;
+      const Component = puckConfig.components.EditorialStack.render;
       render(
         <Component
-          {...EditorialStack.defaultProps}
+          {...defaults}
+          id="test"
+          puck={mockPuckContext}
           card1Title="Stack Card 1"
           card2Title="Stack Card 2"
           card3Title="Stack Card 3"
@@ -126,10 +154,12 @@ describe('Data-bound Components', () => {
     });
 
     it('renders descriptions for all cards', () => {
-      const Component = EditorialStack.render;
+      const Component = puckConfig.components.EditorialStack.render;
       render(
         <Component
-          {...EditorialStack.defaultProps}
+          {...defaults}
+          id="test"
+          puck={mockPuckContext}
           card1Description="Stack Desc 1"
           card2Description="Stack Desc 2"
           card3Description="Stack Desc 3"
@@ -142,69 +172,73 @@ describe('Data-bound Components', () => {
   });
 
   describe('Repeater', () => {
+    const defaults = getDefaults<RepeaterProps>(puckConfig.components.Repeater);
+
     it('renders with default props', () => {
-      const Component = Repeater.render;
-      const { container } = render(<Component {...Repeater.defaultProps} />);
+      const Component = puckConfig.components.Repeater.render;
+      const { container } = render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(container).toBeTruthy();
     });
 
     it('shows data path', () => {
-      const Component = Repeater.render;
-      render(<Component {...Repeater.defaultProps} dataPath="{{test.items}}" />);
+      const Component = puckConfig.components.Repeater.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} dataPath="{{test.items}}" />);
       expect(screen.getByText(/{{test.items}}/)).toBeInTheDocument();
     });
 
     it('shows empty message', () => {
-      const Component = Repeater.render;
-      render(<Component {...Repeater.defaultProps} emptyMessage="No items found" />);
+      const Component = puckConfig.components.Repeater.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} emptyMessage="No items found" />);
       expect(screen.getByText(/No items found/)).toBeInTheDocument();
     });
 
     it('shows repeater component label', () => {
-      const Component = Repeater.render;
-      render(<Component {...Repeater.defaultProps} />);
+      const Component = puckConfig.components.Repeater.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(screen.getByText('Repeater Component')).toBeInTheDocument();
     });
   });
 
   describe('ConditionalBlock', () => {
+    const defaults = getDefaults<ConditionalBlockProps>(puckConfig.components.ConditionalBlock);
+
     it('renders with default props', () => {
-      const Component = ConditionalBlock.render;
-      const { container } = render(<Component {...ConditionalBlock.defaultProps} />);
+      const Component = puckConfig.components.ConditionalBlock.render;
+      const { container } = render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(container).toBeTruthy();
     });
 
     it('shows expression', () => {
-      const Component = ConditionalBlock.render;
-      render(<Component {...ConditionalBlock.defaultProps} expression="{{test.value}}" />);
+      const Component = puckConfig.components.ConditionalBlock.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} expression="{{test.value}}" />);
       expect(screen.getByText(/{{test.value}}/)).toBeInTheDocument();
     });
 
     it('displays condition with equals operator', () => {
-      const Component = ConditionalBlock.render;
+      const Component = puckConfig.components.ConditionalBlock.render;
       render(
-        <Component {...ConditionalBlock.defaultProps} expression="{{value}}" operator="eq" compareValue="test" />,
+        <Component {...defaults} id="test" puck={mockPuckContext} expression="{{value}}" operator="eq" compareValue="test" />,
       );
       expect(screen.getByText(/{{value}} = test/)).toBeInTheDocument();
     });
 
     it('displays condition with not equals operator', () => {
-      const Component = ConditionalBlock.render;
+      const Component = puckConfig.components.ConditionalBlock.render;
       render(
-        <Component {...ConditionalBlock.defaultProps} expression="{{value}}" operator="neq" compareValue="test" />,
+        <Component {...defaults} id="test" puck={mockPuckContext} expression="{{value}}" operator="neq" compareValue="test" />,
       );
       expect(screen.getByText(/{{value}} ≠ test/)).toBeInTheDocument();
     });
 
     it('displays condition with notEmpty operator', () => {
-      const Component = ConditionalBlock.render;
-      render(<Component {...ConditionalBlock.defaultProps} expression="{{value}}" operator="notEmpty" />);
+      const Component = puckConfig.components.ConditionalBlock.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} expression="{{value}}" operator="notEmpty" />);
       expect(screen.getByText(/{{value}} is not empty/)).toBeInTheDocument();
     });
 
     it('shows conditional block label', () => {
-      const Component = ConditionalBlock.render;
-      render(<Component {...ConditionalBlock.defaultProps} />);
+      const Component = puckConfig.components.ConditionalBlock.render;
+      render(<Component {...defaults} id="test" puck={mockPuckContext} />);
       expect(screen.getByText('Conditional Block')).toBeInTheDocument();
     });
   });
