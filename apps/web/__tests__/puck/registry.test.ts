@@ -18,7 +18,14 @@ describe('registry helpers', () => {
     expect(names).toContain('GridColumn');
     expect(names).toContain('Section');
     expect(names).toContain('MetricCard');
-    expect(names).toHaveLength(13);
+    expect(names).toContain('StatCard');
+    expect(names).toContain('BenchmarkTable');
+    expect(names).toContain('EditorialCard');
+    expect(names).toContain('EditorialGrid');
+    expect(names).toContain('EditorialStack');
+    expect(names).toContain('Repeater');
+    expect(names).toContain('ConditionalBlock');
+    expect(names).toHaveLength(20);
   });
 
   it('getComponentsByCategory returns components for a valid category', () => {

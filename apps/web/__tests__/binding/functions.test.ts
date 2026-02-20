@@ -273,4 +273,186 @@ describe('built-in functions', () => {
       expect(result).toBe('a,,b,,c');
     });
   });
+
+  describe('percent', () => {
+    it('formats decimal as percentage', () => {
+      const result = builtInFunctions.percent(0.1234);
+      expect(result).toBe('12,34%');
+    });
+
+    it('formats with custom decimal places', () => {
+      const result = builtInFunctions.percent(0.02465594, 4);
+      expect(result).toBe('2,4656%');
+    });
+
+    it('formats zero', () => {
+      const result = builtInFunctions.percent(0);
+      expect(result).toBe('0,00%');
+    });
+
+    it('handles string numbers', () => {
+      const result = builtInFunctions.percent('0.5');
+      expect(result).toBe('50,00%');
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.percent(null)).toBe('');
+      expect(builtInFunctions.percent(undefined)).toBe('');
+    });
+
+    it('handles invalid input', () => {
+      expect(builtInFunctions.percent('invalid')).toBe('invalid');
+    });
+  });
+
+  describe('abs', () => {
+    it('returns absolute value of negative number', () => {
+      expect(builtInFunctions.abs(-5.5)).toBe(5.5);
+    });
+
+    it('returns positive number unchanged', () => {
+      expect(builtInFunctions.abs(3.14)).toBe(3.14);
+    });
+
+    it('returns zero for zero', () => {
+      expect(builtInFunctions.abs(0)).toBe(0);
+    });
+
+    it('handles string numbers', () => {
+      expect(builtInFunctions.abs('-42')).toBe(42);
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.abs(null)).toBe('');
+      expect(builtInFunctions.abs(undefined)).toBe('');
+    });
+  });
+
+  describe('currency (pipe alias)', () => {
+    it('defaults to BRL', () => {
+      const result = builtInFunctions.currency(1234.56);
+      expect(result).toMatch(/R\$.*1[.,]234[.,]56/);
+    });
+
+    it('accepts currency code argument', () => {
+      const result = builtInFunctions.currency(1234.56, 'USD');
+      expect(result).toBe('$1,234.56');
+    });
+  });
+
+  describe('date (pipe alias)', () => {
+    it('defaults to DD/MM/YYYY', () => {
+      const result = builtInFunctions.date('2024-05-02T00:00:00Z');
+      expect(result).toBe('02/05/2024');
+    });
+
+    it('formats with MMM/yy pattern', () => {
+      const result = builtInFunctions.date('2024-05-02T00:00:00Z', 'MMM/yy');
+      expect(result).toBe('Mai/24');
+    });
+
+    it('formats with MM/yyyy pattern', () => {
+      const result = builtInFunctions.date('2024-05-02T00:00:00Z', 'MM/yyyy');
+      expect(result).toBe('05/2024');
+    });
+  });
+
+  describe('number (pipe alias)', () => {
+    it('formats with default 2 decimals', () => {
+      const result = builtInFunctions.number(12345.67);
+      expect(result).toBe('12,345.67');
+    });
+
+    it('formats with 0 decimals', () => {
+      const result = builtInFunctions.number(12345.67, 0);
+      expect(result).toBe('12,346');
+    });
+  });
+
+  describe('cpf', () => {
+    it('formats 11-digit CPF string', () => {
+      expect(builtInFunctions.cpf('14654044817')).toBe('146.540.448-17');
+    });
+
+    it('formats numeric CPF', () => {
+      expect(builtInFunctions.cpf(14654044817)).toBe('146.540.448-17');
+    });
+
+    it('returns original for invalid length', () => {
+      expect(builtInFunctions.cpf('123')).toBe('123');
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.cpf(null)).toBe('');
+      expect(builtInFunctions.cpf(undefined)).toBe('');
+    });
+
+    it('strips non-numeric characters before formatting', () => {
+      expect(builtInFunctions.cpf('146.540.448-17')).toBe('146.540.448-17');
+    });
+  });
+
+  describe('sign', () => {
+    it('passes through positive number', () => {
+      expect(builtInFunctions.sign(0.0233)).toBe(0.0233);
+    });
+
+    it('passes through negative number', () => {
+      expect(builtInFunctions.sign(-5)).toBe(-5);
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.sign(null)).toBe('');
+      expect(builtInFunctions.sign(undefined)).toBe('');
+    });
+  });
+
+  describe('ifEmpty', () => {
+    it('returns fallback for null', () => {
+      expect(builtInFunctions.ifEmpty(null, '—')).toBe('—');
+    });
+
+    it('returns fallback for undefined', () => {
+      expect(builtInFunctions.ifEmpty(undefined, '—')).toBe('—');
+    });
+
+    it('returns fallback for empty string', () => {
+      expect(builtInFunctions.ifEmpty('', '—')).toBe('—');
+    });
+
+    it('returns original value if not empty', () => {
+      expect(builtInFunctions.ifEmpty(42, '—')).toBe(42);
+    });
+
+    it('returns original value for non-empty string', () => {
+      expect(builtInFunctions.ifEmpty('hello', '—')).toBe('hello');
+    });
+
+    it('returns zero (not empty)', () => {
+      expect(builtInFunctions.ifEmpty(0, '—')).toBe(0);
+    });
+  });
+
+  describe('multiply', () => {
+    it('multiplies value by factor', () => {
+      expect(builtInFunctions.multiply(0.547, 100)).toBe(54.7);
+    });
+
+    it('defaults factor to 1', () => {
+      expect(builtInFunctions.multiply(42)).toBe(42);
+    });
+
+    it('handles string numbers', () => {
+      expect(builtInFunctions.multiply('10', 5)).toBe(50);
+    });
+
+    it('handles null/undefined', () => {
+      expect(builtInFunctions.multiply(null, 100)).toBe('');
+      expect(builtInFunctions.multiply(undefined, 100)).toBe('');
+    });
+
+    it('handles invalid input', () => {
+      expect(builtInFunctions.multiply('invalid', 100)).toBe('invalid');
+    });
+  });
 });
