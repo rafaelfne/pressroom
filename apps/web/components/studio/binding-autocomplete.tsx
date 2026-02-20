@@ -41,7 +41,7 @@ export function BindingAutocomplete({
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const selectionRef = useRef<number | null>(null);
+  const selectionRef = useRef<{ start: number; end: number } | null>(null);
 
   // Generate path suggestions from sample data (memoized)
   const pathSuggestions = useMemo(() => {
@@ -156,23 +156,25 @@ export function BindingAutocomplete({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const newValue = e.target.value;
-    const newPosition = e.target.selectionStart ?? newValue.length;
+    const newStart = e.target.selectionStart ?? newValue.length;
+    const newEnd = e.target.selectionEnd ?? newStart;
 
-    selectionRef.current = newPosition;
+    selectionRef.current = { start: newStart, end: newEnd };
     onChange(newValue);
-    setCursorPosition(newPosition);
-    debouncedUpdate(newValue, newPosition);
+    setCursorPosition(newStart);
+    debouncedUpdate(newValue, newStart);
   };
 
-  // Handle cursor position change (click, arrow keys)
+  // Handle cursor position change (click, arrow keys, text selection)
   const handleSelect = (
     e: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-    const newPosition = target.selectionStart ?? value.length;
-    selectionRef.current = newPosition;
-    setCursorPosition(newPosition);
-    debouncedUpdate(value, newPosition);
+    const newStart = target.selectionStart ?? value.length;
+    const newEnd = target.selectionEnd ?? newStart;
+    selectionRef.current = { start: newStart, end: newEnd };
+    setCursorPosition(newStart);
+    debouncedUpdate(value, newStart);
   };
 
   // Insert selected suggestion
@@ -315,7 +317,7 @@ export function BindingAutocomplete({
     };
   }, []);
 
-  // Restore cursor position after React re-renders the controlled input.
+  // Restore cursor/selection position after React re-renders the controlled input.
   // We intentionally do NOT clear selectionRef after restoration:
   // Puck may trigger cascading re-renders, and each one resets the
   // controlled input value which moves the cursor to the end.
@@ -327,7 +329,10 @@ export function BindingAutocomplete({
       inputRef.current &&
       document.activeElement === inputRef.current
     ) {
-      inputRef.current.setSelectionRange(selectionRef.current, selectionRef.current);
+      inputRef.current.setSelectionRange(
+        selectionRef.current.start,
+        selectionRef.current.end,
+      );
     }
   });
 
