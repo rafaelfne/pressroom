@@ -217,7 +217,7 @@ export function getFunctionSuggestions(): FunctionSuggestion[] {
     },
     {
       name: 'formatDate',
-      signature: "formatDate(value, 'YYYY-MM-DD'|'MM/DD/YYYY'|'DD/MM/YYYY')",
+      signature: "formatDate(value, 'YYYY-MM-DD'|'MM/DD/YYYY'|'DD/MM/YYYY'|'MMM/yy'|'MM/yyyy')",
       description: 'Format date with pattern',
     },
     {
@@ -244,6 +244,51 @@ export function getFunctionSuggestions(): FunctionSuggestion[] {
       name: 'join',
       signature: 'join(array, separator)',
       description: 'Join array elements',
+    },
+    {
+      name: 'currency',
+      signature: "currency(value, 'BRL'|'USD'|'EUR'|'GBP')",
+      description: 'Format as currency (pipe-friendly, default BRL)',
+    },
+    {
+      name: 'percent',
+      signature: 'percent(value, decimals)',
+      description: 'Format as percentage (value × 100)',
+    },
+    {
+      name: 'abs',
+      signature: 'abs(value)',
+      description: 'Absolute value',
+    },
+    {
+      name: 'date',
+      signature: "date(value, 'DD/MM/YYYY'|'MMM/yy'|'MM/yyyy')",
+      description: 'Format date (pipe-friendly, default DD/MM/YYYY)',
+    },
+    {
+      name: 'number',
+      signature: 'number(value, decimals)',
+      description: 'Format number (pipe-friendly)',
+    },
+    {
+      name: 'cpf',
+      signature: 'cpf(value)',
+      description: 'Format Brazilian CPF (XXX.XXX.XXX-XX)',
+    },
+    {
+      name: 'sign',
+      signature: 'sign(value)',
+      description: 'Preserve sign for formatting (pass-through numeric)',
+    },
+    {
+      name: 'ifEmpty',
+      signature: "ifEmpty(value, 'fallback')",
+      description: 'Fallback for null/undefined/empty values',
+    },
+    {
+      name: 'multiply',
+      signature: 'multiply(value, factor)',
+      description: 'Multiply value by factor',
     },
   ];
 }

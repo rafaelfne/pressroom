@@ -381,7 +381,7 @@ describe('resolveBindings', () => {
       };
       const result = resolveBindings(template, { value: -0.4567 });
       expect(result).toEqual({
-        percentage: '45.67%',
+        percentage: '45,67%',
       });
     });
 
@@ -429,7 +429,7 @@ describe('resolveBindings', () => {
             {
               data: {
                 value: '123,456.79',
-                trend: '12.5%',
+                trend: '12,5%',
               },
             },
           ],

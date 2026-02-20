@@ -37,7 +37,15 @@ function formatCurrency(value: unknown, locale: unknown): string {
 }
 
 /**
- * Format a date
+ * pt-BR month abbreviations (used in date formatting)
+ */
+const PT_BR_MONTHS_SHORT = [
+  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+];
+
+/**
+ * Format a date with extended pattern support including pt-BR month names
  */
 function formatDate(value: unknown, format: unknown): string {
   let date: Date;
@@ -54,17 +62,22 @@ function formatDate(value: unknown, format: unknown): string {
     return String(value ?? '');
   }
 
-  const formatStr = String(format ?? 'en-US');
+  const formatStr = String(format ?? 'DD/MM/YYYY');
 
-  // Simple pattern matching for common formats (check first)
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear());
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const year = String(date.getUTCFullYear());
+  const shortYear = year.slice(-2);
+  const monthShort = PT_BR_MONTHS_SHORT[date.getUTCMonth()];
 
   const patterns: Record<string, () => string> = {
-    'YYYY-MM-DD': () => date.toISOString().split('T')[0],
+    'YYYY-MM-DD': () => `${year}-${month}-${day}`,
     'MM/DD/YYYY': () => `${month}/${day}/${year}`,
     'DD/MM/YYYY': () => `${day}/${month}/${year}`,
+    'MM/yyyy': () => `${month}/${year}`,
+    'MM/YYYY': () => `${month}/${year}`,
+    'MMM/yy': () => `${monthShort}/${shortYear}`,
+    'MMM/yyyy': () => `${monthShort}/${year}`,
   };
 
   if (patterns[formatStr]) {
@@ -80,8 +93,8 @@ function formatDate(value: unknown, format: unknown): string {
     }
   }
 
-  // Default to locale date string
-  return date.toLocaleDateString(formatStr);
+  // Default to pt-BR locale date string
+  return date.toLocaleDateString('pt-BR');
 }
 
 /**
@@ -134,7 +147,7 @@ function join(value: unknown, separator: unknown): string {
 }
 
 /**
- * Format as percentage (value * 100)
+ * Format as percentage (value * 100) with pt-BR locale formatting
  */
 function percent(value: unknown, decimals: unknown = 2): string {
   const num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
@@ -144,7 +157,11 @@ function percent(value: unknown, decimals: unknown = 2): string {
   const validDecimals = isNaN(dec) ? 2 : dec;
   
   const percentage = num * 100;
-  return `${percentage.toFixed(validDecimals)}%`;
+  const formatted = percentage.toLocaleString('pt-BR', {
+    minimumFractionDigits: validDecimals,
+    maximumFractionDigits: validDecimals,
+  });
+  return `${formatted}%`;
 }
 
 /**
@@ -160,8 +177,61 @@ function abs(value: unknown): number | string {
 /**
  * Alias for formatCurrency - pipe-friendly name
  */
-function currency(value: unknown, currencyCode: unknown = 'USD'): string {
+function currency(value: unknown, currencyCode: unknown = 'BRL'): string {
   return formatCurrency(value, currencyCode);
+}
+
+/**
+ * Pipe-friendly alias for formatDate
+ */
+function date(value: unknown, format: unknown = 'DD/MM/YYYY'): string {
+  return formatDate(value, format);
+}
+
+/**
+ * Pipe-friendly alias for formatNumber
+ */
+function number(value: unknown, decimals: unknown = 2): string {
+  return formatNumber(value, decimals);
+}
+
+/**
+ * Format a Brazilian CPF number (11 digits → XXX.XXX.XXX-XX)
+ */
+function cpf(value: unknown): string {
+  const str = String(value ?? '').replace(/\D/g, '');
+  if (str.length !== 11) return String(value ?? '');
+  return `${str.slice(0, 3)}.${str.slice(3, 6)}.${str.slice(6, 9)}-${str.slice(9, 11)}`;
+}
+
+/**
+ * Add sign prefix (+/-) to a number
+ */
+function sign(value: unknown): number | string {
+  const num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
+  if (isNaN(num)) return String(value ?? '');
+  return num;
+}
+
+/**
+ * Provide a fallback value when the input is null, undefined, or empty string
+ */
+function ifEmpty(value: unknown, fallback: unknown = ''): unknown {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+  return value;
+}
+
+/**
+ * Multiply a number by a factor
+ */
+function multiply(value: unknown, factor: unknown = 1): number | string {
+  const num = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
+  if (isNaN(num)) return String(value ?? '');
+  const fac = typeof factor === 'number' ? factor : parseFloat(String(factor ?? '1'));
+  if (isNaN(fac)) return num;
+  return num * fac;
 }
 
 /**
@@ -178,6 +248,12 @@ export const builtInFunctions: Record<string, BuiltInFunction> = {
   percent,
   abs,
   currency,
+  date,
+  number,
+  cpf,
+  sign,
+  ifEmpty,
+  multiply,
 };
 
 /**

@@ -199,7 +199,7 @@ describe('pipe expressions', () => {
       if (ast.type !== 'expression') throw new Error('Expected expression');
 
       const result = resolveExpression(ast.expression, { value: 0.1234 });
-      expect(result).toBe('12.3400%');
+      expect(result).toBe('12,3400%');
     });
 
     it('resolves chained pipes', () => {
@@ -207,7 +207,7 @@ describe('pipe expressions', () => {
       if (ast.type !== 'expression') throw new Error('Expected expression');
 
       const result = resolveExpression(ast.expression, { value: -0.45 });
-      expect(result).toBe('45.00%');
+      expect(result).toBe('45,00%');
     });
 
     it('resolves multiple chained pipes with arguments', () => {
@@ -243,7 +243,7 @@ describe('pipe expressions', () => {
       if (ast.type !== 'expression') throw new Error('Expected expression');
 
       const result = resolveExpression(ast.expression, { value: 0.25 });
-      expect(result).toBe('25.00%');
+      expect(result).toBe('25,00%');
     });
 
     it('returns undefined for unknown pipe function', () => {

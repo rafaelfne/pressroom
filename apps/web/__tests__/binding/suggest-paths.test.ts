@@ -217,9 +217,9 @@ describe('filterSuggestions', () => {
 });
 
 describe('getFunctionSuggestions', () => {
-  it('returns all 7 built-in functions', () => {
+  it('returns all 16 built-in functions', () => {
     const suggestions = getFunctionSuggestions();
-    expect(suggestions).toHaveLength(7);
+    expect(suggestions).toHaveLength(16);
   });
 
   it('includes formatCurrency with correct signature', () => {
@@ -237,7 +237,7 @@ describe('getFunctionSuggestions', () => {
 
     expect(fn).toBeDefined();
     expect(fn?.signature).toBe(
-      "formatDate(value, 'YYYY-MM-DD'|'MM/DD/YYYY'|'DD/MM/YYYY')",
+      "formatDate(value, 'YYYY-MM-DD'|'MM/DD/YYYY'|'DD/MM/YYYY'|'MMM/yy'|'MM/yyyy')",
     );
   });
 
@@ -253,6 +253,15 @@ describe('getFunctionSuggestions', () => {
       'uppercase',
       'lowercase',
       'join',
+      'currency',
+      'percent',
+      'abs',
+      'date',
+      'number',
+      'cpf',
+      'sign',
+      'ifEmpty',
+      'multiply',
     ]);
   });
 });
@@ -267,20 +276,21 @@ describe('filterFunctionSuggestions', () => {
     const suggestions = getFunctionSuggestions();
     const result = filterFunctionSuggestions(suggestions, 'format');
 
-    expect(result).toHaveLength(3);
-    expect(result.map((s) => s.name)).toEqual([
-      'formatCurrency',
-      'formatDate',
-      'formatNumber',
-    ]);
+    // Matches name or description containing 'format'
+    const names = result.map((s) => s.name);
+    expect(names).toContain('formatCurrency');
+    expect(names).toContain('formatDate');
+    expect(names).toContain('formatNumber');
   });
 
   it('filters by description', () => {
     const suggestions = getFunctionSuggestions();
     const result = filterFunctionSuggestions(suggestions, 'currency');
 
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('formatCurrency');
+    // Matches formatCurrency (name) and currency (name and description)
+    expect(result).toHaveLength(2);
+    expect(result.map((s) => s.name)).toContain('formatCurrency');
+    expect(result.map((s) => s.name)).toContain('currency');
   });
 
   it('filters case-insensitively', () => {
