@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useResolvedValue } from '@/hooks/use-resolved-value';
 
 export type TextBlockProps = {
   text: string;
@@ -95,6 +96,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
     pageBreakBehavior: 'auto',
   },
   render: ({ text, fontSize, customFontSize, lineHeight, customLineHeight, color, alignment, bold, italic, pageBreakBehavior }) => {
+    const resolvedText = useResolvedValue(text);
     const resolvedFontSize = fontSize === 'custom' ? `${customFontSize}px` : fontSize;
     const resolvedLineHeight = lineHeight === 'custom' ? customLineHeight : Number(lineHeight);
 
@@ -110,7 +112,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
           ...getPageBreakStyle(pageBreakBehavior),
         }}
         className="p-2"
-        dangerouslySetInnerHTML={{ __html: text }}
+        dangerouslySetInnerHTML={{ __html: resolvedText }}
       />
     );
   },

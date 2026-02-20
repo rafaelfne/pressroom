@@ -58,6 +58,21 @@ export type FunctionSuggestion = {
 };
 
 /**
+ * Pipe-specific suggestion shown when typing after | inside {{ }}
+ * Uses the actual pipe syntax (colon-separated args) that the parser expects.
+ */
+export type PipeSuggestion = {
+  /** Pipe function name (e.g. "currency", "date", "percent") */
+  name: string;
+  /** Display signature in pipe syntax (e.g. "currency:'BRL'") */
+  signature: string;
+  /** Human-readable description */
+  description: string;
+  /** Text to insert when selected (e.g. "currency:'BRL'") */
+  insertText: string;
+};
+
+/**
  * Generate path suggestions by recursively walking data structure
  * 
  * @param data - Sample data object to analyze
@@ -291,6 +306,125 @@ export function getFunctionSuggestions(): FunctionSuggestion[] {
       description: 'Multiply value by factor',
     },
   ];
+}
+
+/**
+ * Get pipe-specific suggestions for use after | in binding expressions.
+ * These use the pipe syntax (name:arg) that the expression parser expects,
+ * NOT the function-call syntax (name(arg)).
+ *
+ * @returns Array of pipe suggestions with insert text
+ */
+export function getPipeSuggestions(): PipeSuggestion[] {
+  return [
+    {
+      name: 'currency',
+      signature: "currency:'BRL'",
+      description: 'Format as currency (BRL, USD, EUR, GBP)',
+      insertText: "currency:'BRL'",
+    },
+    {
+      name: 'date',
+      signature: "date:'DD/MM/YYYY'",
+      description: 'Format date (DD/MM/YYYY, MMM/yy, YYYY-MM-DD)',
+      insertText: "date:'DD/MM/YYYY'",
+    },
+    {
+      name: 'number',
+      signature: 'number:2',
+      description: 'Format number with decimal precision',
+      insertText: 'number:2',
+    },
+    {
+      name: 'percent',
+      signature: 'percent:2',
+      description: 'Format as percentage (value × 100)',
+      insertText: 'percent:2',
+    },
+    {
+      name: 'uppercase',
+      signature: 'uppercase',
+      description: 'Convert to uppercase',
+      insertText: 'uppercase',
+    },
+    {
+      name: 'lowercase',
+      signature: 'lowercase',
+      description: 'Convert to lowercase',
+      insertText: 'lowercase',
+    },
+    {
+      name: 'sign',
+      signature: 'sign',
+      description: 'Add +/- sign prefix to number',
+      insertText: 'sign',
+    },
+    {
+      name: 'abs',
+      signature: 'abs',
+      description: 'Absolute value',
+      insertText: 'abs',
+    },
+    {
+      name: 'cpf',
+      signature: 'cpf',
+      description: 'Format Brazilian CPF (XXX.XXX.XXX-XX)',
+      insertText: 'cpf',
+    },
+    {
+      name: 'ifEmpty',
+      signature: "ifEmpty:'N/A'",
+      description: 'Fallback for null/undefined/empty values',
+      insertText: "ifEmpty:'N/A'",
+    },
+    {
+      name: 'multiply',
+      signature: 'multiply:100',
+      description: 'Multiply value by factor',
+      insertText: 'multiply:100',
+    },
+    {
+      name: 'formatCurrency',
+      signature: "formatCurrency:'BRL'",
+      description: 'Format as currency (alias)',
+      insertText: "formatCurrency:'BRL'",
+    },
+    {
+      name: 'formatDate',
+      signature: "formatDate:'DD/MM/YYYY'",
+      description: 'Format date (alias)',
+      insertText: "formatDate:'DD/MM/YYYY'",
+    },
+    {
+      name: 'formatNumber',
+      signature: 'formatNumber:2',
+      description: 'Format number (alias)',
+      insertText: 'formatNumber:2',
+    },
+  ];
+}
+
+/**
+ * Filter pipe suggestions based on query string
+ *
+ * @param suggestions - Array of pipe suggestions
+ * @param query - Search query (case-insensitive)
+ * @returns Filtered pipe suggestions matching the query
+ */
+export function filterPipeSuggestions(
+  suggestions: PipeSuggestion[],
+  query: string,
+): PipeSuggestion[] {
+  if (!query) {
+    return suggestions;
+  }
+
+  const lowerQuery = query.toLowerCase();
+  return suggestions.filter(
+    (suggestion) =>
+      suggestion.name.toLowerCase().includes(lowerQuery) ||
+      suggestion.description.toLowerCase().includes(lowerQuery),
+  );
 }
 
 /**

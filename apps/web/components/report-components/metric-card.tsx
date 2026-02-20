@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useResolvedValue } from '@/hooks/use-resolved-value';
 
 export type MetricCardProps = {
   label: string;
@@ -59,11 +60,20 @@ export const MetricCard: ComponentConfig<MetricCardProps> = {
     variant,
     pageBreakBehavior,
   }) => {
+    const resolvedLabel = useResolvedValue(label);
+    const resolvedValue = useResolvedValue(value);
+    const resolvedSm1Label = useResolvedValue(subMetric1Label);
+    const resolvedSm1Value = useResolvedValue(subMetric1Value);
+    const resolvedSm2Label = useResolvedValue(subMetric2Label);
+    const resolvedSm2Value = useResolvedValue(subMetric2Value);
+    const resolvedSm3Label = useResolvedValue(subMetric3Label);
+    const resolvedSm3Value = useResolvedValue(subMetric3Value);
+
     // Filter out empty sub-metrics
     const subMetrics = [
-      { label: subMetric1Label, value: subMetric1Value },
-      { label: subMetric2Label, value: subMetric2Value },
-      { label: subMetric3Label, value: subMetric3Value },
+      { label: resolvedSm1Label, value: resolvedSm1Value },
+      { label: resolvedSm2Label, value: resolvedSm2Value },
+      { label: resolvedSm3Label, value: resolvedSm3Value },
     ].filter((metric) => metric.label || metric.value);
 
     const containerStyle: React.CSSProperties = {
@@ -118,8 +128,8 @@ export const MetricCard: ComponentConfig<MetricCardProps> = {
 
     return (
       <div style={containerStyle}>
-        <div style={labelStyle}>{label}</div>
-        <div style={valueStyle}>{value}</div>
+        <div style={labelStyle}>{resolvedLabel}</div>
+        <div style={valueStyle}>{resolvedValue}</div>
         {subMetrics.length > 0 && (
           <div style={subMetricsContainerStyle}>
             {subMetrics.map((metric, index) => (

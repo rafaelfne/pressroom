@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useResolvedValue } from '@/hooks/use-resolved-value';
 import {
   BarChart,
   Bar,
@@ -338,7 +339,10 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     };
 
     // Render title if provided
-    const titleElement = title ? (
+    const resolvedTitle = useResolvedValue(title);
+    const resolvedSubtitle = useResolvedValue(subtitle);
+    const resolvedCenterLabel = useResolvedValue(centerLabel);
+    const titleElement = resolvedTitle ? (
       <h3
         style={{
           margin: '0 0 4px 0',
@@ -347,12 +351,12 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
           color: '#111827',
         }}
       >
-        {title}
+        {resolvedTitle}
       </h3>
     ) : null;
 
     // Render subtitle if provided
-    const subtitleElement = subtitle ? (
+    const subtitleElement = resolvedSubtitle ? (
       <p
         style={{
           margin: '0 0 12px 0',
@@ -361,7 +365,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
           color: '#6b7280',
         }}
       >
-        {subtitle}
+        {resolvedSubtitle}
       </p>
     ) : null;
 
@@ -549,7 +553,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
             {shouldShowTooltip && <Tooltip />}
             {shouldShowLegend && <Legend />}
           </PieChart>
-          {chartType === 'donut' && centerLabel && (
+          {chartType === 'donut' && resolvedCenterLabel && (
             <div
               style={{
                 position: 'absolute',
@@ -563,7 +567,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
                 pointerEvents: 'none',
               }}
             >
-              {centerLabel}
+              {resolvedCenterLabel}
             </div>
           )}
         </div>

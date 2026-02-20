@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useResolvedValue } from '@/hooks/use-resolved-value';
 
 export type EditorialCardProps = {
   title: string;
@@ -20,6 +21,8 @@ export const EditorialCard: ComponentConfig<EditorialCardProps> = {
     pageBreakBehavior: 'auto',
   },
   render: ({ title, description, pageBreakBehavior }) => {
+    const resolvedTitle = useResolvedValue(title);
+    const resolvedDescription = useResolvedValue(description);
     const containerStyle: React.CSSProperties = {
       padding: '1.5rem',
       borderRadius: '0.5rem',
@@ -43,8 +46,8 @@ export const EditorialCard: ComponentConfig<EditorialCardProps> = {
 
     return (
       <div style={containerStyle}>
-        <div style={titleStyle}>{title}</div>
-        <div style={descriptionStyle}>{description}</div>
+        <div style={titleStyle}>{resolvedTitle}</div>
+        <div style={descriptionStyle}>{resolvedDescription}</div>
       </div>
     );
   },

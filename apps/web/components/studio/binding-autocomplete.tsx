@@ -6,8 +6,11 @@ import {
   filterSuggestions,
   getFunctionSuggestions,
   filterFunctionSuggestions,
+  getPipeSuggestions,
+  filterPipeSuggestions,
   type PathSuggestion,
   type FunctionSuggestion,
+  type PipeSuggestion,
 } from '@/lib/binding/suggest-paths';
 
 export interface BindingAutocompleteProps {
@@ -21,7 +24,7 @@ export interface BindingAutocompleteProps {
 type SuggestionItem =
   | { type: 'path'; suggestion: PathSuggestion }
   | { type: 'function'; suggestion: FunctionSuggestion }
-  | { type: 'pipe'; suggestion: FunctionSuggestion };
+  | { type: 'pipe'; suggestion: PipeSuggestion };
 
 export function BindingAutocomplete({
   value,
@@ -51,6 +54,11 @@ export function BindingAutocomplete({
   // Get static function suggestions (memoized)
   const functionSuggestions = useMemo(() => {
     return getFunctionSuggestions();
+  }, []);
+
+  // Get pipe-specific suggestions (memoized) — uses pipe syntax with colon args
+  const pipeSuggestions = useMemo(() => {
+    return getPipeSuggestions();
   }, []);
 
   // Detect binding context and filter suggestions
@@ -89,10 +97,10 @@ export function BindingAutocomplete({
       let items: SuggestionItem[] = [];
 
       if (pipeMatch) {
-        // User is typing after a pipe - show function suggestions for pipe syntax
+        // User is typing after a pipe - show pipe-specific suggestions with pipe syntax
         const partial = pipeMatch[1];
-        const filtered = filterFunctionSuggestions(
-          functionSuggestions,
+        const filtered = filterPipeSuggestions(
+          pipeSuggestions,
           partial
         );
         items = filtered.map((suggestion) => ({
@@ -126,7 +134,7 @@ export function BindingAutocomplete({
       setShowSuggestions(limitedItems.length > 0);
       setSelectedIndex(0);
     },
-    [pathSuggestions, functionSuggestions]
+    [pathSuggestions, functionSuggestions, pipeSuggestions]
   );
 
   // Debounced update
@@ -162,6 +170,7 @@ export function BindingAutocomplete({
   ) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
     const newPosition = target.selectionStart ?? value.length;
+    selectionRef.current = newPosition;
     setCursorPosition(newPosition);
     debouncedUpdate(value, newPosition);
   };
@@ -174,11 +183,12 @@ export function BindingAutocomplete({
 
       if (item.type === 'pipe') {
         // For pipe suggestions, replace the partial text after the last |
+        // and insert the full pipe expression (e.g. "currency:'BRL'")
         const pipeMatch = textBeforeCursor.match(/^([\s\S]*\|\s*)\w*$/);
         if (!pipeMatch) return;
 
         const textBeforePipePartial = pipeMatch[1];
-        const insertText = item.suggestion.name;
+        const insertText = item.suggestion.insertText;
         const newValue = textBeforePipePartial + insertText + textAfterCursor;
         const newCursorPosition = textBeforePipePartial.length + insertText.length;
 
@@ -305,11 +315,19 @@ export function BindingAutocomplete({
     };
   }, []);
 
-  // Restore cursor position after React re-renders the controlled input
+  // Restore cursor position after React re-renders the controlled input.
+  // We intentionally do NOT clear selectionRef after restoration:
+  // Puck may trigger cascading re-renders, and each one resets the
+  // controlled input value which moves the cursor to the end.
+  // By keeping the ref, every subsequent render also restores the cursor.
+  // The ref is naturally updated on the next user interaction (typing, click, arrow keys).
   useLayoutEffect(() => {
-    if (selectionRef.current !== null && inputRef.current) {
+    if (
+      selectionRef.current !== null &&
+      inputRef.current &&
+      document.activeElement === inputRef.current
+    ) {
       inputRef.current.setSelectionRange(selectionRef.current, selectionRef.current);
-      selectionRef.current = null;
     }
   });
 
@@ -383,8 +401,8 @@ export function BindingAutocomplete({
               }
               onClick={() => handleSuggestionClick(item, index)}
               className={`cursor-pointer px-3 py-2 text-sm ${index === selectedIndex
-                  ? 'bg-blue-50 text-blue-900'
-                  : 'text-gray-900 hover:bg-gray-50'
+                ? 'bg-blue-50 text-blue-900'
+                : 'text-gray-900 hover:bg-gray-50'
                 }`}
               data-testid="suggestion-item"
             >

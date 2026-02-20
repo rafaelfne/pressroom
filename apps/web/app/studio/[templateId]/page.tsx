@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Puck, createUsePuck, type Data } from '@puckeditor/core';
 import '@puckeditor/core/puck.css';
@@ -610,6 +610,25 @@ function StudioContent({
 }) {
   const canvasWorkspaceRef = useRef<HTMLDivElement>(null);
 
+  const fieldTypes = useMemo(
+    () => ({
+      text: ({ value, onChange }: { value: unknown; onChange: (val: string) => void }) => (
+        <BindingFieldOverride
+          value={value as string ?? ''}
+          onChange={onChange}
+        />
+      ),
+      textarea: ({ value, onChange }: { value: unknown; onChange: (val: string) => void }) => (
+        <BindingFieldOverride
+          value={value as string ?? ''}
+          onChange={onChange}
+          multiline
+        />
+      ),
+    }),
+    [],
+  );
+
   return (
     <div className="flex h-screen flex-col" data-testid="studio-editor">
       <Toaster position="top-right" richColors />
@@ -684,21 +703,7 @@ function StudioContent({
                     {children}
                   </RightPanel>
                 ),
-                fieldTypes: {
-                  text: ({ value, onChange }) => (
-                    <BindingFieldOverride
-                      value={value as string ?? ''}
-                      onChange={onChange}
-                    />
-                  ),
-                  textarea: ({ value, onChange }) => (
-                    <BindingFieldOverride
-                      value={value as string ?? ''}
-                      onChange={onChange}
-                      multiline
-                    />
-                  ),
-                },
+                fieldTypes,
               }}
             />
             </SampleDataProvider>
