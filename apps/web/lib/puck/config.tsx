@@ -20,6 +20,7 @@ import { EditorialStack, type EditorialStackProps } from '@/components/report-co
 import { Repeater, type RepeaterProps } from '@/components/report-components/repeater';
 import { ConditionalBlock, type ConditionalBlockProps } from '@/components/report-components/conditional-block';
 import { withBindingResolution } from '@/lib/puck/with-binding-resolution';
+import { RichTextEditor } from '@/components/studio/rich-text-editor';
 
 type PuckComponents = {
   TextBlock: TextBlockProps;
@@ -68,7 +69,19 @@ export const puckConfig: Config<PuckComponents> = {
     },
   },
   components: {
-    TextBlock: withBindingResolution<TextBlockProps>(TextBlock),
+    TextBlock: {
+      ...withBindingResolution<TextBlockProps>(TextBlock),
+      fields: {
+        ...TextBlock.fields,
+        text: {
+          type: 'custom' as const,
+          label: 'Text',
+          render: ({ value, onChange }: { value: string; onChange: (val: string) => void }) => (
+            <RichTextEditor value={value} onChange={onChange} />
+          ),
+        },
+      },
+    },
     HeadingBlock: withBindingResolution<HeadingBlockProps>(HeadingBlock),
     ImageBlock,
     Spacer,
