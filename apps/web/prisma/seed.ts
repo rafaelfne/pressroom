@@ -6,28 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // Create test organizations
-  const org1 = await prisma.organization.upsert({
-    where: { slug: 'b2-advisory' },
-    update: {},
-    create: {
-      name: 'B2 Advisory',
-      slug: 'b2-advisory',
-    },
-  });
-
-  const org2 = await prisma.organization.upsert({
-    where: { slug: 'serenitta' },
-    update: {},
-    create: {
-      name: 'Serenittà',
-      slug: 'serenitta',
-    },
-  });
-
-  console.log('✅ Created organizations:', org1.name, org2.name);
-
-  // Create test users
+  // Create test users first (needed for team creation)
   const hashedPassword = await hash('password123', 10);
 
   const user1 = await prisma.user.upsert({
@@ -62,16 +41,76 @@ async function main() {
 
   console.log('✅ Created users:', user1.email, user2.email);
 
-  // Create templates
+  // Create team
+  const team = await prisma.team.upsert({
+    where: { slug: 'admin-team' },
+    update: {},
+    create: {
+      name: "Admin's Team",
+      slug: 'admin-team',
+    },
+  });
+
+  console.log('✅ Created team:', team.name);
+
+  // Add users as team members
+  await prisma.teamMember.upsert({
+    where: { teamId_userId: { teamId: team.id, userId: user1.id } },
+    update: {},
+    create: {
+      teamId: team.id,
+      userId: user1.id,
+      role: 'owner',
+    },
+  });
+
+  await prisma.teamMember.upsert({
+    where: { teamId_userId: { teamId: team.id, userId: user2.id } },
+    update: {},
+    create: {
+      teamId: team.id,
+      userId: user2.id,
+      role: 'member',
+      invitedBy: user1.id,
+    },
+  });
+
+  console.log('✅ Added team members');
+
+  // Create test organizations (now belonging to the team)
+  const org1 = await prisma.organization.upsert({
+    where: { slug: 'b2-advisory' },
+    update: { teamId: team.id },
+    create: {
+      name: 'B2 Advisory',
+      slug: 'b2-advisory',
+      teamId: team.id,
+    },
+  });
+
+  const org2 = await prisma.organization.upsert({
+    where: { slug: 'serenitta' },
+    update: { teamId: team.id },
+    create: {
+      name: 'Serenittà',
+      slug: 'serenitta',
+      teamId: team.id,
+    },
+  });
+
+  console.log('✅ Created organizations:', org1.name, org2.name);
+
+  // Create templates (now belonging to the team)
   const template1 = await prisma.template.upsert({
     where: { id: 'template-relatorio-mensal' },
-    update: {},
+    update: { teamId: team.id },
     create: {
       id: 'template-relatorio-mensal',
       name: 'Relatório Mensal',
       description: 'Monthly report template',
       organizationId: org1.id,
       ownerId: user1.id,
+      teamId: team.id,
       templateData: {
         root: {},
         content: [],
@@ -82,13 +121,14 @@ async function main() {
 
   const template2 = await prisma.template.upsert({
     where: { id: 'template-portfolio-review' },
-    update: {},
+    update: { teamId: team.id },
     create: {
       id: 'template-portfolio-review',
       name: 'Portfolio Review',
       description: 'Quarterly portfolio review template',
       organizationId: org1.id,
       ownerId: user1.id,
+      teamId: team.id,
       templateData: {
         root: {},
         content: [],
@@ -99,13 +139,14 @@ async function main() {
 
   const template3 = await prisma.template.upsert({
     where: { id: 'template-serenitta-report' },
-    update: {},
+    update: { teamId: team.id },
     create: {
       id: 'template-serenitta-report',
       name: 'Relatório Mensal',
       description: 'Serenittà monthly report',
       organizationId: org2.id,
       ownerId: user1.id,
+      teamId: team.id,
       templateData: {
         root: {},
         content: [],

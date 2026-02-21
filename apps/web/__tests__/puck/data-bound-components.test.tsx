@@ -303,7 +303,7 @@ describe('Data-bound Components', () => {
 
     it('renders fallback text when condition met and no renderDropZone', () => {
       const Component = puckConfig.components.ConditionalBlock.render;
-      const noPuckContext = { ...mockPuckContext, renderDropZone: null };
+      const noPuckContext = { ...mockPuckContext, renderDropZone: null } as unknown as typeof mockPuckContext;
       render(
         <Component {...defaults} id="test" puck={noPuckContext} expression="hello" operator="notEmpty" />,
       );

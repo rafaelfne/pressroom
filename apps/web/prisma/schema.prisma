@@ -18,6 +18,8 @@ model Organization {
   fontFamily     String?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
+  teamId         String
+  team           Team       @relation(fields: [teamId], references: [id])
   templates      Template[]
 
   @@map("organizations")
@@ -41,6 +43,8 @@ model User {
   ownedTemplates   Template[]       @relation("TemplateOwner")
   // Templates shared with this user
   templateAccesses TemplateAccess[] @relation("UserAccess")
+  // Team memberships
+  teamMemberships  TeamMember[]
 
   @@map("users")
 }
@@ -86,6 +90,8 @@ model Template {
   organization       Organization? @relation(fields: [organizationId], references: [id])
   ownerId            String?
   owner              User?         @relation("TemplateOwner", fields: [ownerId], references: [id])
+  teamId             String?
+  team               Team?         @relation(fields: [teamId], references: [id])
   version            Int           @default(1)
   tags               String[]      @default([])
   createdAt          DateTime      @default(now())
@@ -95,6 +101,7 @@ model Template {
 
   @@index([organizationId])
   @@index([ownerId])
+  @@index([teamId])
   @@map("templates")
 }
 
@@ -110,4 +117,48 @@ model TemplateAccess {
 
   @@unique([templateId, userId])
   @@map("template_accesses")
+}
+
+model Team {
+  id            String         @id @default(cuid())
+  name          String
+  slug          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  members       TeamMember[]
+  organizations Organization[]
+  templates     Template[]
+  invites       Invite[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      String   @default("member")
+  invitedBy String?
+  joinedAt  DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  teamId    String
+  email     String
+  invitedBy String
+  token     String   @unique
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("invites")
 }

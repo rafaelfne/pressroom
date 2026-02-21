@@ -589,14 +589,14 @@ describe('DataTable component', () => {
       const headerCells = container.querySelectorAll('thead th');
       expect(headerCells[0]).toHaveStyle({ fontSize: '20px' });
       // Other headers should not have per-column override
-      expect(headerCells[1]?.style.fontSize).not.toBe('20px');
+      expect((headerCells[1] as HTMLElement)?.style.fontSize).not.toBe('20px');
     });
 
     it('does not override header fontSize when headerFontSize is empty', () => {
       const { container } = renderWithData();
       const headerCells = container.querySelectorAll('thead th');
       // Should not have per-column font size set (uses global headerFontSize or default)
-      expect(headerCells[0]?.style.fontSize).toBe('');
+      expect((headerCells[0] as HTMLElement)?.style.fontSize).toBe('');
     });
 
     it('applies per-column padding', () => {

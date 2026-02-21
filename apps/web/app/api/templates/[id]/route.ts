@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { templateUpdateSchema } from '@/lib/validation/template-schemas';
 import type { Prisma } from '@prisma/client';
+
+const templatePatchSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).nullable().optional(),
+  organizationId: z.string().nullable().optional(),
+});
 
 export async function GET(
   _request: NextRequest,
@@ -114,6 +121,76 @@ export async function PUT(
     return NextResponse.json(template);
   } catch (error) {
     console.error('[API] PUT /api/templates/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await params;
+
+  try {
+    const body: unknown = await request.json();
+    const parsed = templatePatchSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+
+    const existing = await prisma.template.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        OR: [
+          { ownerId: session.user.id },
+          { accesses: { some: { userId: session.user.id } } },
+        ],
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+    }
+
+    const updateData: Prisma.TemplateUpdateInput = {};
+
+    if (parsed.data.name !== undefined) {
+      updateData.name = parsed.data.name;
+    }
+
+    if (parsed.data.description !== undefined) {
+      updateData.description = parsed.data.description;
+    }
+
+    if (parsed.data.organizationId !== undefined) {
+      if (parsed.data.organizationId === null) {
+        updateData.organization = { disconnect: true };
+      } else {
+        updateData.organization = { connect: { id: parsed.data.organizationId } };
+      }
+    }
+
+    const template = await prisma.template.update({
+      where: { id },
+      data: updateData,
+      include: {
+        organization: { select: { id: true, name: true } },
+      },
+    });
+
+    return NextResponse.json(template);
+  } catch (error) {
+    console.error('[API] PATCH /api/templates/[id] error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -86,3 +86,45 @@ export async function PUT(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/organizations/[id] — Delete an organization
+ */
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await params;
+
+  try {
+    const organization = await prisma.organization.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { templates: { where: { deletedAt: null } } } },
+      },
+    });
+
+    if (!organization) {
+      return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+    }
+
+    if (organization._count.templates > 0) {
+      return NextResponse.json(
+        { error: 'Cannot delete organization with templates. Move or delete templates first.' },
+        { status: 400 },
+      );
+    }
+
+    await prisma.organization.delete({ where: { id } });
+
+    return NextResponse.json({ message: 'Organization deleted' });
+  } catch (error) {
+    console.error('[API] DELETE /api/organizations/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
