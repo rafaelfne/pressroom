@@ -7,6 +7,7 @@ export type DividerProps = {
   thickness: string;
   lineStyle: 'solid' | 'dashed' | 'dotted';
   pageBreakBehavior: PageBreakBehavior;
+  visibilityCondition: string;
 };
 
 export const Divider: ComponentConfig<DividerProps> = {
@@ -32,6 +33,10 @@ export const Divider: ComponentConfig<DividerProps> = {
       ],
     },
     pageBreakBehavior: pageBreakField,
+    visibilityCondition: {
+      type: 'textarea',
+      label: 'Visibility Condition (JSON)',
+    },
   },
   defaultProps: {
     orientation: 'horizontal',
@@ -39,6 +44,7 @@ export const Divider: ComponentConfig<DividerProps> = {
     thickness: '1',
     lineStyle: 'solid',
     pageBreakBehavior: 'auto',
+    visibilityCondition: '',
   },
   render: ({ orientation, color, thickness, lineStyle, pageBreakBehavior }) => {
     if (orientation === 'vertical') {

@@ -2,6 +2,8 @@ import type { ComponentConfig } from '@puckeditor/core';
 import { InheritedStylesProvider } from '@/contexts/inherited-styles-context';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
+const DEFAULT_PADDING = '0';
+
 export type FlexBoxProps = {
   direction: 'row' | 'column' | 'row-reverse' | 'column-reverse';
   wrap: 'nowrap' | 'wrap' | 'wrap-reverse';
@@ -9,6 +11,10 @@ export type FlexBoxProps = {
   alignItems: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline';
   gap: string;
   padding: string;
+  paddingTop: string;
+  paddingRight: string;
+  paddingBottom: string;
+  paddingLeft: string;
   backgroundColor: string;
   borderWidth: string;
   borderColor: string;
@@ -18,6 +24,7 @@ export type FlexBoxProps = {
   fontSize: string;
   fontFamily: string;
   pageBreakBehavior: PageBreakBehavior;
+  visibilityCondition: string;
 };
 
 export const FlexBox: ComponentConfig<FlexBoxProps> = {
@@ -73,6 +80,22 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
       type: 'text',
       label: 'Padding (px)',
     },
+    paddingTop: {
+      type: 'text',
+      label: 'Padding Top (px)',
+    },
+    paddingRight: {
+      type: 'text',
+      label: 'Padding Right (px)',
+    },
+    paddingBottom: {
+      type: 'text',
+      label: 'Padding Bottom (px)',
+    },
+    paddingLeft: {
+      type: 'text',
+      label: 'Padding Left (px)',
+    },
     backgroundColor: {
       type: 'text',
       label: 'Background Color',
@@ -106,6 +129,10 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
       label: 'Font Family',
     },
     pageBreakBehavior: pageBreakField,
+    visibilityCondition: {
+      type: 'textarea',
+      label: 'Visibility Condition (JSON)',
+    },
   },
   defaultProps: {
     direction: 'column',
@@ -113,7 +140,11 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
     justifyContent: 'flex-start',
     alignItems: 'stretch',
     gap: '0',
-    padding: '0',
+    padding: DEFAULT_PADDING,
+    paddingTop: '',
+    paddingRight: '',
+    paddingBottom: '',
+    paddingLeft: '',
     backgroundColor: 'transparent',
     borderWidth: '0',
     borderColor: '#e5e7eb',
@@ -123,6 +154,7 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
     fontSize: '',
     fontFamily: '',
     pageBreakBehavior: 'auto',
+    visibilityCondition: '',
   },
   render: ({
     direction,
@@ -131,6 +163,10 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
     alignItems,
     gap,
     padding,
+    paddingTop,
+    paddingRight,
+    paddingBottom,
+    paddingLeft,
     backgroundColor,
     borderWidth,
     borderColor,
@@ -151,6 +187,16 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
 
     const content = puck.renderDropZone({ zone: `${id}-content` });
 
+    // Resolve padding: individual values override the "all sides" value
+    let finalPadding: string;
+    if (paddingTop || paddingRight || paddingBottom || paddingLeft) {
+      // At least one individual padding is set - use CSS shorthand
+      finalPadding = `${paddingTop || '0'}px ${paddingRight || '0'}px ${paddingBottom || '0'}px ${paddingLeft || '0'}px`;
+    } else {
+      // Use the "all sides" padding value
+      finalPadding = `${padding}px`;
+    }
+
     return (
       <div
         style={{
@@ -160,7 +206,7 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
           justifyContent,
           alignItems,
           gap: `${gap}px`,
-          padding: `${padding}px`,
+          padding: finalPadding,
           backgroundColor,
           borderWidth: `${borderWidth}px`,
           borderStyle: borderWidth !== '0' ? 'solid' : 'none',

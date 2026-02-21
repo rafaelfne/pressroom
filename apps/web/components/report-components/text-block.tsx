@@ -1,5 +1,8 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useInheritedStyles } from '@/contexts/inherited-styles-context';
 
 /**
  * Popular Google Fonts available for selection.
@@ -34,6 +37,9 @@ export function googleFontUrl(family: string): string {
   return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:ital,wght@0,100..900;1,100..900&display=swap`;
 }
 
+const DEFAULT_TEXT_COLOR = '#000000';
+const DEFAULT_FONT_SIZE = '1rem';
+
 export type TextBlockProps = {
   text: string;
   fontSize: string;
@@ -49,6 +55,11 @@ export type TextBlockProps = {
   bold: string;
   italic: string;
   pageBreakBehavior: PageBreakBehavior;
+  visibilityCondition: string;
+  marginTop: string;
+  marginRight: string;
+  marginBottom: string;
+  marginLeft: string;
 };
 
 export const TextBlock: ComponentConfig<TextBlockProps> = {
@@ -146,55 +157,95 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
       ],
     },
     pageBreakBehavior: pageBreakField,
+    visibilityCondition: {
+      type: 'textarea',
+      label: 'Visibility Condition (JSON)',
+    },
+    marginTop: {
+      type: 'text',
+      label: 'Margin Top',
+    },
+    marginRight: {
+      type: 'text',
+      label: 'Margin Right',
+    },
+    marginBottom: {
+      type: 'text',
+      label: 'Margin Bottom',
+    },
+    marginLeft: {
+      type: 'text',
+      label: 'Margin Left',
+    },
   },
   defaultProps: {
     text: 'Enter your text here',
     fontFamily: '',
     customFontFamily: '',
-    fontSize: '1rem',
+    fontSize: DEFAULT_FONT_SIZE,
     customFontSize: 16,
     lineHeight: '1.5',
     customLineHeight: 1.5,
     letterSpacing: '0em',
     customLetterSpacing: 0,
-    color: '#000000',
+    color: DEFAULT_TEXT_COLOR,
     alignment: 'left',
     bold: 'false',
     italic: 'false',
     pageBreakBehavior: 'auto',
+    visibilityCondition: '',
+    marginTop: '0',
+    marginRight: '0',
+    marginBottom: '0',
+    marginLeft: '0',
   },
-  render: ({ text, fontSize, customFontSize, lineHeight, customLineHeight, letterSpacing, customLetterSpacing, fontFamily, customFontFamily, color, alignment, bold, italic, pageBreakBehavior }) => {
-    const resolvedFontSize = fontSize === 'custom' ? `${customFontSize}px` : fontSize;
-    const resolvedLineHeight = lineHeight === 'custom' ? customLineHeight : Number(lineHeight);
-    const resolvedLetterSpacing = letterSpacing === 'custom' ? `${customLetterSpacing}px` : letterSpacing;
-    const resolvedFontFamily = fontFamily === 'custom' ? customFontFamily : fontFamily;
-
-    return (
-      <>
-        {resolvedFontFamily && (
-          <link
-            rel="stylesheet"
-            href={googleFontUrl(resolvedFontFamily)}
-          />
-        )}
-        <div
-          style={{
-            fontSize: resolvedFontSize,
-            lineHeight: resolvedLineHeight,
-            letterSpacing: resolvedLetterSpacing,
-            fontFamily: resolvedFontFamily ? `"${resolvedFontFamily}", sans-serif` : undefined,
-            color,
-            textAlign: alignment,
-            fontWeight: bold === 'true' ? 'bold' : 'normal',
-            fontStyle: italic === 'true' ? 'italic' : 'normal',
-            overflowWrap: 'break-word',
-            wordBreak: 'break-word',
-            ...getPageBreakStyle(pageBreakBehavior),
-          }}
-          className="p-2"
-          dangerouslySetInnerHTML={{ __html: text }}
-        />
-      </>
-    );
-  },
+  render: (props) => <TextBlockRender {...props} />,
 };
+
+// Wrapper component to use hooks
+function TextBlockRender({ text, fontSize, customFontSize, lineHeight, customLineHeight, letterSpacing, customLetterSpacing, fontFamily, customFontFamily, color, alignment, bold, italic, pageBreakBehavior, marginTop, marginRight, marginBottom, marginLeft }: Omit<TextBlockProps, 'visibilityCondition'>) {
+  const resolvedFontSize = fontSize === 'custom' ? `${customFontSize}px` : fontSize;
+  const resolvedLineHeight = lineHeight === 'custom' ? customLineHeight : Number(lineHeight);
+  const resolvedLetterSpacing = letterSpacing === 'custom' ? `${customLetterSpacing}px` : letterSpacing;
+  const resolvedFontFamily = fontFamily === 'custom' ? customFontFamily : fontFamily;
+
+  // Get inherited styles from context
+  const inherited = useInheritedStyles();
+
+  // Use inherited values as fallback when own value is the default
+  const finalColor = color !== DEFAULT_TEXT_COLOR ? color : (inherited.color || color);
+  const finalFontFamily = resolvedFontFamily ? resolvedFontFamily : (inherited.fontFamily || undefined);
+  const finalFontSize = fontSize !== DEFAULT_FONT_SIZE ? resolvedFontSize : (inherited.fontSize || resolvedFontSize);
+
+  return (
+    <>
+      {finalFontFamily && (
+        <link
+          rel="stylesheet"
+          href={googleFontUrl(finalFontFamily)}
+        />
+      )}
+      <div
+        style={{
+          fontSize: finalFontSize,
+          lineHeight: resolvedLineHeight,
+          letterSpacing: resolvedLetterSpacing,
+          fontFamily: finalFontFamily ? `"${finalFontFamily}", sans-serif` : undefined,
+          color: finalColor,
+          textAlign: alignment,
+          fontWeight: bold === 'true' ? 'bold' : 'normal',
+          fontStyle: italic === 'true' ? 'italic' : 'normal',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word',
+          marginTop,
+          marginRight,
+          marginBottom,
+          marginLeft,
+          ...getPageBreakStyle(pageBreakBehavior),
+        }}
+        className="p-2"
+        dangerouslySetInnerHTML={{ __html: text }}
+      />
+    </>
+  );
+}
