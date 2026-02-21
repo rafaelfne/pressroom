@@ -2,6 +2,8 @@ import type { ComponentConfig } from '@puckeditor/core';
 import { InheritedStylesProvider } from '@/contexts/inherited-styles-context';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 
+const DEFAULT_PADDING = '0';
+
 export type FlexBoxProps = {
   direction: 'row' | 'column' | 'row-reverse' | 'column-reverse';
   wrap: 'nowrap' | 'wrap' | 'wrap-reverse';
@@ -138,7 +140,7 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
     justifyContent: 'flex-start',
     alignItems: 'stretch',
     gap: '0',
-    padding: '0',
+    padding: DEFAULT_PADDING,
     paddingTop: '',
     paddingRight: '',
     paddingBottom: '',

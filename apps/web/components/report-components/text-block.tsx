@@ -37,6 +37,9 @@ export function googleFontUrl(family: string): string {
   return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:ital,wght@0,100..900;1,100..900&display=swap`;
 }
 
+const DEFAULT_TEXT_COLOR = '#000000';
+const DEFAULT_FONT_SIZE = '1rem';
+
 export type TextBlockProps = {
   text: string;
   fontSize: string;
@@ -179,13 +182,13 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
     text: 'Enter your text here',
     fontFamily: '',
     customFontFamily: '',
-    fontSize: '1rem',
+    fontSize: DEFAULT_FONT_SIZE,
     customFontSize: 16,
     lineHeight: '1.5',
     customLineHeight: 1.5,
     letterSpacing: '0em',
     customLetterSpacing: 0,
-    color: '#000000',
+    color: DEFAULT_TEXT_COLOR,
     alignment: 'left',
     bold: 'false',
     italic: 'false',
@@ -210,9 +213,9 @@ function TextBlockRender({ text, fontSize, customFontSize, lineHeight, customLin
   const inherited = useInheritedStyles();
 
   // Use inherited values as fallback when own value is the default
-  const finalColor = color !== '#000000' ? color : (inherited.color || color);
+  const finalColor = color !== DEFAULT_TEXT_COLOR ? color : (inherited.color || color);
   const finalFontFamily = resolvedFontFamily ? resolvedFontFamily : (inherited.fontFamily || undefined);
-  const finalFontSize = fontSize !== '1rem' ? resolvedFontSize : (inherited.fontSize || resolvedFontSize);
+  const finalFontSize = fontSize !== DEFAULT_FONT_SIZE ? resolvedFontSize : (inherited.fontSize || resolvedFontSize);
 
   return (
     <>

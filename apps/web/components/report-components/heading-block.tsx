@@ -4,6 +4,8 @@ import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 import { useInheritedStyles } from '@/contexts/inherited-styles-context';
 
+const DEFAULT_HEADING_COLOR = '#000000';
+
 export type HeadingBlockProps = {
   text: string;
   level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
@@ -60,7 +62,7 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
   defaultProps: {
     text: 'Heading',
     level: 'h2',
-    color: '#000000',
+    color: DEFAULT_HEADING_COLOR,
     fontFamily: '',
     pageBreakBehavior: 'auto',
     visibilityCondition: '',
@@ -80,7 +82,7 @@ function HeadingBlockRender({ text, level, color, fontFamily, pageBreakBehavior,
   const inherited = useInheritedStyles();
 
   // Use inherited values as fallback when own value is the default
-  const finalColor = color !== '#000000' ? color : (inherited.color || color);
+  const finalColor = color !== DEFAULT_HEADING_COLOR ? color : (inherited.color || color);
   const finalFontFamily = fontFamily ? fontFamily : (inherited.fontFamily || undefined);
 
   return (
