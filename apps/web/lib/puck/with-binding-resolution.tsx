@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { ComponentConfig } from '@puckeditor/core';
 import { useSampleData } from '@/contexts/sample-data-context';
 import { resolveBindings } from '@/lib/binding';
 
@@ -18,12 +17,18 @@ import { resolveBindings } from '@/lib/binding';
  *   - Studio: wrapped by this HOC → bindings resolved via sample data
  *   - PDF renderer: bindings already resolved by render-report.ts pipeline
  */
-export function withBindingResolution<P extends Record<string, unknown>>(
-    componentConfig: ComponentConfig<P>,
-): ComponentConfig<P> {
+
+// Structural type compatible with any Puck ComponentConfig<T> without
+// triggering Puck's self-referential LeftOrExactRight generic constraint.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type BindableComponentConfig = { render: (...args: any[]) => any };
+
+export function withBindingResolution<T extends BindableComponentConfig>(
+    componentConfig: T,
+): T {
     const OriginalRender = componentConfig.render;
 
-    const WrappedRender: ComponentConfig<P>['render'] = (props) => {
+    const WrappedRender = (props: Record<string, unknown>) => {
         const sampleData = useSampleData();
 
         const resolvedProps = useMemo(() => {
@@ -41,5 +46,5 @@ export function withBindingResolution<P extends Record<string, unknown>>(
     return {
         ...componentConfig,
         render: WrappedRender,
-    };
+    } as T;
 }
