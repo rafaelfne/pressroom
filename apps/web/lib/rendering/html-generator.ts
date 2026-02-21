@@ -1,4 +1,5 @@
 import type { Data, Config } from '@puckeditor/core';
+import { googleFontUrl } from '@/components/report-components/text-block';
 
 export interface HtmlGeneratorOptions {
   title?: string;
@@ -76,7 +77,10 @@ export async function generateHtml(
 
   const bodyHtml = renderPuckData(templateData, serverPuckConfig, createElement, renderToStaticMarkup);
 
-  return buildHtmlDocument(bodyHtml, title, cssStyles);
+  const fonts = collectGoogleFonts(templateData);
+  const fontLinks = fonts.map(f => `<link rel="stylesheet" href="${escapeHtml(googleFontUrl(f))}" />`).join('\n  ');
+
+  return buildHtmlDocument(bodyHtml, title, cssStyles, fontLinks);
 }
 
 /**
@@ -109,7 +113,43 @@ export async function generateMultiPageHtml(
     })
     .join('\n');
 
-  return buildHtmlDocument(bodyHtml, title, cssStyles);
+  // Collect Google Fonts from all pages
+  const allFonts = new Set<string>();
+  for (const page of pages) {
+    for (const f of collectGoogleFonts(page)) allFonts.add(f);
+  }
+  const fontLinks = Array.from(allFonts).map(f => `<link rel="stylesheet" href="${escapeHtml(googleFontUrl(f))}" />`).join('\n  ');
+
+  return buildHtmlDocument(bodyHtml, title, cssStyles, fontLinks);
+}
+
+/**
+ * Collect unique Google Font family names from TextBlock components in a Puck data tree.
+ * Walks content and zones recursively.
+ */
+function collectGoogleFonts(data: Data): string[] {
+  const fonts = new Set<string>();
+
+  type ComponentItem = { type: string; props: Record<string, unknown> };
+
+  function walk(items: ComponentItem[]) {
+    for (const item of items) {
+      if (item.type === 'TextBlock' && item.props) {
+        const family = item.props.fontFamily as string | undefined;
+        const customFamily = item.props.customFontFamily as string | undefined;
+        const resolved = family === 'custom' ? customFamily : family;
+        if (resolved) fonts.add(resolved);
+      }
+    }
+  }
+
+  walk((data.content ?? []) as ComponentItem[]);
+  if (data.zones) {
+    for (const zoneItems of Object.values(data.zones)) {
+      walk(zoneItems as ComponentItem[]);
+    }
+  }
+  return Array.from(fonts);
 }
 
 /**
@@ -119,6 +159,7 @@ function buildHtmlDocument(
   bodyHtml: string,
   title: string,
   cssStyles: string,
+  fontLinks: string = '',
 ): string {
   return `<!DOCTYPE html>
 <html lang="en" class="light">
@@ -126,6 +167,7 @@ function buildHtmlDocument(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
+  ${fontLinks}
   <style>
     /* CSS custom properties for theming (F-5.5) */
     :root {
