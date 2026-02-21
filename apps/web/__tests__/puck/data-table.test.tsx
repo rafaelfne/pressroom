@@ -33,7 +33,7 @@ function renderWithData(overrides: Record<string, unknown> = {}) {
   );
 }
 
-describe('DataTable component', () => {
+describe('DataTable component (CSS Grid)', () => {
   afterEach(() => {
     cleanup();
   });
@@ -53,10 +53,10 @@ describe('DataTable component', () => {
       expect(screen.getByText('{{data.items}}')).toBeInTheDocument();
     });
 
-    it('renders table when dataExpression is a resolved array', () => {
+    it('renders grid table when dataExpression is a resolved array', () => {
       const { container } = renderWithData();
-      const table = container.querySelector('table');
-      expect(table).toBeInTheDocument();
+      const grid = container.querySelector('[role="table"]');
+      expect(grid).toBeInTheDocument();
     });
 
     it('shows empty array message when data is empty array', () => {
@@ -96,7 +96,7 @@ describe('DataTable component', () => {
 
     it('renders data rows', () => {
       const { container } = renderWithData();
-      const rows = container.querySelectorAll('tbody tr');
+      const rows = container.querySelectorAll('[data-section="body"] [role="row"]');
       // 5 rows = 2 group headers + 3 data rows
       expect(rows.length).toBe(5);
     });
@@ -107,7 +107,7 @@ describe('DataTable component', () => {
   describe('formatting', () => {
     it('formats currency values via pipe expression', () => {
       const { container } = renderWithData();
-      const cells = Array.from(container.querySelectorAll('td:not([colspan])'));
+      const cells = Array.from(container.querySelectorAll('[role="cell"]:not([data-colspan])'));
       const currencyCells = cells.filter((c) => c.textContent?.includes('R$'));
       expect(currencyCells).toHaveLength(3);
       expect(currencyCells.map((c) => c.textContent?.replace(/\s/g, ' ').trim())).toEqual([
@@ -166,7 +166,8 @@ describe('DataTable component', () => {
         { field: 'value | currency:\'BRL\'', header: 'Value', width: '120px', align: 'right' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
       ];
       const { container } = renderWithData({ dataExpression: data as unknown as string, columns });
-      const valueCells = container.querySelectorAll('tbody td:nth-child(2)');
+      const rows = container.querySelectorAll('[data-section="body"] [role="row"]');
+      const valueCells = Array.from(rows).map(row => row.querySelectorAll('[role="cell"]')[1]);
       // Null/undefined values should render as empty string
       expect(valueCells[0].textContent).toBe('');
       expect(valueCells[1].textContent).toBe('');
@@ -178,19 +179,21 @@ describe('DataTable component', () => {
   describe('zebra striping', () => {
     it('applies zebra striping when enabled', () => {
       const { container } = renderWithData({ striped: 'true' });
-      const rows = container.querySelectorAll('tbody tr');
-      const dataRows = Array.from(rows).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      // Second data row (odd index 1) should have oddRowColor
-      expect(dataRows[1]).toHaveStyle({ backgroundColor: '#f9fafb' });
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      // Second data row (odd index 1) should have oddRowColor on its cells
+      const firstCellOfOddRow = dataRows[1].querySelector('[role="cell"]');
+      expect(firstCellOfOddRow).toHaveStyle({ backgroundColor: '#f9fafb' });
     });
 
     it('does not apply zebra striping when disabled', () => {
       const { container } = renderWithData({ striped: 'false' });
-      const rows = container.querySelectorAll('tbody tr');
-      expect(rows[1]).not.toHaveStyle({ backgroundColor: '#f9fafb' });
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstCellOfSecondRow = dataRows[1].querySelector('[role="cell"]');
+      expect(firstCellOfSecondRow).not.toHaveStyle({ backgroundColor: '#f9fafb' });
     });
   });
 
@@ -202,31 +205,31 @@ describe('DataTable component', () => {
         headerBgColor: '#1e3a5f',
         headerTextColor: '#ffffff',
       });
-      const th = container.querySelector('th');
+      const th = container.querySelector('[role="columnheader"]');
       expect(th).toHaveStyle({ backgroundColor: '#1e3a5f', color: '#ffffff' });
     });
 
     it('applies custom header font size', () => {
       const { container } = renderWithData({ headerFontSize: '16px' });
-      const th = container.querySelector('th');
+      const th = container.querySelector('[role="columnheader"]');
       expect(th).toHaveStyle({ fontSize: '16px' });
     });
 
     it('applies custom header font weight', () => {
       const { container } = renderWithData({ headerFontWeight: '800' });
-      const th = container.querySelector('th');
+      const th = container.querySelector('[role="columnheader"]');
       expect(th).toHaveStyle({ fontWeight: '800' });
     });
 
     it('applies custom header font family', () => {
       const { container } = renderWithData({ headerFontFamily: 'Georgia, serif' });
-      const th = container.querySelector('th');
+      const th = container.querySelector('[role="columnheader"]');
       expect(th).toHaveStyle({ fontFamily: 'Georgia, serif' });
     });
 
     it('applies custom header padding', () => {
       const { container } = renderWithData({ headerPadding: '20px 30px' });
-      const th = container.querySelector('th');
+      const th = container.querySelector('[role="columnheader"]');
       expect(th).toHaveStyle({ padding: '20px 30px' });
     });
 
@@ -235,13 +238,13 @@ describe('DataTable component', () => {
         headerBorderColor: '#ff0000',
         bordered: 'true',
       });
-      const th = container.querySelector('th');
+      const th = container.querySelector('[role="columnheader"]');
       expect(th).toHaveStyle({ borderBottom: '2px solid #ff0000' });
     });
 
     it('applies header text transform', () => {
       const { container } = renderWithData({ headerTextTransform: 'uppercase' });
-      const th = container.querySelector('th');
+      const th = container.querySelector('[role="columnheader"]');
       expect(th).toHaveStyle({ textTransform: 'uppercase' });
     });
   });
@@ -251,51 +254,48 @@ describe('DataTable component', () => {
   describe('density modes', () => {
     it('applies dense mode styles', () => {
       const { container } = renderWithData({ density: 'dense' });
-      const table = container.querySelector('table');
-      expect(table).toHaveStyle({ fontSize: '11px' });
+      const grid = container.querySelector('[role="table"]');
+      expect(grid).toHaveStyle({ fontSize: '11px' });
     });
 
     it('applies compact mode styles', () => {
       const { container } = renderWithData({ density: 'compact' });
-      const table = container.querySelector('table');
-      expect(table).toHaveStyle({ fontSize: '12px' });
+      const grid = container.querySelector('[role="table"]');
+      expect(grid).toHaveStyle({ fontSize: '12px' });
     });
 
     it('applies normal mode styles', () => {
       const { container } = renderWithData({ density: 'normal' });
-      const table = container.querySelector('table');
-      expect(table).toHaveStyle({ fontSize: '14px' });
+      const grid = container.querySelector('[role="table"]');
+      expect(grid).toHaveStyle({ fontSize: '14px' });
     });
 
     it('applies custom density with specified row height', () => {
       const { container } = renderWithData({ density: 'custom', customRowHeight: '40' });
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstCell = dataRows[0].querySelector('td') as HTMLElement;
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstCell = dataRows[0].querySelector('[role="cell"]') as HTMLElement;
       // Custom row height 40px: vPad = max(1, round((40 - 14*1.5)/2)) = max(1, round((40 - 21)/2)) = max(1, 10) = 10
       expect(firstCell).toHaveStyle({ padding: '10px 12px' });
     });
 
     it('applies custom density with small row height', () => {
       const { container } = renderWithData({ density: 'custom', customRowHeight: '20' });
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstCell = dataRows[0].querySelector('td') as HTMLElement;
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstCell = dataRows[0].querySelector('[role="cell"]') as HTMLElement;
       // Custom row height 20px: vPad = max(1, round((20 - 21)/2)) = max(1, round(-0.5)) = max(1, 0) = 1
       expect(firstCell).toHaveStyle({ padding: '1px 12px' });
     });
 
     it('falls back to default 32px when customRowHeight is empty', () => {
       const { container } = renderWithData({ density: 'custom', customRowHeight: '' });
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstCell = dataRows[0].querySelector('td') as HTMLElement;
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstCell = dataRows[0].querySelector('[role="cell"]') as HTMLElement;
       // Default 32px: vPad = max(1, round((32 - 21)/2)) = max(1, round(5.5)) = max(1, 6) = 6
       expect(firstCell).toHaveStyle({ padding: '6px 12px' });
     });
@@ -304,11 +304,11 @@ describe('DataTable component', () => {
   // ── Group headers ──────────────────────────────────────────────────
 
   describe('group headers', () => {
-    it('renders group header rows spanning all columns', () => {
+    it('renders group header rows spanning all columns via grid-column', () => {
       const { container } = renderWithData();
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells.length).toBe(2);
-      expect(groupHeaderCells[0]).toHaveAttribute('colspan', '4');
+      expect(groupHeaderCells[0]).toHaveAttribute('data-colspan', '4');
       expect(groupHeaderCells[0].textContent).toBe('Onshore (R$)');
       expect(groupHeaderCells[1].textContent).toBe('Offshore (USD)');
     });
@@ -318,7 +318,7 @@ describe('DataTable component', () => {
         groupHeaderBgColor: '#1a5632',
         groupHeaderTextColor: '#ffffff',
       });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({
         backgroundColor: '#1a5632',
         color: '#ffffff',
@@ -327,58 +327,58 @@ describe('DataTable component', () => {
 
     it('hides group headers when showGroupHeaders is false', () => {
       const { container } = renderWithData({ showGroupHeaders: 'false' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header]');
       expect(groupHeaderCells.length).toBe(0);
       // Data rows are still there
-      const rows = container.querySelectorAll('tbody tr');
+      const rows = container.querySelectorAll('[data-section="body"] [role="row"]');
       expect(rows.length).toBe(3); // only data rows
     });
 
     it('shows group headers by default', () => {
       const { container } = renderWithData();
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells.length).toBe(2);
     });
 
     it('applies custom group header font size', () => {
       const { container } = renderWithData({ groupHeaderFontSize: '18px' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({ fontSize: '18px' });
     });
 
     it('applies custom group header font weight', () => {
       const { container } = renderWithData({ groupHeaderFontWeight: '400' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({ fontWeight: '400' });
     });
 
     it('applies custom group header font family', () => {
       const { container } = renderWithData({ groupHeaderFontFamily: 'Courier New' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({ fontFamily: 'Courier New' });
     });
 
     it('applies custom group header padding', () => {
       const { container } = renderWithData({ groupHeaderPadding: '12px 24px' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({ padding: '12px 24px' });
     });
 
     it('applies custom group header border color', () => {
       const { container } = renderWithData({ groupHeaderBorderColor: '#00ff00' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({ borderBottom: '1px solid #00ff00' });
     });
 
     it('applies group header text transform', () => {
       const { container } = renderWithData({ groupHeaderTextTransform: 'uppercase' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({ textTransform: 'uppercase' });
     });
 
     it('applies group header text align', () => {
       const { container } = renderWithData({ groupHeaderTextAlign: 'center' });
-      const groupHeaderCells = container.querySelectorAll('td[colspan]');
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
       expect(groupHeaderCells[0]).toHaveStyle({ textAlign: 'center' });
     });
   });
@@ -388,27 +388,27 @@ describe('DataTable component', () => {
   describe('footer', () => {
     it('renders footer row when enabled', () => {
       const { container } = renderWithData({ showFooterRow: 'true' });
-      const tfoot = container.querySelector('tfoot');
-      expect(tfoot).toBeInTheDocument();
+      const footer = container.querySelector('[data-section="footer"]');
+      expect(footer).toBeInTheDocument();
       expect(screen.getByText('Total')).toBeInTheDocument();
     });
 
     it('does not render footer row when disabled', () => {
       const { container } = renderWithData({ showFooterRow: 'false' });
-      const tfoot = container.querySelector('tfoot');
-      expect(tfoot).not.toBeInTheDocument();
+      const footer = container.querySelector('[data-section="footer"]');
+      expect(footer).not.toBeInTheDocument();
     });
 
     describe('freetext mode', () => {
-      it('renders a single cell spanning all columns', () => {
+      it('renders a single cell spanning all columns via grid-column', () => {
         const { container } = renderWithData({
           showFooterRow: 'true',
           footerMode: 'freetext',
           footerLabel: 'Grand Total: $500',
         });
-        const footerCells = container.querySelectorAll('tfoot td');
+        const footerCells = container.querySelectorAll('[data-section="footer"] [role="cell"]');
         expect(footerCells.length).toBe(1);
-        expect(footerCells[0]).toHaveAttribute('colspan', '4');
+        expect(footerCells[0]).toHaveAttribute('data-colspan', '4');
         expect(footerCells[0].textContent).toBe('Grand Total: $500');
       });
     });
@@ -426,7 +426,7 @@ describe('DataTable component', () => {
           footerMode: 'columns',
           footerColumns,
         });
-        const footerCells = container.querySelectorAll('tfoot td');
+        const footerCells = container.querySelectorAll('[data-section="footer"] [role="cell"]');
         expect(footerCells.length).toBe(4);
         expect(footerCells[0].textContent).toBe('Total');
         expect(footerCells[1].textContent).toBe('23');
@@ -446,7 +446,7 @@ describe('DataTable component', () => {
           footerMode: 'columns',
           footerColumns,
         });
-        const firstFooterCell = container.querySelector('tfoot td');
+        const firstFooterCell = container.querySelector('[data-section="footer"] [role="cell"]');
         expect(firstFooterCell).toHaveStyle({
           fontWeight: 'bold',
           fontStyle: 'italic',
@@ -472,8 +472,9 @@ describe('DataTable component', () => {
           footerBgColor: '#000000',
           footerTextColor: '#ffffff',
         });
-        const footerRow = container.querySelector('tfoot tr');
-        expect(footerRow).toHaveStyle({
+        // Footer styles are now on cells directly (display: contents on row)
+        const footerCell = container.querySelector('[data-section="footer"] [role="cell"]');
+        expect(footerCell).toHaveStyle({
           backgroundColor: '#000000',
           color: '#ffffff',
         });
@@ -484,8 +485,8 @@ describe('DataTable component', () => {
           showFooterRow: 'true',
           footerFontSize: '16px',
         });
-        const footerRow = container.querySelector('tfoot tr');
-        expect(footerRow).toHaveStyle({ fontSize: '16px' });
+        const footerCell = container.querySelector('[data-section="footer"] [role="cell"]');
+        expect(footerCell).toHaveStyle({ fontSize: '16px' });
       });
 
       it('applies custom footer font weight', () => {
@@ -493,8 +494,8 @@ describe('DataTable component', () => {
           showFooterRow: 'true',
           footerFontWeight: '400',
         });
-        const footerRow = container.querySelector('tfoot tr');
-        expect(footerRow).toHaveStyle({ fontWeight: '400' });
+        const footerCell = container.querySelector('[data-section="footer"] [role="cell"]');
+        expect(footerCell).toHaveStyle({ fontWeight: '400' });
       });
 
       it('applies custom footer border color', () => {
@@ -502,8 +503,8 @@ describe('DataTable component', () => {
           showFooterRow: 'true',
           footerBorderColor: '#ff0000',
         });
-        const footerRow = container.querySelector('tfoot tr');
-        expect(footerRow).toHaveStyle({ borderTop: '2px solid #ff0000' });
+        const footerCell = container.querySelector('[data-section="footer"] [role="cell"]');
+        expect(footerCell).toHaveStyle({ borderTop: '2px solid #ff0000' });
       });
 
       it('applies footer text transform', () => {
@@ -511,8 +512,8 @@ describe('DataTable component', () => {
           showFooterRow: 'true',
           footerTextTransform: 'uppercase',
         });
-        const footerRow = container.querySelector('tfoot tr');
-        expect(footerRow).toHaveStyle({ textTransform: 'uppercase' });
+        const footerCell = container.querySelector('[data-section="footer"] [role="cell"]');
+        expect(footerCell).toHaveStyle({ textTransform: 'uppercase' });
       });
     });
   });
@@ -525,12 +526,10 @@ describe('DataTable component', () => {
         verticalBorders: 'true',
         bordered: 'false',
       });
-      const rows = Array.from(container.querySelectorAll('tbody tr'));
-      const dataRows = rows.filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstDataCell = dataRows[0].querySelector('td');
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstDataCell = dataRows[0].querySelector('[role="cell"]');
       expect(firstDataCell).toHaveStyle({ borderRight: '1px solid #e5e7eb' });
     });
   });
@@ -545,11 +544,10 @@ describe('DataTable component', () => {
         ...defaultProps.columns.slice(1),
       ];
       const { container } = renderWithData({ columns: columnsWithBold });
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstDataCell = dataRows[0].querySelector('td');
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstDataCell = dataRows[0].querySelector('[role="cell"]');
       expect(firstDataCell).toHaveStyle({ fontWeight: 'bold' });
     });
 
@@ -560,23 +558,21 @@ describe('DataTable component', () => {
         ...defaultProps.columns.slice(1),
       ];
       const { container } = renderWithData({ columns: columnsWithFontSize });
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstDataCell = dataRows[0].querySelector('td');
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstDataCell = dataRows[0].querySelector('[role="cell"]');
       expect(firstDataCell).toHaveStyle({ fontSize: '18px' });
     });
 
     it('does not apply fontSize when empty', () => {
       const { container } = renderWithData();
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstDataCell = dataRows[0].querySelector('td');
-      // fontSize should not be set on the cell (inherits from table)
-      expect(firstDataCell?.style.fontSize).toBe('');
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstDataCell = dataRows[0].querySelector('[role="cell"]');
+      // fontSize should not be set on the cell (inherits from grid)
+      expect((firstDataCell as HTMLElement)?.style.fontSize).toBe('');
     });
 
     it('applies per-column headerFontSize', () => {
@@ -586,7 +582,7 @@ describe('DataTable component', () => {
         ...defaultProps.columns.slice(1),
       ];
       const { container } = renderWithData({ columns: columnsWithHeaderSize });
-      const headerCells = container.querySelectorAll('thead th');
+      const headerCells = container.querySelectorAll('[role="columnheader"]');
       expect(headerCells[0]).toHaveStyle({ fontSize: '20px' });
       // Other headers should not have per-column override
       expect((headerCells[1] as HTMLElement)?.style.fontSize).not.toBe('20px');
@@ -594,7 +590,7 @@ describe('DataTable component', () => {
 
     it('does not override header fontSize when headerFontSize is empty', () => {
       const { container } = renderWithData();
-      const headerCells = container.querySelectorAll('thead th');
+      const headerCells = container.querySelectorAll('[role="columnheader"]');
       // Should not have per-column font size set (uses global headerFontSize or default)
       expect((headerCells[0] as HTMLElement)?.style.fontSize).toBe('');
     });
@@ -606,21 +602,19 @@ describe('DataTable component', () => {
         ...defaultProps.columns.slice(1),
       ];
       const { container } = renderWithData({ columns: columnsWithPadding });
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstDataCell = dataRows[0].querySelector('td');
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstDataCell = dataRows[0].querySelector('[role="cell"]');
       expect(firstDataCell).toHaveStyle({ padding: '2px 4px' });
     });
 
     it('does not override padding when column padding is empty', () => {
       const { container } = renderWithData({ density: 'normal' });
-      const dataRows = Array.from(container.querySelectorAll('tbody tr')).filter((row) => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !firstCell.hasAttribute('colspan');
-      });
-      const firstDataCell = dataRows[0].querySelector('td');
+      const dataRows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
+      const firstDataCell = dataRows[0].querySelector('[role="cell"]');
       // Should use density-based padding (normal = 8px 12px)
       expect(firstDataCell).toHaveStyle({ padding: '8px 12px' });
     });
@@ -631,13 +625,15 @@ describe('DataTable component', () => {
   describe('indentation', () => {
     it('applies indentation on sub-items', () => {
       const { container } = renderWithData({ density: 'normal' });
-      const rows = Array.from(container.querySelectorAll('tbody tr'));
+      const rows = Array.from(
+        container.querySelectorAll('[data-section="body"] [role="row"]:not([data-group-header])'),
+      );
       const indentedRow = rows.find((row) => {
-        const firstCell = row.querySelector('td');
+        const firstCell = row.querySelector('[role="cell"]');
         return firstCell && firstCell.textContent?.includes('CDB Bank XYZ');
       });
       expect(indentedRow).toBeTruthy();
-      const firstCell = indentedRow?.querySelector('td');
+      const firstCell = indentedRow?.querySelector('[role="cell"]');
       // With normal density (8px 12px) and _indent: 1, paddingLeft should be 12 + 12 = 24px
       expect(firstCell).toHaveStyle({ paddingLeft: '24px' });
     });
@@ -650,6 +646,42 @@ describe('DataTable component', () => {
       const { container } = renderWithData();
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper).toHaveStyle({ maxWidth: '100%' });
+    });
+  });
+
+  // ── CSS Grid specific ──────────────────────────────────────────────
+
+  describe('CSS Grid layout', () => {
+    it('uses CSS Grid display on the table element', () => {
+      const { container } = renderWithData();
+      const grid = container.querySelector('[role="table"]');
+      expect(grid).toHaveStyle({ display: 'grid' });
+    });
+
+    it('sets grid-template-columns from column widths', () => {
+      const columns = [
+        { field: 'name', header: 'Name', width: 'auto', align: 'left' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+        { field: 'price', header: 'Price', width: '120px', align: 'right' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+        { field: 'quantity', header: 'Qty', width: '80px', align: 'center' as const, bold: 'false', italic: 'false', fontColor: '', fontSize: '', headerFontSize: '', padding: '' },
+      ];
+      const { container } = renderWithData({ columns });
+      const grid = container.querySelector('[role="table"]') as HTMLElement;
+      expect(grid.style.gridTemplateColumns).toBe('1fr 120px 80px');
+    });
+
+    it('group header spans all columns via gridColumn', () => {
+      const { container } = renderWithData();
+      const groupHeaderCells = container.querySelectorAll('[data-group-header] [role="cell"]');
+      expect((groupHeaderCells[0] as HTMLElement).style.gridColumn).toBe('1 / -1');
+    });
+
+    it('freetext footer spans all columns via gridColumn', () => {
+      const { container } = renderWithData({
+        showFooterRow: 'true',
+        footerMode: 'freetext',
+      });
+      const footerCell = container.querySelector('[data-section="footer"] [role="cell"]') as HTMLElement;
+      expect(footerCell.style.gridColumn).toBe('1 / -1');
     });
   });
 });

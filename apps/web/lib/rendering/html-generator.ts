@@ -242,6 +242,9 @@ function buildHtmlDocument(
     tr { page-break-inside: avoid; page-break-after: auto; }
     thead { display: table-header-group; }
     tfoot { display: table-footer-group; }
+    /* CSS Grid DataTable: ensure grid rows avoid page-break splits */
+    [role="table"] { page-break-inside: auto; }
+    [role="row"] { page-break-inside: avoid; page-break-after: auto; }
     .avoid-break { page-break-inside: avoid; }
     .break-before { page-break-before: always; }
     .break-after { page-break-after: always; }

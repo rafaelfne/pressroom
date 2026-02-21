@@ -168,6 +168,22 @@ function calculateTableWidth(columns: DataTableColumn[]): number | null {
   return totalPx;
 }
 
+/**
+ * Convert column widths array into a CSS grid-template-columns value.
+ * - "auto" → "1fr"
+ * - "120px" → "120px"
+ * - "30%" → "30%"
+ */
+function buildGridTemplateColumns(columns: DataTableColumn[]): string {
+  return columns
+    .map((col) => {
+      const w = col.width?.trim();
+      if (!w || w === 'auto') return '1fr';
+      return w;
+    })
+    .join(' ');
+}
+
 export const DataTable: ComponentConfig<DataTableProps> = {
   label: 'Data Table',
   fields: {
@@ -656,6 +672,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       );
     }
 
+    const colCount = columns.length;
     const isStriped = striped === 'true';
     const isBordered = bordered === 'true';
     const hasVerticalBorders = verticalBorders === 'true';
@@ -663,39 +680,38 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     const shouldShowGroupHeaders = showGroupHeaders !== 'false';
 
     // Density-based styles
-    let fontSize: string;
-    let lineHeight: string;
+    let baseFontSize: string;
+    let baseLineHeight: string;
     let bodyCellPadding: string;
     let defaultHeaderCellPadding: string;
 
     switch (density) {
       case 'dense':
-        fontSize = '11px';
-        lineHeight = '1.2';
+        baseFontSize = '11px';
+        baseLineHeight = '1.2';
         bodyCellPadding = '2px 6px';
         defaultHeaderCellPadding = '4px 6px';
         break;
       case 'compact':
-        fontSize = '12px';
-        lineHeight = '1.4';
+        baseFontSize = '12px';
+        baseLineHeight = '1.4';
         bodyCellPadding = '4px 8px';
         defaultHeaderCellPadding = '6px 8px';
         break;
       case 'custom': {
         const h = parseInt(customRowHeight, 10);
         const rowH = !isNaN(h) && h > 0 ? h : 32;
-        // Vertical padding = (rowHeight - lineHeight*fontSize) / 2, clamped to min 1px
         const vPad = Math.max(1, Math.round((rowH - 14 * 1.5) / 2));
-        fontSize = '14px';
-        lineHeight = '1.5';
+        baseFontSize = '14px';
+        baseLineHeight = '1.5';
         bodyCellPadding = `${vPad}px 12px`;
         defaultHeaderCellPadding = `${vPad}px 12px`;
         break;
       }
       case 'normal':
       default:
-        fontSize = '14px';
-        lineHeight = '1.5';
+        baseFontSize = '14px';
+        baseLineHeight = '1.5';
         bodyCellPadding = '8px 12px';
         defaultHeaderCellPadding = '10px 12px';
         break;
@@ -703,14 +719,13 @@ export const DataTable: ComponentConfig<DataTableProps> = {
 
     // Calculate table width for PDF optimization and auto-scaling
     const totalTableWidth = calculateTableWidth(columns);
-    const MAX_PAGE_WIDTH = 1067; // Approximate page content width in px (A4 portrait @ 96 DPI)
+    const MAX_PAGE_WIDTH = 1067;
 
     let scaleTransform: string | undefined;
     if (totalTableWidth && totalTableWidth > MAX_PAGE_WIDTH) {
       const scaleFactor = MAX_PAGE_WIDTH / totalTableWidth;
       scaleTransform = `scale(${scaleFactor.toFixed(3)})`;
 
-      // Log warning in development
       if (process.env.NODE_ENV === 'development') {
         console.warn(
           `DataTable width (${totalTableWidth}px) exceeds page width. ` +
@@ -719,29 +734,33 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       }
     }
 
-    // Table container styles
+    // Grid template columns from column definitions
+    const gridTemplateColumns = buildGridTemplateColumns(columns);
+
+    // Container styles
     const containerStyle: React.CSSProperties = {
       maxWidth: '100%',
-      overflowX: 'visible', // Changed from 'auto' for PDF to prevent clipping
+      overflowX: 'visible',
       transform: scaleTransform,
       transformOrigin: 'top left',
       ...pageBreakStyle,
     };
 
-    // Table styles
-    const tableStyle: React.CSSProperties = {
+    // CSS Grid layout
+    const gridStyle: React.CSSProperties = {
+      display: 'grid',
+      gridTemplateColumns,
       width: '100%',
-      tableLayout: 'fixed',
-      borderCollapse: 'collapse',
-      fontSize,
-      lineHeight,
+      fontSize: baseFontSize,
+      lineHeight: baseLineHeight,
     };
 
-    // Resolved header border color
+    // Resolved border colors
     const resolvedHeaderBorderColor = headerBorderColor || '#d1d5db';
+    const resolvedFooterBorderColor = footerBorderColor || '#d1d5db';
 
-    // Header cell styles
-    const thStyle: React.CSSProperties = {
+    // ── Header cell base style ──
+    const thBaseStyle: React.CSSProperties = {
       backgroundColor: headerBgColor || '#f3f4f6',
       color: headerTextColor || '#111827',
       fontWeight: headerFontWeight || 600,
@@ -750,252 +769,219 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       borderBottom: isBordered ? `2px solid ${resolvedHeaderBorderColor}` : 'none',
       borderRight: (isBordered || hasVerticalBorders) ? '1px solid #e5e7eb' : 'none',
     };
-
-    // Apply optional header styling
-    if (headerFontSize) {
-      thStyle.fontSize = headerFontSize;
-    }
-    if (headerFontFamily) {
-      thStyle.fontFamily = headerFontFamily;
-    }
+    if (headerFontSize) thBaseStyle.fontSize = headerFontSize;
+    if (headerFontFamily) thBaseStyle.fontFamily = headerFontFamily;
     if (headerTextTransform && headerTextTransform !== 'none') {
-      thStyle.textTransform = headerTextTransform as React.CSSProperties['textTransform'];
+      thBaseStyle.textTransform = headerTextTransform as React.CSSProperties['textTransform'];
     }
 
-    // Body cell styles
-    const tdStyle: React.CSSProperties = {
+    // ── Body cell base style ──
+    const tdBaseStyle: React.CSSProperties = {
       padding: bodyCellPadding,
       borderBottom: isBordered ? '1px solid #e5e7eb' : 'none',
       borderRight: (isBordered || hasVerticalBorders) ? '1px solid #e5e7eb' : 'none',
     };
 
-    // Footer base styles
-    const resolvedFooterBorderColor = footerBorderColor || '#d1d5db';
-    const footerRowStyle: React.CSSProperties = {
+    // ── Footer row base style ──
+    const footerRowBaseStyle: React.CSSProperties = {
       backgroundColor: footerBgColor || '#f3f4f6',
       color: footerTextColor || '#111827',
       fontWeight: footerFontWeight || 'bold',
       borderTop: `2px solid ${resolvedFooterBorderColor}`,
     };
-    if (footerFontSize) {
-      footerRowStyle.fontSize = footerFontSize;
-    }
-    if (footerFontFamily) {
-      footerRowStyle.fontFamily = footerFontFamily;
-    }
+    if (footerFontSize) footerRowBaseStyle.fontSize = footerFontSize;
+    if (footerFontFamily) footerRowBaseStyle.fontFamily = footerFontFamily;
     if (footerTextTransform && footerTextTransform !== 'none') {
-      footerRowStyle.textTransform = footerTextTransform as React.CSSProperties['textTransform'];
+      footerRowBaseStyle.textTransform = footerTextTransform as React.CSSProperties['textTransform'];
     }
-
     const footerCellPadding = footerPadding || bodyCellPadding;
 
-    // Count only data rows (not group headers) for striping
+    // ── Build body rows ──
     let dataRowIndex = 0;
+    const bodyRows: React.ReactNode[] = [];
 
+    for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+      const rowData = data[rowIndex] as Record<string, unknown>;
+      const isGroupHeader = rowData._isGroupHeader === true;
+
+      if (isGroupHeader) {
+        if (!shouldShowGroupHeaders) continue;
+
+        const groupLabel = (rowData._groupLabel || getNestedValue(rowData, parseFieldExpression(columns[0].field).path)) as string;
+
+        const ghCellStyle: React.CSSProperties = {
+          ...tdBaseStyle,
+          gridColumn: '1 / -1',
+          fontWeight: groupHeaderFontWeight || 'bold',
+          backgroundColor: groupHeaderBgColor || '#1a5632',
+          color: groupHeaderTextColor || '#ffffff',
+          borderRight: 'none',
+          textAlign: (groupHeaderTextAlign as React.CSSProperties['textAlign']) || 'left',
+        };
+        if (groupHeaderFontSize) ghCellStyle.fontSize = groupHeaderFontSize;
+        if (groupHeaderFontFamily) ghCellStyle.fontFamily = groupHeaderFontFamily;
+        if (groupHeaderPadding) ghCellStyle.padding = groupHeaderPadding;
+        if (groupHeaderBorderColor) ghCellStyle.borderBottom = `1px solid ${groupHeaderBorderColor}`;
+        if (groupHeaderTextTransform && groupHeaderTextTransform !== 'none') {
+          ghCellStyle.textTransform = groupHeaderTextTransform as React.CSSProperties['textTransform'];
+        }
+
+        bodyRows.push(
+          <div
+            key={`row-${rowIndex}`}
+            role="row"
+            data-group-header="true"
+            style={{ display: 'contents' }}
+          >
+            <div
+              role="cell"
+              data-colspan={colCount}
+              style={ghCellStyle}
+            >
+              {groupLabel}
+            </div>
+          </div>
+        );
+      } else {
+        const currentDataRowIndex = dataRowIndex;
+        dataRowIndex++;
+
+        const rowBgColor = isStriped
+          ? currentDataRowIndex % 2 === 0
+            ? evenRowColor || 'transparent'
+            : oddRowColor || '#f9fafb'
+          : 'transparent';
+
+        bodyRows.push(
+          <div
+            key={`row-${rowIndex}`}
+            role="row"
+            style={{ display: 'contents' }}
+          >
+            {columns.map((column, colIndex) => {
+              const formattedValue = resolveColumnValue(rowData, column.field);
+              const indent = (rowData._indent as number) || 0;
+
+              const cellStyle: React.CSSProperties = {
+                ...tdBaseStyle,
+                backgroundColor: rowBgColor,
+                textAlign: column.align || 'left',
+                borderRight: ((isBordered || hasVerticalBorders) && colIndex === colCount - 1) ? 'none' : tdBaseStyle.borderRight,
+              };
+
+              if (column.bold === 'true') cellStyle.fontWeight = 'bold';
+              if (column.italic === 'true') cellStyle.fontStyle = 'italic';
+              if (column.fontColor && column.fontColor.trim() !== '') cellStyle.color = column.fontColor;
+              if (column.fontSize && column.fontSize.trim() !== '') cellStyle.fontSize = column.fontSize;
+              if (column.padding && column.padding.trim() !== '') cellStyle.padding = column.padding;
+
+              // Apply indentation to first column
+              if (colIndex === 0 && indent > 0) {
+                const currentPadding = bodyCellPadding.split(' ');
+                const verticalPadding = currentPadding[0];
+                const horizontalPadding = currentPadding[1] || currentPadding[0];
+                const additionalIndent = indent * INDENT_STEP_PX;
+                const paddingValue = parseInt(horizontalPadding, 10);
+
+                if (!isNaN(paddingValue)) {
+                  const totalPaddingLeft = paddingValue + additionalIndent;
+                  cellStyle.paddingLeft = `${totalPaddingLeft}px`;
+                  cellStyle.paddingRight = horizontalPadding;
+                  cellStyle.paddingTop = verticalPadding;
+                  cellStyle.paddingBottom = verticalPadding;
+                }
+              }
+
+              return (
+                <div
+                  key={`cell-${rowIndex}-${colIndex}`}
+                  role="cell"
+                  style={cellStyle}
+                >
+                  {formattedValue}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    }
+
+    // ── Assemble the full CSS Grid layout ──
     return (
-      <div style={containerStyle}>
-        <table style={tableStyle}>
-          <thead style={{ display: 'table-header-group' }}>
-            <tr>
+      <div style={containerStyle} data-testid="data-table-grid">
+        <div style={gridStyle} role="table">
+          {/* Header */}
+          <div role="rowgroup" data-section="header" style={{ display: 'contents' }}>
+            <div role="row" style={{ display: 'contents' }}>
               {columns.map((column, index) => (
-                <th
+                <div
                   key={`header-${index}`}
+                  role="columnheader"
                   style={{
-                    ...thStyle,
-                    width: column.width || 'auto',
+                    ...thBaseStyle,
                     textAlign: column.align || 'left',
-                    borderRight: ((isBordered || hasVerticalBorders) && index === columns.length - 1) ? 'none' : thStyle.borderRight,
+                    borderRight: ((isBordered || hasVerticalBorders) && index === colCount - 1) ? 'none' : thBaseStyle.borderRight,
                     ...(column.headerFontSize && column.headerFontSize.trim() !== '' ? { fontSize: column.headerFontSize } : {}),
                   }}
                 >
                   {column.header}
-                </th>
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row, rowIndex) => {
-              const rowData = row as Record<string, unknown>;
-              const isGroupHeader = rowData._isGroupHeader === true;
+            </div>
+          </div>
 
-              // If it's a group header row, render spanning cell (or skip if disabled)
-              if (isGroupHeader) {
-                if (!shouldShowGroupHeaders) {
-                  return null;
-                }
-                const groupLabel = (rowData._groupLabel || getNestedValue(row, parseFieldExpression(columns[0].field).path)) as string;
+          {/* Body */}
+          <div role="rowgroup" data-section="body" style={{ display: 'contents' }}>
+            {bodyRows}
+          </div>
 
-                // Build group header cell style
-                const ghCellStyle: React.CSSProperties = {
-                  ...tdStyle,
-                  fontWeight: groupHeaderFontWeight || 'bold',
-                  backgroundColor: groupHeaderBgColor || '#1a5632',
-                  color: groupHeaderTextColor || '#ffffff',
-                  borderRight: 'none',
-                  textAlign: (groupHeaderTextAlign as React.CSSProperties['textAlign']) || 'left',
-                };
-                if (groupHeaderFontSize) {
-                  ghCellStyle.fontSize = groupHeaderFontSize;
-                }
-                if (groupHeaderFontFamily) {
-                  ghCellStyle.fontFamily = groupHeaderFontFamily;
-                }
-                if (groupHeaderPadding) {
-                  ghCellStyle.padding = groupHeaderPadding;
-                }
-                if (groupHeaderBorderColor) {
-                  ghCellStyle.borderBottom = `1px solid ${groupHeaderBorderColor}`;
-                }
-                if (groupHeaderTextTransform && groupHeaderTextTransform !== 'none') {
-                  ghCellStyle.textTransform = groupHeaderTextTransform as React.CSSProperties['textTransform'];
-                }
-
-                return (
-                  <tr key={`row-${rowIndex}`}>
-                    <td
-                      colSpan={columns.length}
-                      style={ghCellStyle}
-                    >
-                      {groupLabel}
-                    </td>
-                  </tr>
-                );
-              }
-
-              // Regular data row - apply striping
-              const currentDataRowIndex = dataRowIndex;
-              dataRowIndex++;
-
-              const rowBgColor = isStriped
-                ? currentDataRowIndex % 2 === 0
-                  ? evenRowColor || 'transparent'
-                  : oddRowColor || '#f9fafb'
-                : 'transparent';
-
-              return (
-                <tr
-                  key={`row-${rowIndex}`}
-                  style={{
-                    backgroundColor: rowBgColor,
-                  }}
-                >
-                  {columns.map((column, colIndex) => {
-                    const formattedValue = resolveColumnValue(rowData, column.field);
-                    const indent = (rowData._indent as number) || 0;
-
-                    // Apply column-level styling
-                    const cellStyle: React.CSSProperties = {
-                      ...tdStyle,
-                      textAlign: column.align || 'left',
-                      borderRight: ((isBordered || hasVerticalBorders) && colIndex === columns.length - 1) ? 'none' : tdStyle.borderRight,
-                    };
-
-                    // Apply bold if specified
-                    if (column.bold === 'true') {
-                      cellStyle.fontWeight = 'bold';
-                    }
-
-                    // Apply italic if specified
-                    if (column.italic === 'true') {
-                      cellStyle.fontStyle = 'italic';
-                    }
-
-                    // Apply font color if specified
-                    if (column.fontColor && column.fontColor.trim() !== '') {
-                      cellStyle.color = column.fontColor;
-                    }
-
-                    // Apply font size if specified
-                    if (column.fontSize && column.fontSize.trim() !== '') {
-                      cellStyle.fontSize = column.fontSize;
-                    }
-
-                    // Apply per-column padding if specified
-                    if (column.padding && column.padding.trim() !== '') {
-                      cellStyle.padding = column.padding;
-                    }
-
-                    // Apply indentation to first column
-                    if (colIndex === 0 && indent > 0) {
-                      const currentPadding = bodyCellPadding.split(' ');
-                      const verticalPadding = currentPadding[0];
-                      const horizontalPadding = currentPadding[1] || currentPadding[0];
-                      const additionalIndent = indent * INDENT_STEP_PX;
-
-                      // Parse the horizontal padding and add indent
-                      const paddingValue = parseInt(horizontalPadding, 10);
-
-                      // Only apply indentation if padding value is valid
-                      if (!isNaN(paddingValue)) {
-                        const totalPaddingLeft = paddingValue + additionalIndent;
-
-                        cellStyle.paddingLeft = `${totalPaddingLeft}px`;
-                        cellStyle.paddingRight = horizontalPadding;
-                        cellStyle.paddingTop = verticalPadding;
-                        cellStyle.paddingBottom = verticalPadding;
-                      }
-                    }
-
-                    return (
-                      <td
-                        key={`cell-${rowIndex}-${colIndex}`}
-                        style={cellStyle}
-                      >
-                        {formattedValue}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
+          {/* Footer */}
           {shouldShowFooter && (
-            <tfoot>
-              <tr style={footerRowStyle}>
+            <div role="rowgroup" data-section="footer" style={{ display: 'contents' }}>
+              <div role="row" style={{ display: 'contents' }}>
                 {footerMode === 'freetext' ? (
-                  <td
-                    colSpan={columns.length}
+                  <div
+                    role="cell"
+                    data-colspan={colCount}
                     style={{
-                      ...tdStyle,
+                      ...tdBaseStyle,
+                      ...footerRowBaseStyle,
+                      gridColumn: '1 / -1',
                       padding: footerCellPadding,
                       borderRight: 'none',
                     }}
                   >
                     {footerLabel || 'Total'}
-                  </td>
+                  </div>
                 ) : (
                   columns.map((column, colIndex) => {
                     const fc = footerColumns?.[colIndex];
                     const cellContent = fc?.content ?? (colIndex === 0 ? (footerLabel || 'Total') : '');
 
                     const fCellStyle: React.CSSProperties = {
-                      ...tdStyle,
+                      ...tdBaseStyle,
+                      ...footerRowBaseStyle,
                       padding: footerCellPadding,
                       textAlign: fc?.align || column.align || 'left',
-                      borderRight: ((isBordered || hasVerticalBorders) && colIndex === columns.length - 1) ? 'none' : tdStyle.borderRight,
+                      borderRight: ((isBordered || hasVerticalBorders) && colIndex === colCount - 1) ? 'none' : tdBaseStyle.borderRight,
                     };
 
-                    if (fc?.bold === 'true') {
-                      fCellStyle.fontWeight = 'bold';
-                    }
-                    if (fc?.italic === 'true') {
-                      fCellStyle.fontStyle = 'italic';
-                    }
-                    if (fc?.fontColor && fc.fontColor.trim() !== '') {
-                      fCellStyle.color = fc.fontColor;
-                    }
+                    if (fc?.bold === 'true') fCellStyle.fontWeight = 'bold';
+                    if (fc?.italic === 'true') fCellStyle.fontStyle = 'italic';
+                    if (fc?.fontColor && fc.fontColor.trim() !== '') fCellStyle.color = fc.fontColor;
 
                     return (
-                      <td key={`footer-${colIndex}`} style={fCellStyle}>
+                      <div key={`footer-${colIndex}`} role="cell" style={fCellStyle}>
                         {cellContent}
-                      </td>
+                      </div>
                     );
                   })
                 )}
-              </tr>
-            </tfoot>
+              </div>
+            </div>
           )}
-        </table>
+        </div>
       </div>
     );
   },

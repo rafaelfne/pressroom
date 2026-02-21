@@ -49,15 +49,15 @@ describe('pageBreakBehavior prop', () => {
     expect(defaultProps.pageBreakBehavior).toBe('auto');
   });
 
-  it('DataTable renders thead with display: table-header-group', () => {
+  it('DataTable renders CSS Grid with role="table"', () => {
     const Component = puckConfig.components.DataTable.render;
     const defaultProps = puckConfig.components.DataTable.defaultProps!;
     const { container } = render(
       <Component {...defaultProps} dataExpression={RESOLVED_TABLE_DATA as unknown as string} id="test-table" puck={mockPuckContext} />,
     );
-    const thead = container.querySelector('thead');
-    expect(thead).toBeInTheDocument();
-    expect(thead).toHaveStyle({ display: 'table-header-group' });
+    const grid = container.querySelector('[role="table"]');
+    expect(grid).toBeInTheDocument();
+    expect(grid).toHaveStyle({ display: 'grid' });
   });
 
   it('TextBlock applies pageBreakInside: avoid when set', () => {
