@@ -11,14 +11,7 @@ import { Container, type ContainerProps } from '@/components/report-components/c
 import { GridRow, type GridRowProps } from '@/components/report-components/grid-row';
 import { GridColumn, type GridColumnProps } from '@/components/report-components/grid-column';
 import { Section, type SectionProps } from '@/components/report-components/section';
-import { MetricCard, type MetricCardProps } from '@/components/report-components/metric-card';
-import { StatCard, type StatCardProps } from '@/components/report-components/stat-card';
-import { BenchmarkTable, type BenchmarkTableProps } from '@/components/report-components/benchmark-table';
-import { EditorialCard, type EditorialCardProps } from '@/components/report-components/editorial-card';
-import { EditorialGrid, type EditorialGridProps } from '@/components/report-components/editorial-grid';
-import { EditorialStack, type EditorialStackProps } from '@/components/report-components/editorial-stack';
-import { Repeater, type RepeaterProps } from '@/components/report-components/repeater';
-import { ConditionalBlock, type ConditionalBlockProps } from '@/components/report-components/conditional-block';
+import { FlexBox, type FlexBoxProps } from '@/components/report-components/flex-box';
 import { withBindingResolution } from '@/lib/puck/with-binding-resolution';
 import { RichTextEditor } from '@/components/studio/rich-text-editor';
 
@@ -35,37 +28,26 @@ type PuckComponents = {
   GridRow: GridRowProps;
   GridColumn: GridColumnProps;
   Section: SectionProps;
-  MetricCard: MetricCardProps;
-  StatCard: StatCardProps;
-  BenchmarkTable: BenchmarkTableProps;
-  EditorialCard: EditorialCardProps;
-  EditorialGrid: EditorialGridProps;
-  EditorialStack: EditorialStackProps;
-  Repeater: RepeaterProps;
-  ConditionalBlock: ConditionalBlockProps;
+  FlexBox: FlexBoxProps;
 };
 
 export const puckConfig: Config<PuckComponents> = {
   categories: {
     layout: {
       title: 'Layout',
-      components: ['Container', 'GridRow', 'GridColumn', 'Section', 'Spacer', 'Divider', 'PageBreak'],
+      components: ['FlexBox', 'Container', 'GridRow', 'GridColumn', 'Section', 'Spacer', 'Divider', 'PageBreak'],
     },
     content: {
       title: 'Content',
-      components: ['TextBlock', 'HeadingBlock', 'ImageBlock', 'EditorialCard', 'EditorialGrid', 'EditorialStack'],
+      components: ['TextBlock', 'HeadingBlock', 'ImageBlock'],
     },
     data: {
       title: 'Data',
-      components: ['DataTable', 'MetricCard', 'StatCard', 'BenchmarkTable'],
+      components: ['DataTable'],
     },
     charts: {
       title: 'Charts',
       components: ['ChartBlock'],
-    },
-    logic: {
-      title: 'Logic',
-      components: ['Repeater', 'ConditionalBlock'],
     },
   },
   components: {
@@ -93,13 +75,6 @@ export const puckConfig: Config<PuckComponents> = {
     GridRow,
     GridColumn,
     Section,
-    MetricCard: withBindingResolution(MetricCard),
-    StatCard: withBindingResolution(StatCard),
-    BenchmarkTable: withBindingResolution(BenchmarkTable),
-    EditorialCard: withBindingResolution(EditorialCard),
-    EditorialGrid,
-    EditorialStack,
-    Repeater,
-    ConditionalBlock,
+    FlexBox,
   },
 };
