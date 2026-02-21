@@ -4,6 +4,9 @@ import { getTemplates, createTemplate } from '@/lib/templates/actions';
 import { TemplateGrid } from '@/components/dashboard/template-grid';
 import { EmptyState } from '@/components/dashboard/empty-state';
 import { TemplateSearch } from '@/components/dashboard/template-search';
+import { getUserTeam } from '@/lib/team';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 type SearchParams = {
   search?: string;
@@ -40,6 +43,21 @@ export default async function TemplatesPage(props: {
     sortOrder: params.sortOrder,
   });
 
+  // Fetch organizations for the user's team
+  const session = await auth();
+  let organizations: Array<{ id: string; name: string }> = [];
+  
+  if (session?.user?.id) {
+    const team = await getUserTeam(session.user.id);
+    if (team) {
+      organizations = await prisma.organization.findMany({
+        where: { teamId: team.id },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      });
+    }
+  }
+
   const hasTemplates = totalCount > 0;
   const hasSearchOrFilters = Boolean(params.search || params.tags);
 
@@ -75,7 +93,7 @@ export default async function TemplatesPage(props: {
           </p>
         </div>
       ) : (
-        <TemplateGrid templates={templates} />
+        <TemplateGrid templates={templates} organizations={organizations} />
       )}
     </div>
   );

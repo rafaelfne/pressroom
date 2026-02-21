@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MoreVertical, Download } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { MoreVertical, Download, Pencil, Copy, FolderInput, Share2, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { duplicateTemplate, deleteTemplate } from '@/lib/templates/actions';
+import { EditTemplateDialog } from '@/components/templates/edit-template-dialog';
+import { CloneToOrgDialog } from '@/components/templates/clone-to-org-dialog';
+
+type Organization = {
+  id: string;
+  name: string;
+};
 
 type TemplateCardProps = {
   template: {
@@ -31,13 +38,20 @@ type TemplateCardProps = {
     tags: string[];
     updatedAt: Date;
     templateData: unknown;
+    organization?: Organization | null;
   };
+  organizations?: Organization[];
+  onTemplateUpdated?: () => void;
 };
 
 const MAX_VISIBLE_TAGS = 3;
 
-export function TemplateCard({ template }: TemplateCardProps) {
+export function TemplateCard({ template, organizations = [], onTemplateUpdated }: TemplateCardProps) {
+  const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCloneToOrgDialog, setShowCloneToOrgDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const visibleTags = template.tags.slice(0, MAX_VISIBLE_TAGS);
   const remainingTagsCount = template.tags.length - MAX_VISIBLE_TAGS;
 
@@ -57,6 +71,67 @@ export function TemplateCard({ template }: TemplateCardProps) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleClone = async () => {
+    try {
+      const res = await fetch(`/api/templates/${template.id}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const clone = await res.json();
+        router.push(`/studio/${clone.id}`);
+      }
+    } catch (error) {
+      console.error('Failed to clone template:', error);
+    }
+  };
+
+  const handleCloneToOrg = async (organizationId: string | null) => {
+    try {
+      const res = await fetch(`/api/templates/${template.id}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId }),
+      });
+      if (res.ok) {
+        onTemplateUpdated?.();
+      }
+    } catch (error) {
+      console.error('Failed to clone template:', error);
+    }
+  };
+
+  const handleSaveDetails = async (data: {
+    name: string;
+    description: string | null;
+    organizationId: string | null;
+  }) => {
+    const res = await fetch(`/api/templates/${template.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      onTemplateUpdated?.();
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/templates/${template.id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setShowDeleteDialog(false);
+        onTemplateUpdated?.();
+      }
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -83,15 +158,23 @@ export function TemplateCard({ template }: TemplateCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href={`/studio/${template.id}`}>Edit</Link>
+                <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClone}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Clone Template
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowCloneToOrgDialog(true)}>
+                  <FolderInput className="mr-2 h-4 w-4" />
+                  Clone to Org...
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <form action={duplicateTemplate.bind(null, template.id)}>
-                    <button type="submit" className="w-full text-left">
-                      Duplicate
-                    </button>
-                  </form>
+                  <Link href={`/studio/${template.id}`}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleDownloadJSON}>
                   <Download className="mr-2 h-4 w-4" />
@@ -102,6 +185,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
                   className="text-destructive"
                   onClick={() => setShowDeleteDialog(true)}
                 >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -145,7 +229,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete template</DialogTitle>
+            <DialogTitle>Delete Template</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete &ldquo;{template.name}&rdquo;? This action cannot be
               undone.
@@ -155,14 +239,30 @@ export function TemplateCard({ template }: TemplateCardProps) {
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
               Cancel
             </Button>
-            <form action={deleteTemplate.bind(null, template.id)}>
-              <Button type="submit" variant="destructive">
-                Delete
-              </Button>
-            </form>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Details dialog */}
+      <EditTemplateDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        template={template}
+        organizations={organizations}
+        onSave={handleSaveDetails}
+      />
+
+      {/* Clone to Org dialog */}
+      <CloneToOrgDialog
+        open={showCloneToOrgDialog}
+        onOpenChange={setShowCloneToOrgDialog}
+        templateName={template.name}
+        organizations={organizations}
+        onClone={handleCloneToOrg}
+      />
     </>
   );
 }
