@@ -13,8 +13,8 @@ export function InheritedStylesProvider({
   children: ReactNode;
 }) {
   const parentStyles = useInheritedStyles();
-  const defined = Object.fromEntries(Object.entries(styles).filter(([, v]) => v !== undefined));
-  const mergedStyles = { ...parentStyles, ...defined };
+  const definedStyles = Object.fromEntries(Object.entries(styles).filter(([, v]) => v !== undefined));
+  const mergedStyles = { ...parentStyles, ...definedStyles };
   return <InheritedStylesContext.Provider value={mergedStyles}>{children}</InheritedStylesContext.Provider>;
 }
 

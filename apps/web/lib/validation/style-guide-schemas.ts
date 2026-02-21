@@ -11,7 +11,7 @@ export const styleTokenSchema = z.object({
     .regex(kebabCaseRegex, 'Token name must be in kebab-case (e.g. "text-primary")'),
   label: z.string().min(1, 'Token label is required'),
   category: z.enum(['color', 'typography', 'spacing', 'background', 'border'], {
-    error: 'Invalid token category',
+    error: 'Invalid token category. Must be one of: color, typography, spacing, background, border',
   }),
   cssProperty: z.string().min(1, 'CSS property is required'),
   value: z.string().min(1, 'Token value is required'),
