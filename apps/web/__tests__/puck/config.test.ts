@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { puckConfig } from '@/lib/puck/config';
 
 describe('puckConfig', () => {
-  it('has all 20 components registered', () => {
+  it('has all 13 components registered', () => {
     expect(puckConfig.components).toHaveProperty('TextBlock');
     expect(puckConfig.components).toHaveProperty('HeadingBlock');
     expect(puckConfig.components).toHaveProperty('ImageBlock');
@@ -15,25 +15,33 @@ describe('puckConfig', () => {
     expect(puckConfig.components).toHaveProperty('GridRow');
     expect(puckConfig.components).toHaveProperty('GridColumn');
     expect(puckConfig.components).toHaveProperty('Section');
-    expect(puckConfig.components).toHaveProperty('MetricCard');
-    expect(puckConfig.components).toHaveProperty('StatCard');
-    expect(puckConfig.components).toHaveProperty('BenchmarkTable');
-    expect(puckConfig.components).toHaveProperty('EditorialCard');
-    expect(puckConfig.components).toHaveProperty('EditorialGrid');
-    expect(puckConfig.components).toHaveProperty('EditorialStack');
-    expect(puckConfig.components).toHaveProperty('Repeater');
-    expect(puckConfig.components).toHaveProperty('ConditionalBlock');
+    expect(puckConfig.components).toHaveProperty('FlexBox');
   });
 
-  it('has layout, content, data, charts, and logic categories', () => {
+  it('does not have removed specialized components', () => {
+    expect(puckConfig.components).not.toHaveProperty('MetricCard');
+    expect(puckConfig.components).not.toHaveProperty('StatCard');
+    expect(puckConfig.components).not.toHaveProperty('BenchmarkTable');
+    expect(puckConfig.components).not.toHaveProperty('EditorialCard');
+    expect(puckConfig.components).not.toHaveProperty('EditorialGrid');
+    expect(puckConfig.components).not.toHaveProperty('EditorialStack');
+    expect(puckConfig.components).not.toHaveProperty('Repeater');
+    expect(puckConfig.components).not.toHaveProperty('ConditionalBlock');
+  });
+
+  it('has layout, content, data, and charts categories', () => {
     expect(puckConfig.categories).toHaveProperty('layout');
     expect(puckConfig.categories).toHaveProperty('content');
     expect(puckConfig.categories).toHaveProperty('data');
     expect(puckConfig.categories).toHaveProperty('charts');
-    expect(puckConfig.categories).toHaveProperty('logic');
   });
 
-  it('assigns Container, GridRow, GridColumn, Section, Spacer, Divider, and PageBreak to layout category', () => {
+  it('does not have logic category (ConditionalBlock and Repeater removed)', () => {
+    expect(puckConfig.categories).not.toHaveProperty('logic');
+  });
+
+  it('assigns FlexBox, Container, GridRow, GridColumn, Section, Spacer, Divider, and PageBreak to layout category', () => {
+    expect(puckConfig.categories?.layout?.components).toContain('FlexBox');
     expect(puckConfig.categories?.layout?.components).toContain('Container');
     expect(puckConfig.categories?.layout?.components).toContain('GridRow');
     expect(puckConfig.categories?.layout?.components).toContain('GridColumn');
@@ -43,28 +51,17 @@ describe('puckConfig', () => {
     expect(puckConfig.categories?.layout?.components).toContain('PageBreak');
   });
 
-  it('assigns TextBlock, HeadingBlock, ImageBlock, EditorialCard, EditorialGrid, and EditorialStack to content category', () => {
+  it('assigns TextBlock, HeadingBlock, and ImageBlock to content category', () => {
     expect(puckConfig.categories?.content?.components).toContain('TextBlock');
     expect(puckConfig.categories?.content?.components).toContain('HeadingBlock');
     expect(puckConfig.categories?.content?.components).toContain('ImageBlock');
-    expect(puckConfig.categories?.content?.components).toContain('EditorialCard');
-    expect(puckConfig.categories?.content?.components).toContain('EditorialGrid');
-    expect(puckConfig.categories?.content?.components).toContain('EditorialStack');
   });
 
-  it('assigns DataTable, MetricCard, StatCard, and BenchmarkTable to data category', () => {
+  it('assigns DataTable to data category', () => {
     expect(puckConfig.categories?.data?.components).toContain('DataTable');
-    expect(puckConfig.categories?.data?.components).toContain('MetricCard');
-    expect(puckConfig.categories?.data?.components).toContain('StatCard');
-    expect(puckConfig.categories?.data?.components).toContain('BenchmarkTable');
   });
 
   it('assigns ChartBlock to charts category', () => {
     expect(puckConfig.categories?.charts?.components).toContain('ChartBlock');
-  });
-
-  it('assigns Repeater and ConditionalBlock to logic category', () => {
-    expect(puckConfig.categories?.logic?.components).toContain('Repeater');
-    expect(puckConfig.categories?.logic?.components).toContain('ConditionalBlock');
   });
 });

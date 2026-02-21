@@ -21,6 +21,7 @@ model Organization {
   teamId         String
   team           Team       @relation(fields: [teamId], references: [id])
   templates      Template[]
+  styleGuides    StyleGuide[]
 
   @@map("organizations")
 }
@@ -92,6 +93,8 @@ model Template {
   owner              User?         @relation("TemplateOwner", fields: [ownerId], references: [id])
   teamId             String?
   team               Team?         @relation(fields: [teamId], references: [id])
+  styleGuideId       String?
+  styleGuide         StyleGuide?   @relation("TemplateStyleGuide", fields: [styleGuideId], references: [id])
   version            Int           @default(1)
   tags               String[]      @default([])
   createdAt          DateTime      @default(now())
@@ -102,6 +105,7 @@ model Template {
   @@index([organizationId])
   @@index([ownerId])
   @@index([teamId])
+  @@index([styleGuideId])
   @@map("templates")
 }
 
@@ -161,4 +165,37 @@ model Invite {
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@map("invites")
+}
+
+model StyleGuide {
+  id             String   @id @default(cuid())
+  name           String
+  organizationId String
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  tokens       StyleToken[]
+  templates    Template[]   @relation("TemplateStyleGuide")
+
+  @@index([organizationId])
+  @@map("style_guides")
+}
+
+model StyleToken {
+  id           String @id @default(cuid())
+  styleGuideId String
+  name         String
+  label        String
+  category     String
+  cssProperty  String
+  value        String
+  sortOrder    Int    @default(0)
+
+  styleGuide StyleGuide @relation(fields: [styleGuideId], references: [id], onDelete: Cascade)
+
+  @@unique([styleGuideId, name])
+  @@index([styleGuideId])
+  @@map("style_tokens")
 }
