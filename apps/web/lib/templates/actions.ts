@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { DEFAULT_SAMPLE_DATA } from './default-sample-data';
+import { getUserTeam } from '@/lib/team';
 
 type GetTemplatesParams = {
   search?: string;
@@ -38,6 +39,8 @@ export async function createTemplate(formData: FormData) {
     throw new Error('Unauthorized: Must be logged in to create a template');
   }
 
+  const team = await getUserTeam(session.user.id);
+
   const name = formData.get('name');
 
   if (!name || typeof name !== 'string') {
@@ -53,6 +56,7 @@ export async function createTemplate(formData: FormData) {
       version: 1,
       tags: [],
       ownerId: session.user.id,
+      teamId: team?.id,
     },
   });
 
@@ -71,6 +75,11 @@ export async function deleteTemplate(id: string) {
 }
 
 export async function duplicateTemplate(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized: Must be logged in to duplicate a template');
+  }
+
   const original = await prisma.template.findUnique({
     where: { id },
   });
@@ -92,6 +101,8 @@ export async function duplicateTemplate(id: string) {
         : undefined,
       tags: original.tags,
       version: 1,
+      teamId: original.teamId,
+      ownerId: session.user.id,
     },
   });
 
@@ -105,6 +116,8 @@ export async function getTemplates(
   if (!session?.user?.id) {
     throw new Error('Unauthorized: Must be logged in to view templates');
   }
+
+  const team = await getUserTeam(session.user.id);
 
   const {
     search,
@@ -138,11 +151,15 @@ export async function getTemplates(
     }
   }
 
-  // Build final where clause with access control
+  // Build final where clause with team-based access control
   const where: Prisma.TemplateWhereInput = {
     deletedAt: null,
     OR: [
+      // Templates in user's team
+      ...(team ? [{ teamId: team.id }] : []),
+      // Templates owned by user (even without team)
       { ownerId: session.user.id },
+      // Templates shared with user
       { accesses: { some: { userId: session.user.id } } },
     ],
     ...(andConditions.length > 0 && { AND: andConditions }),

@@ -3,6 +3,7 @@
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { registerSchema, type RegisterInput } from '@/lib/validation/auth-schemas';
+import { createTeamForUser } from '@/lib/team';
 
 export async function registerUser(
   input: RegisterInput,
@@ -34,7 +35,7 @@ export async function registerUser(
 
     const hashedPassword = await hash(password, 10);
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name,
         email,
@@ -42,6 +43,30 @@ export async function registerUser(
         hashedPassword,
       },
     });
+
+    // Check for pending team invites
+    const pendingInvite = await prisma.invite.findFirst({
+      where: { email, status: 'pending' },
+    });
+
+    if (pendingInvite) {
+      // User was invited — join existing team
+      await prisma.teamMember.create({
+        data: {
+          teamId: pendingInvite.teamId,
+          userId: user.id,
+          role: 'member',
+          invitedBy: pendingInvite.invitedBy,
+        },
+      });
+      await prisma.invite.update({
+        where: { id: pendingInvite.id },
+        data: { status: 'accepted' },
+      });
+    } else {
+      // No invite — create a new team
+      await createTeamForUser(user.id, name);
+    }
 
     return { success: true };
   } catch (error) {

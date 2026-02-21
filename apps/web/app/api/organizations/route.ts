@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getUserTeam } from '@/lib/team';
 
 const organizationCreateSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -22,6 +23,11 @@ export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const team = await getUserTeam(session.user.id);
+  if (!team) {
+    return NextResponse.json({ error: 'No team found' }, { status: 400 });
   }
 
   try {
@@ -45,7 +51,10 @@ export async function POST(request: NextRequest) {
     }
 
     const organization = await prisma.organization.create({
-      data: parsed.data,
+      data: {
+        ...parsed.data,
+        teamId: team.id,
+      },
     });
 
     return NextResponse.json(organization, { status: 201 });
@@ -65,20 +74,18 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const team = await getUserTeam(session.user.id);
+  if (!team) {
+    return NextResponse.json({ data: [] });
+  }
+
   try {
     const organizations = await prisma.organization.findMany({
-      where: {
-        templates: {
-          some: {
-            deletedAt: null,
-            OR: [
-              { ownerId: session.user.id },
-              { accesses: { some: { userId: session.user.id } } },
-            ],
-          },
-        },
-      },
+      where: { teamId: team.id },
       orderBy: { name: 'asc' },
+      include: {
+        _count: { select: { templates: { where: { deletedAt: null } } } },
+      },
     });
 
     return NextResponse.json({ data: organizations });
