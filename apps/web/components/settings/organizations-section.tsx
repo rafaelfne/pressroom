@@ -39,11 +39,14 @@ export function OrganizationsSection({ organizations, canManage }: Organizations
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateSlug = (name: string) =>
-    name
+  const generateSlug = (name: string) => {
+    const base = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
+    const suffix = Date.now().toString(36).slice(-4);
+    return `${base}-${suffix}`;
+  };
 
   const handleCreate = async () => {
     if (!newOrgName.trim()) return;

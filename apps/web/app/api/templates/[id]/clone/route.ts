@@ -20,8 +20,8 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const body: unknown = await request.json().catch((err) => {
-      console.warn('[API] Failed to parse request body, using defaults:', err.message);
+    const body: unknown = await request.json().catch((err: unknown) => {
+      console.warn('[API] Failed to parse request body, using defaults:', String(err));
       return {};
     });
     const parsed = cloneSchema.safeParse(body);

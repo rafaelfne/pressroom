@@ -9,6 +9,8 @@ const inviteSchema = z.object({
   emailOrUsername: z.string().min(1),
 });
 
+const INVITE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 /**
  * POST /api/team/invite — Invite a member to the team
  */
@@ -106,7 +108,7 @@ export async function POST(request: NextRequest) {
         email: emailOrUsername,
         invitedBy: session.user.id,
         token,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        expiresAt: new Date(Date.now() + INVITE_EXPIRATION_MS),
       },
     });
 

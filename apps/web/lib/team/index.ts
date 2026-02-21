@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -38,7 +39,6 @@ function generateTeamSlug(name: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
-  // Add a random suffix to ensure uniqueness
-  const suffix = Math.random().toString(36).substring(2, 8);
+  const suffix = crypto.randomBytes(4).toString('hex');
   return `${base}-${suffix}`;
 }
