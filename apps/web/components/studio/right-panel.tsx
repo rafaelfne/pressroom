@@ -58,7 +58,6 @@ export function RightPanel({
       ) : showBlockFields ? (
         <div data-testid="block-fields-view">
           <BlockFieldsPanel
-            usePuck={usePuck}
             componentType={selectedItem?.type ?? ''}
             componentProps={selectedItem?.props ?? {}}
           >

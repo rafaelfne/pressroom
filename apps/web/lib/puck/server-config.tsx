@@ -14,13 +14,14 @@
 import type { Config } from '@puckeditor/core';
 import { TextBlock, type TextBlockProps } from '@/components/report-components/text-block';
 import { HeadingBlock, type HeadingBlockProps } from '@/components/report-components/heading-block';
-import { ImageBlock } from '@/components/report-components/image-block';
-import { Spacer } from '@/components/report-components/spacer';
+import { ImageBlock, type ImageBlockProps } from '@/components/report-components/image-block';
+import { Spacer, type SpacerProps } from '@/components/report-components/spacer';
 import { Divider, type DividerProps } from '@/components/report-components/divider';
 import { PageBreak } from '@/components/report-components/page-break';
-import { DataTable, renderDataTableBody, type DataTableProps } from '@/components/report-components/data-table';
+import { DataTable } from '@/components/report-components/data-table';
+import { renderDataTableBody, type DataTableProps } from '@/components/report-components/data-table-body';
 import { Container, type ContainerProps } from '@/components/report-components/container';
-import { GridRow } from '@/components/report-components/grid-row';
+import { GridRow, type GridRowProps } from '@/components/report-components/grid-row';
 import { GridColumn, type GridColumnProps } from '@/components/report-components/grid-column';
 import { Section, type SectionProps } from '@/components/report-components/section';
 import { ServerChartBlock } from '@/components/report-components/server-chart-block';
@@ -425,6 +426,132 @@ const ServerContainer = {
   },
 };
 
+// ============================================================================
+// Server-safe GridRow — replicates column logic from grid-row.tsx without
+// relying on the 'use client' module export.
+// ============================================================================
+
+const serverColumnMap: Record<string, { template: string; count: number }> = {
+  '2-equal': { template: '1fr 1fr', count: 2 },
+  '3-equal': { template: '1fr 1fr 1fr', count: 3 },
+  '4-equal': { template: '1fr 1fr 1fr 1fr', count: 4 },
+  '1-3_2-3': { template: '1fr 2fr', count: 2 },
+  '2-3_1-3': { template: '2fr 1fr', count: 2 },
+};
+
+const ServerGridRow = {
+  ...GridRow,
+  render: ({
+    columns,
+    customColumns,
+    gridTemplateRows,
+    columnGap,
+    rowGap,
+    justifyItems,
+    alignItems,
+    justifyContent,
+    alignContent,
+    gridAutoFlow,
+    gridAutoRows,
+    gridAutoColumns,
+    height,
+    minHeight,
+    maxHeight,
+    padding,
+    pageBreakBehavior,
+    puck,
+    id = 'grid-row',
+  }: GridRowProps & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) => {
+    const optPx = (prop: string, value: string): Record<string, string> =>
+      value ? { [prop]: `${value}px` } : {};
+    const optRaw = (prop: string, value: string): Record<string, string> =>
+      value ? { [prop]: value } : {};
+
+    let template: string;
+    let count: number;
+
+    if (columns === 'custom') {
+      template = customColumns || '1fr 1fr';
+      const repeatMatch = template.match(/^repeat\(\s*(\d+)\s*,/);
+      if (repeatMatch) {
+        count = parseInt(repeatMatch[1], 10);
+      } else if (/[(),]/.test(template)) {
+        count = 2;
+      } else {
+        count = template.split(/\s+/).filter(Boolean).length;
+      }
+    } else {
+      const config = serverColumnMap[columns];
+      template = config.template;
+      count = config.count;
+    }
+
+    return (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: template,
+          ...optRaw('gridTemplateRows', gridTemplateRows),
+          ...optPx('columnGap', columnGap),
+          ...optPx('rowGap', rowGap),
+          justifyItems,
+          alignItems,
+          justifyContent,
+          alignContent,
+          gridAutoFlow,
+          ...optRaw('gridAutoRows', gridAutoRows),
+          ...optRaw('gridAutoColumns', gridAutoColumns),
+          ...optPx('height', height),
+          ...optPx('minHeight', minHeight),
+          ...optPx('maxHeight', maxHeight),
+          ...optPx('padding', padding),
+          ...getPageBreakStyle(pageBreakBehavior),
+        }}
+      >
+        {Array.from({ length: count }, (_, i) => (
+          <div key={i} style={{ minHeight: '40px' }}>
+            {puck.renderDropZone({ zone: `${id}-column-${i}` })}
+          </div>
+        ))}
+      </div>
+    );
+  },
+};
+
+// ============================================================================
+// Server-safe ImageBlock
+// ============================================================================
+
+const ServerImageBlock = {
+  ...ImageBlock,
+  render: ({ src, alt, width, height, pageBreakBehavior }: ImageBlockProps) => (
+    <div className="p-2" style={getPageBreakStyle(pageBreakBehavior)}>
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={alt} style={{ width, height, display: 'block' }} />
+      ) : (
+        <div
+          style={{ width: '100%', height: '150px' }}
+          className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded bg-gray-50 text-gray-400"
+        >
+          No image source
+        </div>
+      )}
+    </div>
+  ),
+};
+
+// ============================================================================
+// Server-safe Spacer
+// ============================================================================
+
+const ServerSpacer = {
+  ...Spacer,
+  render: ({ height, pageBreakBehavior }: SpacerProps) => (
+    <div style={{ height: `${height}px`, ...getPageBreakStyle(pageBreakBehavior) }} aria-hidden="true" />
+  ),
+};
+
 export const serverPuckConfig: Config = {
   categories: {
     layout: {
@@ -447,14 +574,14 @@ export const serverPuckConfig: Config = {
   components: {
     TextBlock: ServerTextBlock,
     HeadingBlock: ServerHeadingBlock,
-    ImageBlock,
-    Spacer,
+    ImageBlock: ServerImageBlock,
+    Spacer: ServerSpacer,
     Divider: ServerDivider,
     PageBreak,
     DataTable: ServerDataTable,
     ChartBlock: ServerChartBlock,
     Container: ServerContainer,
-    GridRow,
+    GridRow: ServerGridRow,
     GridColumn: ServerGridColumn,
     Section: ServerSection,
     FlexBox: ServerFlexBox,
