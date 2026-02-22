@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,6 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type {
   PageConfig,
   PaperSize,
@@ -34,6 +36,7 @@ export interface PageSettingsPanelProps {
 /**
  * Full page settings panel that shows when no component is selected.
  * Includes page title, paper size, orientation, and margins.
+ * Uses only shadcn/ui components (ToggleGroup, Slider, Separator, etc.).
  */
 export function PageSettingsPanel({
   config,
@@ -125,6 +128,8 @@ export function PageSettingsPanel({
         />
       </div>
 
+      <Separator />
+
       {/* Paper Size Section */}
       <div className="space-y-3">
         <Label htmlFor="paper-size" className="text-xs font-medium text-muted-foreground">
@@ -153,205 +158,191 @@ export function PageSettingsPanel({
           </p>
         )}
 
-        {/* Custom dimensions inputs */}
+        {/* Custom dimensions with Slider + Input combo */}
         {config.paperSize === 'Custom' && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
+          <div className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="custom-width" className="text-xs">
                 Width (px)
               </Label>
-              <Input
-                id="custom-width"
-                data-testid="custom-width"
-                type="number"
-                min={1}
-                value={localCustomWidth}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setLocalCustomWidth(isNaN(val) ? 595 : val);
-                }}
-                onBlur={() => {
-                  if (localCustomWidth !== (config.customWidth ?? 595)) {
-                    handleCustomDimensionChange('customWidth', localCustomWidth);
-                  }
-                }}
-              />
+              <div className="flex items-center gap-3">
+                <Slider
+                  min={100}
+                  max={1200}
+                  step={1}
+                  value={[localCustomWidth]}
+                  onValueChange={([val]) => setLocalCustomWidth(val)}
+                  onValueCommit={([val]) => handleCustomDimensionChange('customWidth', val)}
+                  className="flex-1"
+                  data-testid="custom-width-slider"
+                />
+                <Input
+                  id="custom-width"
+                  data-testid="custom-width"
+                  type="number"
+                  min={1}
+                  value={localCustomWidth}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    setLocalCustomWidth(isNaN(val) ? 595 : val);
+                  }}
+                  onBlur={() => {
+                    if (localCustomWidth !== (config.customWidth ?? 595)) {
+                      handleCustomDimensionChange('customWidth', localCustomWidth);
+                    }
+                  }}
+                  className="w-20"
+                />
+              </div>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label htmlFor="custom-height" className="text-xs">
                 Height (px)
               </Label>
-              <Input
-                id="custom-height"
-                data-testid="custom-height"
-                type="number"
-                min={1}
-                value={localCustomHeight}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setLocalCustomHeight(isNaN(val) ? 842 : val);
-                }}
-                onBlur={() => {
-                  if (localCustomHeight !== (config.customHeight ?? 842)) {
-                    handleCustomDimensionChange('customHeight', localCustomHeight);
-                  }
-                }}
-              />
+              <div className="flex items-center gap-3">
+                <Slider
+                  min={100}
+                  max={1700}
+                  step={1}
+                  value={[localCustomHeight]}
+                  onValueChange={([val]) => setLocalCustomHeight(val)}
+                  onValueCommit={([val]) => handleCustomDimensionChange('customHeight', val)}
+                  className="flex-1"
+                  data-testid="custom-height-slider"
+                />
+                <Input
+                  id="custom-height"
+                  data-testid="custom-height"
+                  type="number"
+                  min={1}
+                  value={localCustomHeight}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    setLocalCustomHeight(isNaN(val) ? 842 : val);
+                  }}
+                  onBlur={() => {
+                    if (localCustomHeight !== (config.customHeight ?? 842)) {
+                      handleCustomDimensionChange('customHeight', localCustomHeight);
+                    }
+                  }}
+                  className="w-20"
+                />
+              </div>
             </div>
           </div>
         )}
       </div>
 
+      <Separator />
+
       {/* Orientation Section */}
       <div className="space-y-3">
         <Label className="text-xs font-medium text-muted-foreground">Orientation</Label>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={config.orientation === 'portrait' ? 'default' : 'outline'}
-            size="sm"
+        <ToggleGroup
+          type="single"
+          value={config.orientation}
+          onValueChange={(value) => {
+            if (value) handleOrientationChange(value as Orientation);
+          }}
+          variant="outline"
+          size="sm"
+          className="w-full"
+        >
+          <ToggleGroupItem
+            value="portrait"
             data-testid="orientation-portrait"
-            onClick={() => handleOrientationChange('portrait')}
             className="flex-1"
           >
             Portrait
-          </Button>
-          <Button
-            type="button"
-            variant={config.orientation === 'landscape' ? 'default' : 'outline'}
-            size="sm"
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="landscape"
             data-testid="orientation-landscape"
-            onClick={() => handleOrientationChange('landscape')}
             className="flex-1"
           >
             Landscape
-          </Button>
-        </div>
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
+
+      <Separator />
 
       {/* Margins Section */}
       <div className="space-y-3">
         <Label className="text-xs font-medium text-muted-foreground">Margins</Label>
 
         {/* Margin Presets */}
-        <div className="flex flex-wrap gap-2">
+        <ToggleGroup
+          type="single"
+          value={currentMarginPreset}
+          onValueChange={(value) => {
+            if (value && value !== 'custom') {
+              handleMarginPresetChange(value as Exclude<MarginPreset, 'custom'>);
+            }
+          }}
+          variant="outline"
+          size="sm"
+          className="flex-wrap"
+        >
           {(Object.keys(MARGIN_PRESETS) as Array<Exclude<MarginPreset, 'custom'>>).map(
             (preset) => (
-              <Button
+              <ToggleGroupItem
                 key={preset}
-                type="button"
-                variant={currentMarginPreset === preset ? 'default' : 'outline'}
-                size="sm"
+                value={preset}
                 data-testid={`margin-preset-${preset}`}
-                onClick={() => handleMarginPresetChange(preset)}
                 className="capitalize text-xs"
               >
                 {preset}
-              </Button>
+              </ToggleGroupItem>
             ),
           )}
-          <Button
-            type="button"
-            variant={currentMarginPreset === 'custom' ? 'default' : 'outline'}
-            size="sm"
+          <ToggleGroupItem
+            value="custom"
             data-testid="margin-preset-custom"
             className="capitalize text-xs"
             disabled
           >
             Custom
-          </Button>
-        </div>
+          </ToggleGroupItem>
+        </ToggleGroup>
 
-        {/* Margin Inputs */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="margin-top" className="text-xs">
-              Top (px)
-            </Label>
-            <Input
-              id="margin-top"
-              data-testid="margin-top"
-              type="number"
-              min={0}
-              step="1"
-              value={localMargins.top}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setLocalMargins((prev) => ({ ...prev, top: isNaN(val) ? 0 : val }));
-              }}
-              onBlur={() => {
-                if (localMargins.top !== config.margins.top) {
-                  handleMarginChange('top', localMargins.top);
+        {/* Margin Inputs with Sliders */}
+        <div className="grid grid-cols-2 gap-4">
+          {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
+            <div key={side} className="space-y-2">
+              <Label htmlFor={`margin-${side}`} className="text-xs capitalize">
+                {side} (px)
+              </Label>
+              <Slider
+                min={0}
+                max={100}
+                step={1}
+                value={[localMargins[side]]}
+                onValueChange={([val]) =>
+                  setLocalMargins((prev) => ({ ...prev, [side]: val }))
                 }
-              }}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="margin-right" className="text-xs">
-              Right (px)
-            </Label>
-            <Input
-              id="margin-right"
-              data-testid="margin-right"
-              type="number"
-              min={0}
-              step="1"
-              value={localMargins.right}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setLocalMargins((prev) => ({ ...prev, right: isNaN(val) ? 0 : val }));
-              }}
-              onBlur={() => {
-                if (localMargins.right !== config.margins.right) {
-                  handleMarginChange('right', localMargins.right);
-                }
-              }}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="margin-bottom" className="text-xs">
-              Bottom (px)
-            </Label>
-            <Input
-              id="margin-bottom"
-              data-testid="margin-bottom"
-              type="number"
-              min={0}
-              step="1"
-              value={localMargins.bottom}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setLocalMargins((prev) => ({ ...prev, bottom: isNaN(val) ? 0 : val }));
-              }}
-              onBlur={() => {
-                if (localMargins.bottom !== config.margins.bottom) {
-                  handleMarginChange('bottom', localMargins.bottom);
-                }
-              }}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="margin-left" className="text-xs">
-              Left (px)
-            </Label>
-            <Input
-              id="margin-left"
-              data-testid="margin-left"
-              type="number"
-              min={0}
-              step="1"
-              value={localMargins.left}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setLocalMargins((prev) => ({ ...prev, left: isNaN(val) ? 0 : val }));
-              }}
-              onBlur={() => {
-                if (localMargins.left !== config.margins.left) {
-                  handleMarginChange('left', localMargins.left);
-                }
-              }}
-            />
-          </div>
+                onValueCommit={([val]) => handleMarginChange(side, val)}
+                data-testid={`margin-${side}-slider`}
+              />
+              <Input
+                id={`margin-${side}`}
+                data-testid={`margin-${side}`}
+                type="number"
+                min={0}
+                step="1"
+                value={localMargins[side]}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setLocalMargins((prev) => ({ ...prev, [side]: isNaN(val) ? 0 : val }));
+                }}
+                onBlur={() => {
+                  if (localMargins[side] !== config.margins[side]) {
+                    handleMarginChange(side, localMargins[side]);
+                  }
+                }}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>

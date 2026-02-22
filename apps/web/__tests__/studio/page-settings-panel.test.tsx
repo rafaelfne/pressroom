@@ -91,8 +91,8 @@ describe('PageSettingsPanel', () => {
         const portraitBtn = within(panel).getByTestId('orientation-portrait');
         const landscapeBtn = within(panel).getByTestId('orientation-landscape');
 
-        expect(portraitBtn.className).toContain('bg-primary');
-        expect(landscapeBtn.className).not.toContain('bg-primary');
+        expect(portraitBtn).toHaveAttribute('data-state', 'on');
+        expect(landscapeBtn).toHaveAttribute('data-state', 'off');
     });
 
     it('calls onConfigChange when orientation is switched', () => {
@@ -127,7 +127,7 @@ describe('PageSettingsPanel', () => {
         const { container } = render(<PageSettingsPanel {...defaultProps} />);
         const panel = within(container).getByTestId('page-settings-panel');
         const normalPreset = within(panel).getByTestId('margin-preset-normal');
-        expect(normalPreset.className).toContain('bg-primary');
+        expect(normalPreset).toHaveAttribute('data-state', 'on');
     });
 
     it('calls onConfigChange when margin preset is clicked', () => {
@@ -175,6 +175,6 @@ describe('PageSettingsPanel', () => {
         );
         const panel = within(container).getByTestId('page-settings-panel');
         const customPreset = within(panel).getByTestId('margin-preset-custom');
-        expect(customPreset.className).toContain('bg-primary');
+        expect(customPreset).toHaveAttribute('data-state', 'on');
     });
 });
