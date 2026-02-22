@@ -17,7 +17,7 @@ describe('BindingPathExplorer', () => {
     );
 
     expect(screen.getByTestId('explorer-trigger')).toBeInTheDocument();
-    expect(screen.getByTestId('explorer-trigger')).toHaveTextContent('📎');
+    expect(screen.getByTestId('explorer-trigger').querySelector('svg')).toBeInTheDocument();
   });
 
   it('trigger is disabled when no sample data', () => {

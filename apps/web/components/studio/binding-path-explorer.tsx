@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { Database } from 'lucide-react';
 
 export interface BindingPathExplorerProps {
   sampleData?: Record<string, unknown>;
@@ -258,7 +259,7 @@ export function BindingPathExplorer({
         title={hasData ? 'Browse data structure' : 'No sample data available'}
         data-testid="explorer-trigger"
       >
-        📎
+        <Database size={16} />
       </button>
 
       {/* Popover */}

@@ -12,6 +12,8 @@ import {
   type FunctionSuggestion,
   type PipeSuggestion,
 } from '@/lib/binding/suggest-paths';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 export interface BindingAutocompleteProps {
   value: string;
@@ -357,13 +359,10 @@ export function BindingAutocomplete({
     }
   };
 
-  const inputClassName =
-    'w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
-
   return (
     <div className="relative" data-testid="binding-autocomplete">
       {multiline ? (
-        <textarea
+        <Textarea
           ref={inputRef as React.RefObject<HTMLTextAreaElement>}
           value={value}
           onChange={handleChange}
@@ -371,12 +370,12 @@ export function BindingAutocomplete({
           onSelect={handleSelect}
           onClick={handleSelect}
           placeholder={placeholder}
-          className={`${inputClassName} min-h-20 resize-y font-mono`}
+          className="min-h-20 resize-y font-mono text-xs bg-slate-900! text-amber-500 font-semibold"
           spellCheck={false}
           data-testid="binding-input"
         />
       ) : (
-        <input
+        <Input
           ref={inputRef as React.RefObject<HTMLInputElement>}
           type="text"
           value={value}
@@ -385,7 +384,7 @@ export function BindingAutocomplete({
           onSelect={handleSelect}
           onClick={handleSelect}
           placeholder={placeholder}
-          className={`${inputClassName} font-mono`}
+          className="font-mono text-xs bg-slate-900! text-amber-500 font-semibold"
           spellCheck={false}
           data-testid="binding-input"
         />

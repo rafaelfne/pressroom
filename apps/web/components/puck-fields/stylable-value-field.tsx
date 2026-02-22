@@ -113,7 +113,7 @@ export function StylableValueField({ value, onChange, field }: StylableValueFiel
                 onChange({ mode: 'inline', inline: e.target.value })
               }
               placeholder="Type a value..."
-              className="h-8 text-xs bg-linear-30"
+              className="text-xs bg-linear-30 bg-slate-900 text-amber-500 font-semibold"
             />
             {isColorField && (
               <input
@@ -135,7 +135,7 @@ export function StylableValueField({ value, onChange, field }: StylableValueFiel
               onChange({ mode: 'token', token })
             }
           >
-            <SelectTrigger size="sm" className="w-full text-xs">
+            <SelectTrigger className="w-full text-xs bg-slate-900! text-amber-500 font-semibold">
               <SelectValue placeholder="Select a token..." />
             </SelectTrigger>
             <SelectContent>

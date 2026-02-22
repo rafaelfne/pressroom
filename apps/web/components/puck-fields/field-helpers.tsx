@@ -1,8 +1,6 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -12,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
+import { BindingFieldOverride } from '@/components/studio/binding-field-override';
 
 type FieldOption = { label: string; value: string };
 
@@ -23,23 +22,25 @@ export const YES_NO_OPTIONS: FieldOption[] = [
   { label: 'No', value: 'false' },
 ];
 
-/** Custom Puck field that renders a shadcn Input. */
+/** Custom Puck field that renders a text input with binding autocomplete. */
 export function textField(label: string, opts?: { placeholder?: string }) {
   return {
     type: 'custom' as const,
     label,
-    render: ({ value, onChange, name }: RenderProps) => (
-      <div className="space-y-1.5">
-        <Label htmlFor={name} className="font-semibold">{label}</Label>
-        <Input
-          id={name}
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={opts?.placeholder ?? ''}
-          className="h-8 text-xs"
-        />
-      </div>
-    ),
+    render: ({ value, onChange, name }: RenderProps) => {
+      const isArrayItem = name?.includes('[');
+      return (
+        <div className="space-y-1.5">
+          <Label htmlFor={name} className="font-semibold">{label}</Label>
+          <BindingFieldOverride
+            value={value ?? ''}
+            onChange={onChange}
+            placeholder={opts?.placeholder ?? ''}
+            showExplorer={!isArrayItem}
+          />
+        </div>
+      );
+    },
   };
 }
 
@@ -52,7 +53,7 @@ export function selectField(label: string, options: FieldOption[]) {
       <div className="space-y-1.5">
         <Label htmlFor={name} className="font-semibold">{label}</Label>
         <Select value={value || undefined} onValueChange={onChange}>
-          <SelectTrigger size="sm" className="w-full text-xs">
+          <SelectTrigger className="w-full text-xs bg-slate-900! text-amber-500 font-semibold">
             <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>
@@ -70,47 +71,55 @@ export function selectField(label: string, options: FieldOption[]) {
   };
 }
 
-/** Custom Puck field that renders a shadcn Input with type="number". */
+/** Custom Puck field that renders a number input with binding autocomplete. */
 export function numberField(label: string, opts?: { min?: number; max?: number; step?: number }) {
   return {
     type: 'custom' as const,
     label,
-    render: ({ value, onChange, name }: RenderProps) => (
-      <div className="space-y-1.5">
-        <Label htmlFor={name} className="font-semibold">{label}</Label>
-        <Input
-          id={name}
-          type="number"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-          min={opts?.min}
-          max={opts?.max}
-          step={opts?.step}
-          className="h-8 text-xs"
-        />
-      </div>
-    ),
+    render: ({ value, onChange, name }: RenderProps) => {
+      const isArrayItem = name?.includes('[');
+      return (
+        <div className="space-y-1.5">
+          <Label htmlFor={name} className="font-semibold">{label}</Label>
+          <BindingFieldOverride
+            value={value != null ? String(value) : ''}
+            onChange={(val: string) => {
+              // If the value contains a binding expression, pass it as-is
+              if (val.includes('{{')) {
+                onChange(val);
+              } else {
+                onChange(val === '' ? 0 : Number(val));
+              }
+            }}
+            placeholder={opts?.min != null && opts?.max != null ? `${opts.min}–${opts.max}` : ''}
+            showExplorer={!isArrayItem}
+          />
+        </div>
+      );
+    },
   };
 }
 
-/** Custom Puck field that renders a shadcn Textarea. */
+/** Custom Puck field that renders a multiline text input with binding autocomplete. */
 export function textareaField(label: string, opts?: { placeholder?: string; rows?: number }) {
   return {
     type: 'custom' as const,
     label,
-    render: ({ value, onChange, name }: RenderProps) => (
-      <div className="space-y-1.5">
-        <Label htmlFor={name} className="font-semibold">{label}</Label>
-        <Textarea
-          id={name}
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={opts?.placeholder ?? ''}
-          rows={opts?.rows ?? 3}
-          className="text-xs"
-        />
-      </div>
-    ),
+    render: ({ value, onChange, name }: RenderProps) => {
+      const isArrayItem = name?.includes('[');
+      return (
+        <div className="space-y-1.5">
+          <Label htmlFor={name} className="font-semibold">{label}</Label>
+          <BindingFieldOverride
+            value={value ?? ''}
+            onChange={onChange}
+            placeholder={opts?.placeholder ?? ''}
+            multiline
+            showExplorer={!isArrayItem}
+          />
+        </div>
+      );
+    },
   };
 }
 
