@@ -1,6 +1,10 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
 import { InheritedStylesProvider } from '@/contexts/inherited-styles-context';
+import { useStyleGuide } from '@/contexts/style-guide-context';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { resolveStylableValue, resolveSpacing, type StylableValue, type SpacingValue } from '@/lib/types/style-system';
 
 const DEFAULT_PADDING = '0';
 
@@ -15,16 +19,17 @@ export type FlexBoxProps = {
   paddingRight: string;
   paddingBottom: string;
   paddingLeft: string;
-  backgroundColor: string;
+  backgroundColor: StylableValue | string;
   borderWidth: string;
   borderColor: string;
   borderRadius: string;
   minHeight: string;
-  color: string;
+  color: StylableValue | string;
   fontSize: string;
   fontFamily: string;
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
+  styleConditions: string;
 };
 
 export const FlexBox: ComponentConfig<FlexBoxProps> = {
@@ -133,6 +138,10 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
       type: 'textarea',
       label: 'Visibility Condition (JSON)',
     },
+    styleConditions: {
+      type: 'textarea',
+      label: 'Style Conditions (JSON)',
+    },
   },
   defaultProps: {
     direction: 'column',
@@ -155,73 +164,78 @@ export const FlexBox: ComponentConfig<FlexBoxProps> = {
     fontFamily: '',
     pageBreakBehavior: 'auto',
     visibilityCondition: '',
+    styleConditions: '',
   },
-  render: ({
-    direction,
-    wrap,
-    justifyContent,
-    alignItems,
-    gap,
-    padding,
-    paddingTop,
-    paddingRight,
-    paddingBottom,
-    paddingLeft,
-    backgroundColor,
-    borderWidth,
-    borderColor,
-    borderRadius,
-    minHeight,
-    color,
-    fontSize,
-    fontFamily,
-    pageBreakBehavior,
-    puck,
-    id = 'flexbox',
-  }) => {
-    // Build inheritable styles object, only including non-empty values
-    const inheritableStyles: Record<string, string> = {};
-    if (color) inheritableStyles.color = color;
-    if (fontSize) inheritableStyles.fontSize = fontSize;
-    if (fontFamily) inheritableStyles.fontFamily = fontFamily;
-
-    const content = puck.renderDropZone({ zone: `${id}-content` });
-
-    // Resolve padding: individual values override the "all sides" value
-    let finalPadding: string;
-    if (paddingTop || paddingRight || paddingBottom || paddingLeft) {
-      // At least one individual padding is set - use CSS shorthand
-      finalPadding = `${paddingTop || '0'}px ${paddingRight || '0'}px ${paddingBottom || '0'}px ${paddingLeft || '0'}px`;
-    } else {
-      // Use the "all sides" padding value
-      finalPadding = `${padding}px`;
-    }
-
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: direction,
-          flexWrap: wrap,
-          justifyContent,
-          alignItems,
-          gap: `${gap}px`,
-          padding: finalPadding,
-          backgroundColor,
-          borderWidth: `${borderWidth}px`,
-          borderStyle: borderWidth !== '0' ? 'solid' : 'none',
-          borderColor,
-          borderRadius: `${borderRadius}px`,
-          minHeight: `${minHeight}px`,
-          ...getPageBreakStyle(pageBreakBehavior),
-        }}
-      >
-        {Object.keys(inheritableStyles).length > 0 ? (
-          <InheritedStylesProvider styles={inheritableStyles}>{content}</InheritedStylesProvider>
-        ) : (
-          content
-        )}
-      </div>
-    );
-  },
+  render: (props) => <FlexBoxRender {...props} />,
 };
+
+// Wrapper component to use hooks for token resolution
+function FlexBoxRender({
+  direction,
+  wrap,
+  justifyContent,
+  alignItems,
+  gap,
+  padding,
+  paddingTop,
+  paddingRight,
+  paddingBottom,
+  paddingLeft,
+  backgroundColor,
+  borderWidth,
+  borderColor,
+  borderRadius,
+  minHeight,
+  color,
+  fontSize,
+  fontFamily,
+  pageBreakBehavior,
+  puck,
+  id = 'flexbox',
+}: Omit<FlexBoxProps, 'visibilityCondition' | 'styleConditions'> & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) {
+  // Resolve StylableValue for color properties
+  const { tokens } = useStyleGuide();
+  const resolvedBackgroundColor = resolveStylableValue(backgroundColor, tokens) ?? 'transparent';
+  const resolvedColor = resolveStylableValue(color, tokens) ?? '';
+
+  // Build inheritable styles object, only including non-empty values
+  const inheritableStyles: Record<string, string> = {};
+  if (resolvedColor) inheritableStyles.color = resolvedColor;
+  if (fontSize) inheritableStyles.fontSize = fontSize;
+  if (fontFamily) inheritableStyles.fontFamily = fontFamily;
+
+  const content = puck.renderDropZone({ zone: `${id}-content` });
+
+  // Resolve padding using SpacingValue utility
+  const spacingValue: SpacingValue = (paddingTop || paddingRight || paddingBottom || paddingLeft)
+    ? { mode: 'individual', top: `${paddingTop || '0'}px`, right: `${paddingRight || '0'}px`, bottom: `${paddingBottom || '0'}px`, left: `${paddingLeft || '0'}px` }
+    : { mode: 'all', all: `${padding}px` };
+  const finalPadding = resolveSpacing(spacingValue) ?? '0px';
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: direction,
+        flexWrap: wrap,
+        justifyContent,
+        alignItems,
+        gap: `${gap}px`,
+        padding: finalPadding,
+        backgroundColor: resolvedBackgroundColor,
+        borderWidth: `${borderWidth}px`,
+        borderStyle: borderWidth !== '0' ? 'solid' : 'none',
+        borderColor,
+        borderRadius: `${borderRadius}px`,
+        minHeight: `${minHeight}px`,
+        ...getPageBreakStyle(pageBreakBehavior),
+      }}
+    >
+      {Object.keys(inheritableStyles).length > 0 ? (
+        <InheritedStylesProvider styles={inheritableStyles}>{content}</InheritedStylesProvider>
+      ) : (
+        content
+      )}
+    </div>
+  );
+}

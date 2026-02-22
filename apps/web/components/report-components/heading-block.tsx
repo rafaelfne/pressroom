@@ -3,16 +3,19 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 import { useInheritedStyles } from '@/contexts/inherited-styles-context';
+import { useStyleGuide } from '@/contexts/style-guide-context';
+import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
 
 const DEFAULT_HEADING_COLOR = '#000000';
 
 export type HeadingBlockProps = {
   text: string;
   level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
-  color: string;
+  color: StylableValue | string;
   fontFamily: string;
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
+  styleConditions: string;
   marginTop: string;
   marginRight: string;
   marginBottom: string;
@@ -42,6 +45,10 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
       type: 'textarea',
       label: 'Visibility Condition (JSON)',
     },
+    styleConditions: {
+      type: 'textarea',
+      label: 'Style Conditions (JSON)',
+    },
     marginTop: {
       type: 'text',
       label: 'Margin Top',
@@ -66,6 +73,7 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
     fontFamily: '',
     pageBreakBehavior: 'auto',
     visibilityCondition: '',
+    styleConditions: '',
     marginTop: '0',
     marginRight: '0',
     marginBottom: '0',
@@ -75,27 +83,31 @@ export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
 };
 
 // Wrapper component to use hooks
-function HeadingBlockRender({ text, level, color, fontFamily, pageBreakBehavior, marginTop, marginRight, marginBottom, marginLeft }: Omit<HeadingBlockProps, 'visibilityCondition'>) {
+function HeadingBlockRender({ text, level, color, fontFamily, pageBreakBehavior, marginTop, marginRight, marginBottom, marginLeft }: Omit<HeadingBlockProps, 'visibilityCondition' | 'styleConditions'>) {
   const Tag = level;
 
   // Get inherited styles from context
   const inherited = useInheritedStyles();
 
+  // Resolve StylableValue (supports both plain strings and token references)
+  const { tokens } = useStyleGuide();
+  const resolvedColor = resolveStylableValue(color, tokens) ?? DEFAULT_HEADING_COLOR;
+
   // Use inherited values as fallback when own value is the default
-  const finalColor = color !== DEFAULT_HEADING_COLOR ? color : (inherited.color || color);
+  const finalColor = resolvedColor !== DEFAULT_HEADING_COLOR ? resolvedColor : (inherited.color || resolvedColor);
   const finalFontFamily = fontFamily ? fontFamily : (inherited.fontFamily || undefined);
 
   return (
-    <Tag 
-      style={{ 
-        color: finalColor, 
+    <Tag
+      style={{
+        color: finalColor,
         fontFamily: finalFontFamily ? `"${finalFontFamily}", sans-serif` : undefined,
         marginTop,
         marginRight,
         marginBottom,
         marginLeft,
-        ...getPageBreakStyle(pageBreakBehavior) 
-      }} 
+        ...getPageBreakStyle(pageBreakBehavior)
+      }}
       className="p-2"
     >
       {text}

@@ -21,6 +21,8 @@ import { Toaster, toast } from 'sonner';
 import { CustomActionBar } from '@/components/studio/custom-action-bar';
 import { MultiSelectProvider } from '@/contexts/multi-select-context';
 import { SampleDataProvider } from '@/contexts/sample-data-context';
+import { StyleGuideProvider } from '@/contexts/style-guide-context';
+import type { StyleToken } from '@/lib/types/style-system';
 import { MarqueeSelection } from '@/components/studio/marquee-selection';
 import { SelectionCountBadge } from '@/components/studio/selection-count-badge';
 import { MultiSelectIntegration } from '@/components/studio/multi-select-integration';
@@ -140,6 +142,8 @@ export default function StudioPage() {
   const [templateName, setTemplateName] = useState<string>('Untitled Template');
   const [user, setUser] = useState<UserSession | null>(null);
   const [pageConfig, setPageConfig] = useState<PageConfig>(DEFAULT_PAGE_CONFIG);
+  const [styleGuideTokens, setStyleGuideTokens] = useState<StyleToken[]>([]);
+  const [styleGuideId, setStyleGuideId] = useState<string | null>(null);
 
   // History state for undo/redo
   const [canUndo, setCanUndo] = useState(false);
@@ -215,6 +219,29 @@ export default function StudioPage() {
             const loadedConfig = parseStoredPageConfig(template.pageConfig);
             setPageConfig(loadedConfig);
             pageConfigRef.current = loadedConfig;
+          }
+          // Load style guide tokens if template has one
+          if (template.styleGuideId) {
+            setStyleGuideId(template.styleGuideId);
+            try {
+              const sgRes = await fetch(`/api/style-guides/${template.styleGuideId}`);
+              if (sgRes.ok) {
+                const sg = await sgRes.json();
+                setStyleGuideTokens(
+                  (sg.tokens ?? []).map((t: { id: string; name: string; label: string; category: string; cssProperty: string; value: string; sortOrder: number }) => ({
+                    id: t.id,
+                    name: t.name,
+                    label: t.label,
+                    category: t.category,
+                    cssProperty: t.cssProperty,
+                    value: t.value,
+                    sortOrder: t.sortOrder,
+                  })),
+                );
+              }
+            } catch {
+              // Style guide fetch failed — continue without tokens
+            }
           }
         } else {
           const defaultPages = [createDefaultPage('Page 1')];
@@ -529,6 +556,8 @@ export default function StudioPage() {
         handleSampleDataChange={handleSampleDataChange}
         isSampleDataOpen={isSampleDataOpen}
         templateId={templateId}
+        styleGuideTokens={styleGuideTokens}
+        styleGuideId={styleGuideId}
       />
     </MultiSelectProvider>
   );
@@ -572,6 +601,8 @@ function StudioContent({
   handleSampleDataChange,
   isSampleDataOpen,
   templateId,
+  styleGuideTokens,
+  styleGuideId,
 }: {
   activePage: PageItem;
   displayUser: UserSession;
@@ -607,6 +638,8 @@ function StudioContent({
   handleSampleDataChange: (data: Record<string, unknown>) => void;
   isSampleDataOpen: boolean;
   templateId: string;
+  styleGuideTokens: StyleToken[];
+  styleGuideId: string | null;
 }) {
   const canvasWorkspaceRef = useRef<HTMLDivElement>(null);
 
@@ -669,61 +702,63 @@ function StudioContent({
         <div className="flex flex-1 flex-col overflow-hidden relative">
           <div ref={puckWrapperRef} className="flex-1 min-h-0 overflow-hidden">
             <SampleDataProvider value={sampleData}>
-              <Puck
-                key={activePage.id}
-                config={puckConfig}
-                data={activePage.content}
-                onPublish={handlePublish}
-                viewports={[]}
-                iframe={{ enabled: false }}
-                overrides={{
-                  header: () => <></>,
-                  actionBar: () => <CustomActionBar usePuck={usePuck} />,
-                  puck: ({ children }) => (
-                    <>
-                      <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
-                      <MultiSelectIntegration
-                        usePuck={usePuck}
-                        puckDataRef={puckDataRef}
-                        templateId={templateId}
-                        activePageId={activePageId}
-                        activePageName={activePage.name}
+              <StyleGuideProvider tokens={styleGuideTokens} styleGuideId={styleGuideId}>
+                <Puck
+                  key={activePage.id}
+                  config={puckConfig}
+                  data={activePage.content}
+                  onPublish={handlePublish}
+                  viewports={[]}
+                  iframe={{ enabled: false }}
+                  overrides={{
+                    header: () => <></>,
+                    actionBar: () => <CustomActionBar usePuck={usePuck} />,
+                    puck: ({ children }) => (
+                      <>
+                        <PuckBridge onHistoryChange={handleHistoryChange} dataRef={puckDataRef} />
+                        <MultiSelectIntegration
+                          usePuck={usePuck}
+                          puckDataRef={puckDataRef}
+                          templateId={templateId}
+                          activePageId={activePageId}
+                          activePageName={activePage.name}
+                          canvasRef={canvasWorkspaceRef}
+                        />
+                        <SelectionHighlight />
+                        {children}
+                      </>
+                    ),
+                    preview: () => (
+                      <PaperCanvas
+                        pageConfig={pageConfig}
+                        zoom={zoom}
+                        onZoomChange={onZoomChange}
                         canvasRef={canvasWorkspaceRef}
-                      />
-                      <SelectionHighlight />
-                      {children}
-                    </>
-                  ),
-                  preview: () => (
-                    <PaperCanvas
-                      pageConfig={pageConfig}
-                      zoom={zoom}
-                      onZoomChange={onZoomChange}
-                      canvasRef={canvasWorkspaceRef}
-                      overlayContent={
-                        <>
-                          <MarqueeSelection />
-                          <SelectionCountBadge />
-                        </>
-                      }
-                    >
-                      <Puck.Preview />
-                    </PaperCanvas>
-                  ),
-                  fields: ({ children }) => (
-                    <RightPanel
-                      usePuck={usePuck}
-                      config={pageConfig}
-                      onConfigChange={handlePageConfigChange}
-                      pageTitle={activePage.name}
-                      onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
-                    >
-                      {children}
-                    </RightPanel>
-                  ),
-                  fieldTypes,
-                }}
-              />
+                        overlayContent={
+                          <>
+                            <MarqueeSelection />
+                            <SelectionCountBadge />
+                          </>
+                        }
+                      >
+                        <Puck.Preview />
+                      </PaperCanvas>
+                    ),
+                    fields: ({ children }) => (
+                      <RightPanel
+                        usePuck={usePuck}
+                        config={pageConfig}
+                        onConfigChange={handlePageConfigChange}
+                        pageTitle={activePage.name}
+                        onPageTitleChange={(title) => handleRenamePage(activePage.id, title)}
+                      >
+                        {children}
+                      </RightPanel>
+                    ),
+                    fieldTypes,
+                  }}
+                />
+              </StyleGuideProvider>
             </SampleDataProvider>
           </div>
           {/* Page Tab Bar at bottom of canvas */}

@@ -1,9 +1,13 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useStyleGuide } from '@/contexts/style-guide-context';
+import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
 
 export type DividerProps = {
   orientation: 'horizontal' | 'vertical';
-  color: string;
+  color: StylableValue | string;
   thickness: string;
   lineStyle: 'solid' | 'dashed' | 'dotted';
   pageBreakBehavior: PageBreakBehavior;
@@ -46,36 +50,42 @@ export const Divider: ComponentConfig<DividerProps> = {
     pageBreakBehavior: 'auto',
     visibilityCondition: '',
   },
-  render: ({ orientation, color, thickness, lineStyle, pageBreakBehavior }) => {
-    if (orientation === 'vertical') {
-      return (
-        <div
-          style={{
-            display: 'inline-block',
-            width: `${thickness}px`,
-            alignSelf: 'stretch',
-            minHeight: '24px',
-            borderLeft: `${thickness}px ${lineStyle} ${color}`,
-            ...getPageBreakStyle(pageBreakBehavior),
-          }}
-          className="mx-2"
-          role="separator"
-          aria-orientation="vertical"
-        />
-      );
-    }
+  render: (props) => <DividerRender {...props} />,
+};
 
+// Wrapper component to use hooks for token resolution
+function DividerRender({ orientation, color, thickness, lineStyle, pageBreakBehavior }: Omit<DividerProps, 'visibilityCondition'>) {
+  const { tokens } = useStyleGuide();
+  const resolvedColor = resolveStylableValue(color, tokens) ?? '#e5e7eb';
+
+  if (orientation === 'vertical') {
     return (
-      <hr
+      <div
         style={{
-          borderTop: `${thickness}px ${lineStyle} ${color}`,
-          borderBottom: 'none',
-          borderLeft: 'none',
-          borderRight: 'none',
+          display: 'inline-block',
+          width: `${thickness}px`,
+          alignSelf: 'stretch',
+          minHeight: '24px',
+          borderLeft: `${thickness}px ${lineStyle} ${resolvedColor}`,
           ...getPageBreakStyle(pageBreakBehavior),
         }}
-        className="my-2"
+        className="mx-2"
+        role="separator"
+        aria-orientation="vertical"
       />
     );
-  },
-};
+  }
+
+  return (
+    <hr
+      style={{
+        borderTop: `${thickness}px ${lineStyle} ${resolvedColor}`,
+        borderBottom: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        ...getPageBreakStyle(pageBreakBehavior),
+      }}
+      className="my-2"
+    />
+  );
+}

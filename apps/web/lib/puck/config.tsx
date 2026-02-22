@@ -14,6 +14,8 @@ import { Section, type SectionProps } from '@/components/report-components/secti
 import { FlexBox, type FlexBoxProps } from '@/components/report-components/flex-box';
 import { withBindingResolution } from '@/lib/puck/with-binding-resolution';
 import { RichTextEditor } from '@/components/studio/rich-text-editor';
+import { StylableValueField } from '@/components/puck-fields/stylable-value-field';
+import type { StylableValue } from '@/lib/types/style-system';
 
 type PuckComponents = {
   TextBlock: TextBlockProps;
@@ -62,12 +64,55 @@ export const puckConfig: Config<PuckComponents> = {
             <RichTextEditor value={value} onChange={onChange} />
           ),
         },
+        color: {
+          type: 'custom' as const,
+          label: 'Text Color',
+          render: ({ value, onChange }: { value: StylableValue | string; onChange: (val: StylableValue) => void }) => (
+            <StylableValueField
+              value={value}
+              onChange={onChange}
+              field={{ label: 'Text Color', tokenCssProperty: 'color', tokenCategory: 'color' }}
+            />
+          ),
+        },
       } as typeof TextBlock.fields,
     },
-    HeadingBlock: withBindingResolution(HeadingBlock),
+    HeadingBlock: {
+      ...withBindingResolution(HeadingBlock),
+      fields: {
+        ...HeadingBlock.fields!,
+        color: {
+          type: 'custom' as const,
+          label: 'Text Color',
+          render: ({ value, onChange }: { value: StylableValue | string; onChange: (val: StylableValue) => void }) => (
+            <StylableValueField
+              value={value}
+              onChange={onChange}
+              field={{ label: 'Text Color', tokenCssProperty: 'color', tokenCategory: 'color' }}
+            />
+          ),
+        },
+      } as typeof HeadingBlock.fields,
+    },
     ImageBlock,
     Spacer,
-    Divider,
+    Divider: {
+      ...Divider,
+      fields: {
+        ...Divider.fields!,
+        color: {
+          type: 'custom' as const,
+          label: 'Color',
+          render: ({ value, onChange }: { value: StylableValue | string; onChange: (val: StylableValue) => void }) => (
+            <StylableValueField
+              value={value}
+              onChange={onChange}
+              field={{ label: 'Color', tokenCssProperty: 'color', tokenCategory: 'color' }}
+            />
+          ),
+        },
+      } as typeof Divider.fields,
+    },
     PageBreak,
     DataTable: withBindingResolution(DataTable),
     ChartBlock: withBindingResolution(ChartBlock),
@@ -75,6 +120,33 @@ export const puckConfig: Config<PuckComponents> = {
     GridRow,
     GridColumn,
     Section,
-    FlexBox,
+    FlexBox: {
+      ...FlexBox,
+      fields: {
+        ...FlexBox.fields!,
+        backgroundColor: {
+          type: 'custom' as const,
+          label: 'Background Color',
+          render: ({ value, onChange }: { value: StylableValue | string; onChange: (val: StylableValue) => void }) => (
+            <StylableValueField
+              value={value}
+              onChange={onChange}
+              field={{ label: 'Background Color', tokenCssProperty: 'background-color', tokenCategory: 'background' }}
+            />
+          ),
+        },
+        color: {
+          type: 'custom' as const,
+          label: 'Text Color',
+          render: ({ value, onChange }: { value: StylableValue | string; onChange: (val: StylableValue) => void }) => (
+            <StylableValueField
+              value={value}
+              onChange={onChange}
+              field={{ label: 'Text Color', tokenCssProperty: 'color', tokenCategory: 'color' }}
+            />
+          ),
+        },
+      } as typeof FlexBox.fields,
+    },
   },
 };

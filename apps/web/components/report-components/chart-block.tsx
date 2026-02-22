@@ -45,6 +45,7 @@ export type ChartBlockProps = {
   backgroundColor: string;
   containerBorder: string;
   pageBreakBehavior: PageBreakBehavior;
+  visibilityCondition: string;
 };
 
 // Sample data for Studio preview
@@ -209,6 +210,10 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
       ],
     },
     pageBreakBehavior: pageBreakField,
+    visibilityCondition: {
+      type: 'textarea',
+      label: 'Visibility Condition (JSON)',
+    },
   },
   defaultProps: {
     chartType: 'bar',
@@ -231,6 +236,7 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     backgroundColor: '',
     containerBorder: 'false',
     pageBreakBehavior: 'avoid',
+    visibilityCondition: '',
   },
   render: ({
     chartType,

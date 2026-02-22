@@ -1,15 +1,21 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
+import { useStyleGuide } from '@/contexts/style-guide-context';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
 
 export type ContainerProps = {
   padding: string;
   borderWidth: string;
-  borderColor: string;
+  borderColor: StylableValue | string;
   borderRadius: string;
-  backgroundColor: string;
+  backgroundColor: StylableValue | string;
   shadow: 'none' | 'sm' | 'md' | 'lg';
   minHeight: string;
   pageBreakBehavior: PageBreakBehavior;
+  visibilityCondition: string;
+  styleConditions: string;
 };
 
 const shadowMap: Record<ContainerProps['shadow'], string> = {
@@ -57,6 +63,14 @@ export const Container: ComponentConfig<ContainerProps> = {
       label: 'Min Height (px)',
     },
     pageBreakBehavior: pageBreakField,
+    visibilityCondition: {
+      type: 'textarea',
+      label: 'Visibility Condition (JSON)',
+    },
+    styleConditions: {
+      type: 'textarea',
+      label: 'Style Conditions (JSON)',
+    },
   },
   defaultProps: {
     padding: '16',
@@ -67,8 +81,29 @@ export const Container: ComponentConfig<ContainerProps> = {
     shadow: 'none',
     minHeight: '40',
     pageBreakBehavior: 'auto',
+    visibilityCondition: '',
+    styleConditions: '',
   },
-  render: ({ padding, borderWidth, borderColor, borderRadius, backgroundColor, shadow, minHeight, pageBreakBehavior, puck, id = 'container' }) => (
+  render: (props) => <ContainerRender {...props} />,
+};
+
+function ContainerRender({
+  padding,
+  borderWidth,
+  borderColor,
+  borderRadius,
+  backgroundColor,
+  shadow,
+  minHeight,
+  pageBreakBehavior,
+  puck,
+  id = 'container',
+}: Omit<ContainerProps, 'visibilityCondition' | 'styleConditions'> & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) {
+  const { tokens } = useStyleGuide();
+  const resolvedBackgroundColor = resolveStylableValue(backgroundColor, tokens) ?? 'transparent';
+  const resolvedBorderColor = resolveStylableValue(borderColor, tokens) ?? '#e5e7eb';
+
+  return (
     <div
       style={{
         display: 'flex',
@@ -76,9 +111,9 @@ export const Container: ComponentConfig<ContainerProps> = {
         padding: `${padding}px`,
         borderWidth: `${borderWidth}px`,
         borderStyle: borderWidth !== '0' ? 'solid' : 'none',
-        borderColor,
+        borderColor: resolvedBorderColor,
         borderRadius: `${borderRadius}px`,
-        backgroundColor,
+        backgroundColor: resolvedBackgroundColor,
         boxShadow: shadowMap[shadow],
         minHeight: `${minHeight}px`,
         ...getPageBreakStyle(pageBreakBehavior),
@@ -86,5 +121,5 @@ export const Container: ComponentConfig<ContainerProps> = {
     >
       {puck.renderDropZone({ zone: `${id}-content` })}
     </div>
-  ),
-};
+  );
+}

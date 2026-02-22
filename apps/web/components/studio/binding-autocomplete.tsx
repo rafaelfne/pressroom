@@ -371,7 +371,7 @@ export function BindingAutocomplete({
           onSelect={handleSelect}
           onClick={handleSelect}
           placeholder={placeholder}
-          className={`${inputClassName} min-h-[80px] resize-y font-mono`}
+          className={`${inputClassName} min-h-20 resize-y font-mono`}
           spellCheck={false}
           data-testid="binding-input"
         />
@@ -394,7 +394,7 @@ export function BindingAutocomplete({
       {showSuggestions && filteredItems.length > 0 && (
         <div
           ref={popupRef}
-          className="absolute z-50 mt-1 max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"
+          className="absolute z-50 mt-1 max-h-75 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"
           data-testid="suggestion-list"
         >
           {filteredItems.map((item, index) => (

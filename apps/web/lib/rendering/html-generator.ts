@@ -1,5 +1,5 @@
 import type { Data, Config } from '@puckeditor/core';
-import { googleFontUrl } from '@/components/report-components/text-block';
+import { googleFontUrl } from '@/lib/utils/google-fonts';
 
 export interface HtmlGeneratorOptions {
   title?: string;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { cloneStyleGuide } from '@/lib/style-guides';
 import type { Prisma } from '@prisma/client';
 
 const cloneSchema = z.object({
@@ -52,6 +53,16 @@ export async function POST(
       ? parsed.data.organizationId
       : original.organizationId;
 
+    // Handle style guide cloning for cross-org clones
+    let clonedStyleGuideId: string | null = null;
+    if (original.styleGuideId && targetOrgId && targetOrgId !== original.organizationId) {
+      const clonedGuide = await cloneStyleGuide(original.styleGuideId, targetOrgId);
+      clonedStyleGuideId = clonedGuide?.id ?? null;
+    } else {
+      // Same org or no org change — keep the same style guide
+      clonedStyleGuideId = original.styleGuideId;
+    }
+
     const clone = await prisma.template.create({
       data: {
         name: `${original.name} (Copy)`,
@@ -67,6 +78,7 @@ export async function POST(
         organizationId: targetOrgId,
         ownerId: session.user.id,
         teamId: original.teamId,
+        styleGuideId: clonedStyleGuideId,
         version: 1,
       },
       include: {

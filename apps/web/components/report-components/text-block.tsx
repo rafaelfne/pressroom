@@ -3,39 +3,12 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
 import { useInheritedStyles } from '@/contexts/inherited-styles-context';
+import { useStyleGuide } from '@/contexts/style-guide-context';
+import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
+import { GOOGLE_FONT_OPTIONS, googleFontUrl } from '@/lib/utils/google-fonts';
 
-/**
- * Popular Google Fonts available for selection.
- * The value is the font family name as it appears on Google Fonts.
- * Use '' (empty) for the default system font stack.
- */
-export const GOOGLE_FONT_OPTIONS = [
-  { label: 'Default (System)', value: '' },
-  { label: 'Inter', value: 'Inter' },
-  { label: 'Roboto', value: 'Roboto' },
-  { label: 'Open Sans', value: 'Open Sans' },
-  { label: 'Lato', value: 'Lato' },
-  { label: 'Montserrat', value: 'Montserrat' },
-  { label: 'Poppins', value: 'Poppins' },
-  { label: 'Raleway', value: 'Raleway' },
-  { label: 'Nunito', value: 'Nunito' },
-  { label: 'Playfair Display', value: 'Playfair Display' },
-  { label: 'Merriweather', value: 'Merriweather' },
-  { label: 'Source Sans 3', value: 'Source Sans 3' },
-  { label: 'PT Sans', value: 'PT Sans' },
-  { label: 'Noto Sans', value: 'Noto Sans' },
-  { label: 'Ubuntu', value: 'Ubuntu' },
-  { label: 'Oswald', value: 'Oswald' },
-  { label: 'Fira Sans', value: 'Fira Sans' },
-  { label: 'Barlow', value: 'Barlow' },
-  { label: 'Libre Baskerville', value: 'Libre Baskerville' },
-  { label: 'Custom...', value: 'custom' },
-] as const;
-
-/** Build the Google Fonts CSS URL for a given font family name. */
-export function googleFontUrl(family: string): string {
-  return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:ital,wght@0,100..900;1,100..900&display=swap`;
-}
+// Re-export for backward compatibility
+export { GOOGLE_FONT_OPTIONS, googleFontUrl } from '@/lib/utils/google-fonts';
 
 const DEFAULT_TEXT_COLOR = '#000000';
 const DEFAULT_FONT_SIZE = '1rem';
@@ -50,12 +23,13 @@ export type TextBlockProps = {
   customLetterSpacing: number;
   fontFamily: string;
   customFontFamily: string;
-  color: string;
+  color: StylableValue | string;
   alignment: 'left' | 'center' | 'right' | 'justify';
   bold: string;
   italic: string;
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
+  styleConditions: string;
   marginTop: string;
   marginRight: string;
   marginBottom: string;
@@ -161,6 +135,10 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
       type: 'textarea',
       label: 'Visibility Condition (JSON)',
     },
+    styleConditions: {
+      type: 'textarea',
+      label: 'Style Conditions (JSON)',
+    },
     marginTop: {
       type: 'text',
       label: 'Margin Top',
@@ -194,6 +172,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
     italic: 'false',
     pageBreakBehavior: 'auto',
     visibilityCondition: '',
+    styleConditions: '',
     marginTop: '0',
     marginRight: '0',
     marginBottom: '0',
@@ -203,7 +182,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
 };
 
 // Wrapper component to use hooks
-function TextBlockRender({ text, fontSize, customFontSize, lineHeight, customLineHeight, letterSpacing, customLetterSpacing, fontFamily, customFontFamily, color, alignment, bold, italic, pageBreakBehavior, marginTop, marginRight, marginBottom, marginLeft }: Omit<TextBlockProps, 'visibilityCondition'>) {
+function TextBlockRender({ text, fontSize, customFontSize, lineHeight, customLineHeight, letterSpacing, customLetterSpacing, fontFamily, customFontFamily, color, alignment, bold, italic, pageBreakBehavior, marginTop, marginRight, marginBottom, marginLeft }: Omit<TextBlockProps, 'visibilityCondition' | 'styleConditions'>) {
   const resolvedFontSize = fontSize === 'custom' ? `${customFontSize}px` : fontSize;
   const resolvedLineHeight = lineHeight === 'custom' ? customLineHeight : Number(lineHeight);
   const resolvedLetterSpacing = letterSpacing === 'custom' ? `${customLetterSpacing}px` : letterSpacing;
@@ -212,8 +191,12 @@ function TextBlockRender({ text, fontSize, customFontSize, lineHeight, customLin
   // Get inherited styles from context
   const inherited = useInheritedStyles();
 
+  // Resolve StylableValue (supports both plain strings and token references)
+  const { tokens } = useStyleGuide();
+  const resolvedColor = resolveStylableValue(color, tokens) ?? DEFAULT_TEXT_COLOR;
+
   // Use inherited values as fallback when own value is the default
-  const finalColor = color !== DEFAULT_TEXT_COLOR ? color : (inherited.color || color);
+  const finalColor = resolvedColor !== DEFAULT_TEXT_COLOR ? resolvedColor : (inherited.color || resolvedColor);
   const finalFontFamily = resolvedFontFamily ? resolvedFontFamily : (inherited.fontFamily || undefined);
   const finalFontSize = fontSize !== DEFAULT_FONT_SIZE ? resolvedFontSize : (inherited.fontSize || resolvedFontSize);
 

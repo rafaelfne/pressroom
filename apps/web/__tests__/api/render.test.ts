@@ -137,9 +137,11 @@ describe('POST /api/reports/render', () => {
     expect(response.headers.get('Content-Disposition')).toContain('report.pdf');
     expect(renderReport).toHaveBeenCalledWith({
       templateData: mockTemplate.templateData,
+      pages: undefined,
       data: { key: 'value' },
       format: 'pdf',
       pageConfig: undefined,
+      styleTokens: [],
     });
   });
 
@@ -166,9 +168,11 @@ describe('POST /api/reports/render', () => {
     expect(prisma.template.findFirst).not.toHaveBeenCalled();
     expect(renderReport).toHaveBeenCalledWith({
       templateData,
+      pages: undefined,
       data: undefined,
       format: 'pdf',
       pageConfig: undefined,
+      styleTokens: [],
     });
   });
 
@@ -242,9 +246,11 @@ describe('POST /api/reports/render', () => {
     expect(response.status).toBe(200);
     expect(renderReport).toHaveBeenCalledWith({
       templateData,
+      pages: undefined,
       data: undefined,
       format: 'pdf',
       pageConfig,
+      styleTokens: [],
     });
   });
 
@@ -321,9 +327,11 @@ describe('POST /api/reports/render', () => {
     expect(response.status).toBe(200);
     expect(renderReport).toHaveBeenCalledWith({
       templateData,
+      pages: undefined,
       data,
       format: 'pdf',
       pageConfig: undefined,
+      styleTokens: [],
     });
   });
 

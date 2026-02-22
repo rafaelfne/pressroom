@@ -69,6 +69,7 @@ export type DataTableProps = {
   oddRowColor: string;
   verticalBorders: string;
   pageBreakBehavior: PageBreakBehavior;
+  visibilityCondition: string;
 };
 
 /** Pixels added per indent level for sub-item rows */
@@ -510,6 +511,10 @@ export const DataTable: ComponentConfig<DataTableProps> = {
       ],
     },
     pageBreakBehavior: pageBreakField,
+    visibilityCondition: {
+      type: 'textarea',
+      label: 'Visibility Condition (JSON)',
+    },
   },
   defaultProps: {
     dataExpression: '{{data.items}}',
@@ -557,6 +562,7 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     oddRowColor: '#f9fafb',
     verticalBorders: 'false',
     pageBreakBehavior: 'auto',
+    visibilityCondition: '',
   },
   render: ({
     dataExpression,

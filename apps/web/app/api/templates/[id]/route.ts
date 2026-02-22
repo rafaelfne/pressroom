@@ -9,6 +9,7 @@ const templatePatchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).nullable().optional(),
   organizationId: z.string().nullable().optional(),
+  styleGuideId: z.string().nullable().optional(),
 });
 
 export async function GET(
@@ -177,6 +178,14 @@ export async function PATCH(
         updateData.organization = { disconnect: true };
       } else {
         updateData.organization = { connect: { id: parsed.data.organizationId } };
+      }
+    }
+
+    if (parsed.data.styleGuideId !== undefined) {
+      if (parsed.data.styleGuideId === null) {
+        updateData.styleGuide = { disconnect: true };
+      } else {
+        updateData.styleGuide = { connect: { id: parsed.data.styleGuideId } };
       }
     }
 

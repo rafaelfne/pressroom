@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { getUserTeam } from '@/lib/team';
 import { TeamSection } from '@/components/settings/team-section';
 import { OrganizationsSection } from '@/components/settings/organizations-section';
+import { StyleGuidesSection } from '@/components/settings/style-guides-section';
+import { listStyleGuides } from '@/lib/style-guides';
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -16,6 +18,7 @@ export default async function SettingsPage() {
   let teamData = null;
   let organizations: Array<{ id: string; name: string; slug: string; _count: { templates: number } }> = [];
   let currentUserRole = 'member';
+  let styleGuidesByOrg: Record<string, Awaited<ReturnType<typeof listStyleGuides>>> = {};
 
   if (team) {
     teamData = await prisma.team.findUnique({
@@ -44,7 +47,17 @@ export default async function SettingsPage() {
       where: { teamId_userId: { teamId: team.id, userId: session.user.id } },
     });
     currentUserRole = membership?.role ?? 'member';
+
+    // Fetch style guides for all organizations
+    const styleGuideResults = await Promise.all(
+      organizations.map((org) => listStyleGuides(org.id)),
+    );
+    for (let i = 0; i < organizations.length; i++) {
+      styleGuidesByOrg[organizations[i].id] = styleGuideResults[i];
+    }
   }
+
+  const canManage = ['owner', 'admin'].includes(currentUserRole);
 
   return (
     <div className="space-y-8">
@@ -61,8 +74,31 @@ export default async function SettingsPage() {
 
       <OrganizationsSection
         organizations={organizations}
-        canManage={['owner', 'admin'].includes(currentUserRole)}
+        canManage={canManage}
       />
+
+      {organizations.map((org) => (
+        <StyleGuidesSection
+          key={org.id}
+          organizationId={org.id}
+          styleGuides={(styleGuidesByOrg[org.id] ?? []).map((sg) => ({
+            id: sg.id,
+            name: sg.name,
+            isDefault: sg.isDefault,
+            tokens: sg.tokens.map((t) => ({
+              id: t.id,
+              name: t.name,
+              label: t.label,
+              category: t.category as 'color' | 'typography' | 'spacing' | 'background' | 'border',
+              cssProperty: t.cssProperty,
+              value: t.value,
+              sortOrder: t.sortOrder,
+            })),
+          }))}
+          canManage={canManage}
+          organizationName={org.name}
+        />
+      ))}
     </div>
   );
 }

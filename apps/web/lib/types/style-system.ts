@@ -224,3 +224,41 @@ export function evaluateCondition(
       return false;
   }
 }
+
+/**
+ * Checks if a value looks like a StylableValue object (has mode + inline/token).
+ */
+function isStylableValue(value: unknown): value is StylableValue {
+  if (typeof value !== 'object' || value === null) return false;
+  const obj = value as Record<string, unknown>;
+  return obj.mode === 'inline' || obj.mode === 'token';
+}
+
+/**
+ * Recursively walks a Puck Data tree and resolves all StylableValue objects
+ * in component props to plain CSS strings using the provided tokens.
+ *
+ * This is used in the server rendering pipeline (PDF/HTML) where React hooks
+ * are unavailable. Call this after binding resolution and before HTML generation.
+ */
+export function resolveStyleTokensInData<T>(data: T, tokens: StyleToken[]): T {
+  if (data === null || data === undefined) return data;
+  if (typeof data !== 'object') return data;
+
+  if (Array.isArray(data)) {
+    return data.map((item) => resolveStyleTokensInData(item, tokens)) as T;
+  }
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    if (isStylableValue(value)) {
+      // Resolve StylableValue to a plain string
+      result[key] = resolveStylableValue(value, tokens) ?? '';
+    } else if (typeof value === 'object' && value !== null) {
+      result[key] = resolveStyleTokensInData(value, tokens);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result as T;
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,6 +26,12 @@ type Organization = {
   name: string;
 };
 
+type StyleGuideOption = {
+  id: string;
+  name: string;
+  isDefault: boolean;
+};
+
 type EditTemplateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -34,9 +40,15 @@ type EditTemplateDialogProps = {
     name: string;
     description: string | null;
     organization?: { id: string; name: string } | null;
+    styleGuideId?: string | null;
   };
   organizations: Organization[];
-  onSave: (data: { name: string; description: string | null; organizationId: string | null }) => Promise<void>;
+  onSave: (data: {
+    name: string;
+    description: string | null;
+    organizationId: string | null;
+    styleGuideId?: string | null;
+  }) => Promise<void>;
 };
 
 export function EditTemplateDialog({
@@ -51,7 +63,42 @@ export function EditTemplateDialog({
   const [organizationId, setOrganizationId] = useState<string>(
     template.organization?.id ?? 'none',
   );
+  const [styleGuideId, setStyleGuideId] = useState<string>(
+    template.styleGuideId ?? 'none',
+  );
+  const [styleGuides, setStyleGuides] = useState<StyleGuideOption[]>([]);
   const [saving, setSaving] = useState(false);
+
+  // Fetch style guides when organization changes
+  useEffect(() => {
+    if (organizationId === 'none') {
+      setStyleGuides([]);
+      setStyleGuideId('none');
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`/api/style-guides?organizationId=${organizationId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        const guides = (data.data ?? []).map((sg: { id: string; name: string; isDefault: boolean }) => ({
+          id: sg.id,
+          name: sg.name,
+          isDefault: sg.isDefault,
+        }));
+        setStyleGuides(guides);
+        // If current styleGuideId is not in the new org's guides, reset
+        if (!guides.some((g: StyleGuideOption) => g.id === styleGuideId)) {
+          setStyleGuideId('none');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStyleGuides([]);
+      });
+
+    return () => { cancelled = true; };
+  }, [organizationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -61,6 +108,7 @@ export function EditTemplateDialog({
         name: name.trim(),
         description: description.trim() || null,
         organizationId: organizationId === 'none' ? null : organizationId,
+        styleGuideId: styleGuideId === 'none' ? null : styleGuideId,
       });
       onOpenChange(false);
     } finally {
@@ -70,7 +118,7 @@ export function EditTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Edit Template</DialogTitle>
           <DialogDescription>Update template details and organization.</DialogDescription>
@@ -113,6 +161,24 @@ export function EditTemplateDialog({
               </SelectContent>
             </Select>
           </div>
+          {organizationId !== 'none' && (
+            <div className="grid gap-2">
+              <Label htmlFor="template-style-guide">Style Guide</Label>
+              <Select value={styleGuideId} onValueChange={setStyleGuideId}>
+                <SelectTrigger id="template-style-guide">
+                  <SelectValue placeholder="Select style guide" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {styleGuides.map((sg) => (
+                    <SelectItem key={sg.id} value={sg.id}>
+                      {sg.name}{sg.isDefault ? ' (Default)' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

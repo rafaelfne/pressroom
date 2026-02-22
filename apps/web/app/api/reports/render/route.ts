@@ -148,7 +148,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Build page config: request pageConfig takes precedence, then stored template config
+    // 5. Fetch style guide tokens if template has a style guide
+    let styleTokens: Array<{ id: string; name: string; label: string; category: string; cssProperty: string; value: string; sortOrder: number }> = [];
+    if (templateId) {
+      const template = await prisma.template.findFirst({
+        where: { id: templateId },
+        select: { styleGuideId: true },
+      });
+      if (template?.styleGuideId) {
+        const styleGuide = await prisma.styleGuide.findUnique({
+          where: { id: template.styleGuideId },
+          include: { tokens: { orderBy: { sortOrder: 'asc' } } },
+        });
+        if (styleGuide) {
+          styleTokens = styleGuide.tokens;
+        }
+      }
+    }
+
+    // 6. Build page config: request pageConfig takes precedence, then stored template config
     const { pageConfigToRenderOptions, parseStoredPageConfig } = await import('@/lib/types/page-config');
 
     // Resolve effective PDF render options: explicit request config overrides stored template config
@@ -166,6 +184,7 @@ export async function POST(request: NextRequest) {
       data,
       format,
       pageConfig: effectivePageConfig,
+      styleTokens,
     });
 
     const result = await withTimeout(renderPromise, getRenderTimeout());

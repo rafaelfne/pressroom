@@ -391,6 +391,10 @@ export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
     backgroundColor: { type: 'text', label: 'Background Color' },
     containerBorder: { type: 'radio', label: 'Container Border', options: [{ label: 'Yes', value: 'true' }, { label: 'No', value: 'false' }] },
     pageBreakBehavior: pageBreakField,
+    visibilityCondition: {
+      type: 'textarea',
+      label: 'Visibility Condition (JSON)',
+    },
   },
   defaultProps: {
     chartType: 'bar',
@@ -413,6 +417,7 @@ export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
     backgroundColor: '',
     containerBorder: 'false',
     pageBreakBehavior: 'avoid',
+    visibilityCondition: '',
   },
   render: ({
     chartType, xField, yField, title, subtitle, height, width,
@@ -440,6 +445,7 @@ export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
       xAxisFormat: 'category' as const, yAxisFormat, xAxisRotation,
       centerLabel, backgroundColor, containerBorder, pageBreakBehavior,
       dataExpression: '',
+      visibilityCondition: '',
     };
 
     let chartSvg: React.ReactNode;
