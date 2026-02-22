@@ -3,7 +3,8 @@
 import type { ComponentConfig } from '@puckeditor/core';
 import { InheritedStylesProvider } from '@/contexts/inherited-styles-context';
 import { useStyleGuide } from '@/contexts/style-guide-context';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, textareaField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 import { resolveStylableValue, resolveSpacing, type StylableValue, type SpacingValue } from '@/lib/types/style-system';
 
 const DEFAULT_PADDING = '0';
@@ -13,20 +14,20 @@ export type FlexBoxProps = {
   wrap: 'nowrap' | 'wrap' | 'wrap-reverse';
   justifyContent: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
   alignItems: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline';
-  gap: string;
-  padding: string;
-  paddingTop: string;
-  paddingRight: string;
-  paddingBottom: string;
-  paddingLeft: string;
+  gap: StylableValue | string;
+  padding: StylableValue | string;
+  paddingTop: StylableValue | string;
+  paddingRight: StylableValue | string;
+  paddingBottom: StylableValue | string;
+  paddingLeft: StylableValue | string;
   backgroundColor: StylableValue | string;
-  borderWidth: string;
-  borderColor: string;
-  borderRadius: string;
+  borderWidth: StylableValue | string;
+  borderColor: StylableValue | string;
+  borderRadius: StylableValue | string;
   minHeight: string;
   color: StylableValue | string;
-  fontSize: string;
-  fontFamily: string;
+  fontSize: StylableValue | string;
+  fontFamily: StylableValue | string;
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
   styleConditions: string;
@@ -35,113 +36,49 @@ export type FlexBoxProps = {
 export const FlexBox: ComponentConfig<FlexBoxProps> = {
   label: 'FlexBox',
   fields: {
-    direction: {
-      type: 'select',
-      label: 'Direction',
-      options: [
-        { label: 'Row', value: 'row' },
-        { label: 'Column', value: 'column' },
-        { label: 'Row Reverse', value: 'row-reverse' },
-        { label: 'Column Reverse', value: 'column-reverse' },
-      ],
-    },
-    wrap: {
-      type: 'select',
-      label: 'Wrap',
-      options: [
-        { label: 'No Wrap', value: 'nowrap' },
-        { label: 'Wrap', value: 'wrap' },
-        { label: 'Wrap Reverse', value: 'wrap-reverse' },
-      ],
-    },
-    justifyContent: {
-      type: 'select',
-      label: 'Justify Content',
-      options: [
-        { label: 'Flex Start', value: 'flex-start' },
-        { label: 'Flex End', value: 'flex-end' },
-        { label: 'Center', value: 'center' },
-        { label: 'Space Between', value: 'space-between' },
-        { label: 'Space Around', value: 'space-around' },
-        { label: 'Space Evenly', value: 'space-evenly' },
-      ],
-    },
-    alignItems: {
-      type: 'select',
-      label: 'Align Items',
-      options: [
-        { label: 'Flex Start', value: 'flex-start' },
-        { label: 'Flex End', value: 'flex-end' },
-        { label: 'Center', value: 'center' },
-        { label: 'Stretch', value: 'stretch' },
-        { label: 'Baseline', value: 'baseline' },
-      ],
-    },
-    gap: {
-      type: 'text',
-      label: 'Gap (px)',
-    },
-    padding: {
-      type: 'text',
-      label: 'Padding (px)',
-    },
-    paddingTop: {
-      type: 'text',
-      label: 'Padding Top (px)',
-    },
-    paddingRight: {
-      type: 'text',
-      label: 'Padding Right (px)',
-    },
-    paddingBottom: {
-      type: 'text',
-      label: 'Padding Bottom (px)',
-    },
-    paddingLeft: {
-      type: 'text',
-      label: 'Padding Left (px)',
-    },
-    backgroundColor: {
-      type: 'text',
-      label: 'Background Color',
-    },
-    borderWidth: {
-      type: 'text',
-      label: 'Border Width (px)',
-    },
-    borderColor: {
-      type: 'text',
-      label: 'Border Color',
-    },
-    borderRadius: {
-      type: 'text',
-      label: 'Border Radius (px)',
-    },
-    minHeight: {
-      type: 'text',
-      label: 'Min Height (px)',
-    },
-    color: {
-      type: 'text',
-      label: 'Text Color',
-    },
-    fontSize: {
-      type: 'text',
-      label: 'Font Size',
-    },
-    fontFamily: {
-      type: 'text',
-      label: 'Font Family',
-    },
-    pageBreakBehavior: pageBreakField,
-    visibilityCondition: {
-      type: 'textarea',
-      label: 'Visibility Condition (JSON)',
-    },
-    styleConditions: {
-      type: 'textarea',
-      label: 'Style Conditions (JSON)',
-    },
+    direction: selectField('Direction', [
+      { label: 'Row', value: 'row' },
+      { label: 'Column', value: 'column' },
+      { label: 'Row Reverse', value: 'row-reverse' },
+      { label: 'Column Reverse', value: 'column-reverse' },
+    ]),
+    wrap: selectField('Wrap', [
+      { label: 'No Wrap', value: 'nowrap' },
+      { label: 'Wrap', value: 'wrap' },
+      { label: 'Wrap Reverse', value: 'wrap-reverse' },
+    ]),
+    justifyContent: selectField('Justify Content', [
+      { label: 'Flex Start', value: 'flex-start' },
+      { label: 'Flex End', value: 'flex-end' },
+      { label: 'Center', value: 'center' },
+      { label: 'Space Between', value: 'space-between' },
+      { label: 'Space Around', value: 'space-around' },
+      { label: 'Space Evenly', value: 'space-evenly' },
+    ]),
+    alignItems: selectField('Align Items', [
+      { label: 'Flex Start', value: 'flex-start' },
+      { label: 'Flex End', value: 'flex-end' },
+      { label: 'Center', value: 'center' },
+      { label: 'Stretch', value: 'stretch' },
+      { label: 'Baseline', value: 'baseline' },
+    ]),
+    gap: textField('Gap (px)'),
+    padding: textField('Padding (px)'),
+    paddingTop: textField('Padding Top (px)'),
+    paddingRight: textField('Padding Right (px)'),
+    paddingBottom: textField('Padding Bottom (px)'),
+    paddingLeft: textField('Padding Left (px)'),
+    backgroundColor: textField('Background Color'),
+    borderWidth: textField('Border Width (px)'),
+    borderColor: textField('Border Color'),
+    borderRadius: textField('Border Radius (px)'),
+    minHeight: textField('Min Height (px)'),
+    color: textField('Text Color'),
+    fontSize: textField('Font Size'),
+    fontFamily: textField('Font Family'),
+    pageBreakBehavior: pageBreakCustomField,
+    visibilityCondition: textareaField('Visibility Condition (JSON)'),
+    styleConditions: textareaField('Style Conditions (JSON)'),
   },
   defaultProps: {
     direction: 'column',
@@ -193,24 +130,42 @@ function FlexBoxRender({
   puck,
   id = 'flexbox',
 }: Omit<FlexBoxProps, 'visibilityCondition' | 'styleConditions'> & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) {
-  // Resolve StylableValue for color properties
+  // Resolve StylableValue properties
   const { tokens } = useStyleGuide();
   const resolvedBackgroundColor = resolveStylableValue(backgroundColor, tokens) ?? 'transparent';
+  const resolvedBorderColor = resolveStylableValue(borderColor, tokens) ?? '#e5e7eb';
   const resolvedColor = resolveStylableValue(color, tokens) ?? '';
+  const resolvedBorderWidth = resolveStylableValue(borderWidth, tokens) ?? '0';
+  const resolvedBorderRadius = resolveStylableValue(borderRadius, tokens) ?? '0';
+  const resolvedGap = resolveStylableValue(gap, tokens) ?? '0';
+  const resolvedFontSize = resolveStylableValue(fontSize, tokens) ?? '';
+  const resolvedFontFamily = resolveStylableValue(fontFamily, tokens) ?? '';
 
   // Build inheritable styles object, only including non-empty values
   const inheritableStyles: Record<string, string> = {};
   if (resolvedColor) inheritableStyles.color = resolvedColor;
-  if (fontSize) inheritableStyles.fontSize = fontSize;
-  if (fontFamily) inheritableStyles.fontFamily = fontFamily;
+  if (resolvedFontSize) inheritableStyles.fontSize = resolvedFontSize;
+  if (resolvedFontFamily) inheritableStyles.fontFamily = resolvedFontFamily;
 
   const content = puck.renderDropZone({ zone: `${id}-content` });
 
   // Resolve padding using SpacingValue utility
-  const spacingValue: SpacingValue = (paddingTop || paddingRight || paddingBottom || paddingLeft)
-    ? { mode: 'individual', top: `${paddingTop || '0'}px`, right: `${paddingRight || '0'}px`, bottom: `${paddingBottom || '0'}px`, left: `${paddingLeft || '0'}px` }
-    : { mode: 'all', all: `${padding}px` };
+  const rPadding = resolveStylableValue(padding, tokens) ?? DEFAULT_PADDING;
+  const rPaddingTop = resolveStylableValue(paddingTop, tokens) ?? '';
+  const rPaddingRight = resolveStylableValue(paddingRight, tokens) ?? '';
+  const rPaddingBottom = resolveStylableValue(paddingBottom, tokens) ?? '';
+  const rPaddingLeft = resolveStylableValue(paddingLeft, tokens) ?? '';
+
+  const addPx = (v: string) => /[a-z%]/i.test(v) ? v : `${v}px`;
+
+  const spacingValue: SpacingValue = (rPaddingTop || rPaddingRight || rPaddingBottom || rPaddingLeft)
+    ? { mode: 'individual', top: addPx(rPaddingTop || '0'), right: addPx(rPaddingRight || '0'), bottom: addPx(rPaddingBottom || '0'), left: addPx(rPaddingLeft || '0') }
+    : { mode: 'all', all: addPx(rPadding) };
   const finalPadding = resolveSpacing(spacingValue) ?? '0px';
+
+  const borderWidthCss = /[a-z%]/i.test(resolvedBorderWidth) ? resolvedBorderWidth : `${resolvedBorderWidth}px`;
+  const borderRadiusCss = /[a-z%]/i.test(resolvedBorderRadius) ? resolvedBorderRadius : `${resolvedBorderRadius}px`;
+  const gapCss = /[a-z%]/i.test(resolvedGap) ? resolvedGap : `${resolvedGap}px`;
 
   return (
     <div
@@ -220,13 +175,13 @@ function FlexBoxRender({
         flexWrap: wrap,
         justifyContent,
         alignItems,
-        gap: `${gap}px`,
+        gap: gapCss,
         padding: finalPadding,
         backgroundColor: resolvedBackgroundColor,
-        borderWidth: `${borderWidth}px`,
-        borderStyle: borderWidth !== '0' ? 'solid' : 'none',
-        borderColor,
-        borderRadius: `${borderRadius}px`,
+        borderWidth: borderWidthCss,
+        borderStyle: resolvedBorderWidth !== '0' ? 'solid' : 'none',
+        borderColor: resolvedBorderColor,
+        borderRadius: borderRadiusCss,
         minHeight: `${minHeight}px`,
         ...getPageBreakStyle(pageBreakBehavior),
       }}

@@ -1,14 +1,15 @@
 'use client';
 
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, textareaField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 import { useStyleGuide } from '@/contexts/style-guide-context';
 import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
 
 export type DividerProps = {
   orientation: 'horizontal' | 'vertical';
   color: StylableValue | string;
-  thickness: string;
+  thickness: StylableValue | string;
   lineStyle: 'solid' | 'dashed' | 'dotted';
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
@@ -17,30 +18,19 @@ export type DividerProps = {
 export const Divider: ComponentConfig<DividerProps> = {
   label: 'Divider',
   fields: {
-    orientation: {
-      type: 'select',
-      label: 'Orientation',
-      options: [
-        { label: 'Horizontal', value: 'horizontal' },
-        { label: 'Vertical', value: 'vertical' },
-      ],
-    },
-    color: { type: 'text', label: 'Color' },
-    thickness: { type: 'text', label: 'Thickness (px)' },
-    lineStyle: {
-      type: 'select',
-      label: 'Style',
-      options: [
-        { label: 'Solid', value: 'solid' },
-        { label: 'Dashed', value: 'dashed' },
-        { label: 'Dotted', value: 'dotted' },
-      ],
-    },
-    pageBreakBehavior: pageBreakField,
-    visibilityCondition: {
-      type: 'textarea',
-      label: 'Visibility Condition (JSON)',
-    },
+    orientation: selectField('Orientation', [
+      { label: 'Horizontal', value: 'horizontal' },
+      { label: 'Vertical', value: 'vertical' },
+    ]),
+    color: textField('Color'),
+    thickness: textField('Thickness (px)'),
+    lineStyle: selectField('Style', [
+      { label: 'Solid', value: 'solid' },
+      { label: 'Dashed', value: 'dashed' },
+      { label: 'Dotted', value: 'dotted' },
+    ]),
+    pageBreakBehavior: pageBreakCustomField,
+    visibilityCondition: textareaField('Visibility Condition (JSON)'),
   },
   defaultProps: {
     orientation: 'horizontal',
@@ -57,16 +47,18 @@ export const Divider: ComponentConfig<DividerProps> = {
 function DividerRender({ orientation, color, thickness, lineStyle, pageBreakBehavior }: Omit<DividerProps, 'visibilityCondition'>) {
   const { tokens } = useStyleGuide();
   const resolvedColor = resolveStylableValue(color, tokens) ?? '#e5e7eb';
+  const resolvedThickness = resolveStylableValue(thickness, tokens) ?? '1';
+  const thicknessCss = /[a-z%]/i.test(resolvedThickness) ? resolvedThickness : `${resolvedThickness}px`;
 
   if (orientation === 'vertical') {
     return (
       <div
         style={{
           display: 'inline-block',
-          width: `${thickness}px`,
+          width: thicknessCss,
           alignSelf: 'stretch',
           minHeight: '24px',
-          borderLeft: `${thickness}px ${lineStyle} ${resolvedColor}`,
+          borderLeft: `${thicknessCss} ${lineStyle} ${resolvedColor}`,
           ...getPageBreakStyle(pageBreakBehavior),
         }}
         className="mx-2"
@@ -79,7 +71,7 @@ function DividerRender({ orientation, color, thickness, lineStyle, pageBreakBeha
   return (
     <hr
       style={{
-        borderTop: `${thickness}px ${lineStyle} ${resolvedColor}`,
+        borderTop: `${thicknessCss} ${lineStyle} ${resolvedColor}`,
         borderBottom: 'none',
         borderLeft: 'none',
         borderRight: 'none',

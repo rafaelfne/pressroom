@@ -18,11 +18,11 @@ import { ImageBlock } from '@/components/report-components/image-block';
 import { Spacer } from '@/components/report-components/spacer';
 import { Divider, type DividerProps } from '@/components/report-components/divider';
 import { PageBreak } from '@/components/report-components/page-break';
-import { DataTable } from '@/components/report-components/data-table';
+import { DataTable, renderDataTableBody, type DataTableProps } from '@/components/report-components/data-table';
 import { Container, type ContainerProps } from '@/components/report-components/container';
 import { GridRow } from '@/components/report-components/grid-row';
-import { GridColumn } from '@/components/report-components/grid-column';
-import { Section } from '@/components/report-components/section';
+import { GridColumn, type GridColumnProps } from '@/components/report-components/grid-column';
+import { Section, type SectionProps } from '@/components/report-components/section';
 import { ServerChartBlock } from '@/components/report-components/server-chart-block';
 import { FlexBox, type FlexBoxProps } from '@/components/report-components/flex-box';
 import { resolveStylableValue, resolveSpacing, type SpacingValue } from '@/lib/types/style-system';
@@ -34,7 +34,7 @@ import { googleFontUrl } from '@/lib/utils/google-fonts';
 // render functions. These replicate the rendering logic without any React hooks.
 // ============================================================================
 
-const ServerTextBlock: Config['components'][string] = {
+const ServerTextBlock = {
   ...TextBlock,
   render: ({
     text,
@@ -61,6 +61,10 @@ const ServerTextBlock: Config['components'][string] = {
     const resolvedLetterSpacing = letterSpacing === 'custom' ? `${customLetterSpacing}px` : letterSpacing;
     const resolvedFontFamily = fontFamily === 'custom' ? customFontFamily : fontFamily;
     const resolvedColor = resolveStylableValue(color) ?? '#000000';
+    const resolvedMarginTop = resolveStylableValue(marginTop) ?? '0';
+    const resolvedMarginRight = resolveStylableValue(marginRight) ?? '0';
+    const resolvedMarginBottom = resolveStylableValue(marginBottom) ?? '0';
+    const resolvedMarginLeft = resolveStylableValue(marginLeft) ?? '0';
 
     return (
       <>
@@ -79,10 +83,10 @@ const ServerTextBlock: Config['components'][string] = {
             fontStyle: italic === 'true' ? 'italic' : 'normal',
             overflowWrap: 'break-word',
             wordBreak: 'break-word',
-            marginTop,
-            marginRight,
-            marginBottom,
-            marginLeft,
+            marginTop: resolvedMarginTop,
+            marginRight: resolvedMarginRight,
+            marginBottom: resolvedMarginBottom,
+            marginLeft: resolvedMarginLeft,
             ...getPageBreakStyle(pageBreakBehavior),
           }}
           className="p-2"
@@ -93,7 +97,7 @@ const ServerTextBlock: Config['components'][string] = {
   },
 };
 
-const ServerHeadingBlock: Config['components'][string] = {
+const ServerHeadingBlock = {
   ...HeadingBlock,
   render: ({
     text,
@@ -108,16 +112,21 @@ const ServerHeadingBlock: Config['components'][string] = {
   }: HeadingBlockProps) => {
     const Tag = level;
     const resolvedColor = resolveStylableValue(color) ?? '#000000';
+    const resolvedFontFamily = resolveStylableValue(fontFamily) ?? '';
+    const resolvedMarginTop = resolveStylableValue(marginTop) ?? '0';
+    const resolvedMarginRight = resolveStylableValue(marginRight) ?? '0';
+    const resolvedMarginBottom = resolveStylableValue(marginBottom) ?? '0';
+    const resolvedMarginLeft = resolveStylableValue(marginLeft) ?? '0';
 
     return (
       <Tag
         style={{
           color: resolvedColor,
-          fontFamily: fontFamily ? `"${fontFamily}", sans-serif` : undefined,
-          marginTop,
-          marginRight,
-          marginBottom,
-          marginLeft,
+          fontFamily: resolvedFontFamily ? `"${resolvedFontFamily}", sans-serif` : undefined,
+          marginTop: resolvedMarginTop,
+          marginRight: resolvedMarginRight,
+          marginBottom: resolvedMarginBottom,
+          marginLeft: resolvedMarginLeft,
           ...getPageBreakStyle(pageBreakBehavior),
         }}
         className="p-2"
@@ -128,20 +137,22 @@ const ServerHeadingBlock: Config['components'][string] = {
   },
 };
 
-const ServerDivider: Config['components'][string] = {
+const ServerDivider = {
   ...Divider,
   render: ({ orientation, color, thickness, lineStyle, pageBreakBehavior }: DividerProps) => {
     const resolvedColor = resolveStylableValue(color) ?? '#e5e7eb';
+    const resolvedThickness = resolveStylableValue(thickness) ?? '1';
+    const thicknessCss = /[a-z%]/i.test(resolvedThickness) ? resolvedThickness : `${resolvedThickness}px`;
 
     if (orientation === 'vertical') {
       return (
         <div
           style={{
             display: 'inline-block',
-            width: `${thickness}px`,
+            width: thicknessCss,
             alignSelf: 'stretch',
             minHeight: '24px',
-            borderLeft: `${thickness}px ${lineStyle} ${resolvedColor}`,
+            borderLeft: `${thicknessCss} ${lineStyle} ${resolvedColor}`,
             ...getPageBreakStyle(pageBreakBehavior),
           }}
           className="mx-2"
@@ -154,7 +165,7 @@ const ServerDivider: Config['components'][string] = {
     return (
       <hr
         style={{
-          borderTop: `${thickness}px ${lineStyle} ${resolvedColor}`,
+          borderTop: `${thicknessCss} ${lineStyle} ${resolvedColor}`,
           borderBottom: 'none',
           borderLeft: 'none',
           borderRight: 'none',
@@ -166,7 +177,136 @@ const ServerDivider: Config['components'][string] = {
   },
 };
 
-const ServerFlexBox: Config['components'][string] = {
+const ServerSection = {
+  ...Section,
+  render: ({
+    title,
+    showDivider,
+    backgroundColor,
+    padding,
+    pageBreakBehavior,
+    puck,
+    id = 'section',
+  }: SectionProps & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) => {
+    const resolvedBackgroundColor = resolveStylableValue(backgroundColor) ?? 'transparent';
+    const resolvedPadding = resolveStylableValue(padding) ?? '16';
+    const paddingCss = /[a-z%]/i.test(resolvedPadding) ? resolvedPadding : `${resolvedPadding}px`;
+
+    return (
+      <div
+        role="region"
+        aria-label={title}
+        style={{
+          backgroundColor: resolvedBackgroundColor,
+          padding: paddingCss,
+          ...getPageBreakStyle(pageBreakBehavior),
+        }}
+      >
+        <h2
+          style={{
+            fontSize: '1.25rem',
+            fontWeight: 600,
+            marginBottom: '8px',
+            pageBreakAfter: 'avoid',
+          }}
+        >
+          {title}
+        </h2>
+        {showDivider === 'true' && (
+          <hr
+            style={{
+              borderTop: '1px solid #e5e7eb',
+              borderBottom: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
+              marginBottom: '12px',
+              marginTop: 0,
+            }}
+          />
+        )}
+        {puck.renderDropZone({ zone: `${id}-content` })}
+      </div>
+    );
+  },
+};
+
+const serverVerticalAlignMap: Record<string, string> = {
+  top: 'flex-start',
+  center: 'center',
+  bottom: 'flex-end',
+};
+
+const ServerGridColumn = {
+  ...GridColumn,
+  render: ({
+    backgroundColor,
+    padding,
+    borderWidth,
+    borderColor,
+    verticalAlign,
+    pageBreakBehavior,
+    puck,
+    id = 'grid-column',
+  }: GridColumnProps & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) => {
+    const resolvedBackgroundColor = resolveStylableValue(backgroundColor) ?? 'transparent';
+    const resolvedBorderColor = resolveStylableValue(borderColor) ?? '#e5e7eb';
+    const resolvedBorderWidth = resolveStylableValue(borderWidth) ?? '0';
+    const resolvedPadding = resolveStylableValue(padding) ?? '0';
+
+    const addPx = (v: string) => /[a-z%]/i.test(v) ? v : `${v}px`;
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: serverVerticalAlignMap[verticalAlign] || 'flex-start',
+          backgroundColor: resolvedBackgroundColor,
+          padding: addPx(resolvedPadding),
+          borderWidth: addPx(resolvedBorderWidth),
+          borderStyle: resolvedBorderWidth !== '0' ? 'solid' : 'none',
+          borderColor: resolvedBorderColor,
+          ...getPageBreakStyle(pageBreakBehavior),
+        }}
+      >
+        {puck.renderDropZone({ zone: `${id}-content` })}
+      </div>
+    );
+  },
+};
+
+const ServerDataTable = {
+  ...DataTable,
+  render: (props: DataTableProps) => {
+    return renderDataTableBody(props, {
+      rHeaderBgColor: resolveStylableValue(props.headerBgColor) ?? '#f3f4f6',
+      rHeaderTextColor: resolveStylableValue(props.headerTextColor) ?? '#111827',
+      rHeaderBorderColor: resolveStylableValue(props.headerBorderColor) ?? '#d1d5db',
+      rHeaderFontSize: resolveStylableValue(props.headerFontSize) ?? '',
+      rHeaderFontWeight: resolveStylableValue(props.headerFontWeight) ?? '600',
+      rHeaderFontFamily: resolveStylableValue(props.headerFontFamily) ?? '',
+      rHeaderPadding: resolveStylableValue(props.headerPadding) ?? '',
+      rGroupHeaderBgColor: resolveStylableValue(props.groupHeaderBgColor) ?? '#1a5632',
+      rGroupHeaderTextColor: resolveStylableValue(props.groupHeaderTextColor) ?? '#ffffff',
+      rGroupHeaderBorderColor: resolveStylableValue(props.groupHeaderBorderColor) ?? '',
+      rGroupHeaderFontSize: resolveStylableValue(props.groupHeaderFontSize) ?? '',
+      rGroupHeaderFontWeight: resolveStylableValue(props.groupHeaderFontWeight) ?? 'bold',
+      rGroupHeaderFontFamily: resolveStylableValue(props.groupHeaderFontFamily) ?? '',
+      rGroupHeaderPadding: resolveStylableValue(props.groupHeaderPadding) ?? '',
+      rFooterBgColor: resolveStylableValue(props.footerBgColor) ?? '#f3f4f6',
+      rFooterTextColor: resolveStylableValue(props.footerTextColor) ?? '#111827',
+      rFooterBorderColor: resolveStylableValue(props.footerBorderColor) ?? '#d1d5db',
+      rFooterFontSize: resolveStylableValue(props.footerFontSize) ?? '',
+      rFooterFontWeight: resolveStylableValue(props.footerFontWeight) ?? 'bold',
+      rFooterFontFamily: resolveStylableValue(props.footerFontFamily) ?? '',
+      rFooterPadding: resolveStylableValue(props.footerPadding) ?? '',
+      rEvenRowColor: resolveStylableValue(props.evenRowColor) ?? 'transparent',
+      rOddRowColor: resolveStylableValue(props.oddRowColor) ?? '#f9fafb',
+    });
+  },
+};
+
+const ServerFlexBox = {
   ...FlexBox,
   render: ({
     direction,
@@ -189,12 +329,24 @@ const ServerFlexBox: Config['components'][string] = {
     id = 'flexbox',
   }: FlexBoxProps & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) => {
     const resolvedBackgroundColor = resolveStylableValue(backgroundColor) ?? 'transparent';
+    const resolvedBorderColor = resolveStylableValue(borderColor) ?? '#e5e7eb';
+    const resolvedBorderWidth = resolveStylableValue(borderWidth) ?? '0';
+    const resolvedBorderRadius = resolveStylableValue(borderRadius) ?? '0';
+    const resolvedGap = resolveStylableValue(gap) ?? '0';
 
     const content = puck.renderDropZone({ zone: `${id}-content` });
 
-    const spacingValue: SpacingValue = (paddingTop || paddingRight || paddingBottom || paddingLeft)
-      ? { mode: 'individual', top: `${paddingTop || '0'}px`, right: `${paddingRight || '0'}px`, bottom: `${paddingBottom || '0'}px`, left: `${paddingLeft || '0'}px` }
-      : { mode: 'all', all: `${padding}px` };
+    const addPx = (v: string) => /[a-z%]/i.test(v) ? v : `${v}px`;
+
+    const rPadding = resolveStylableValue(padding) ?? '0';
+    const rPaddingTop = resolveStylableValue(paddingTop) ?? '';
+    const rPaddingRight = resolveStylableValue(paddingRight) ?? '';
+    const rPaddingBottom = resolveStylableValue(paddingBottom) ?? '';
+    const rPaddingLeft = resolveStylableValue(paddingLeft) ?? '';
+
+    const spacingValue: SpacingValue = (rPaddingTop || rPaddingRight || rPaddingBottom || rPaddingLeft)
+      ? { mode: 'individual', top: addPx(rPaddingTop || '0'), right: addPx(rPaddingRight || '0'), bottom: addPx(rPaddingBottom || '0'), left: addPx(rPaddingLeft || '0') }
+      : { mode: 'all', all: addPx(rPadding) };
     const finalPadding = resolveSpacing(spacingValue) ?? '0px';
 
     return (
@@ -205,13 +357,13 @@ const ServerFlexBox: Config['components'][string] = {
           flexWrap: wrap,
           justifyContent,
           alignItems,
-          gap: `${gap}px`,
+          gap: addPx(resolvedGap),
           padding: finalPadding,
           backgroundColor: resolvedBackgroundColor,
-          borderWidth: `${borderWidth}px`,
-          borderStyle: borderWidth !== '0' ? 'solid' : 'none',
-          borderColor,
-          borderRadius: `${borderRadius}px`,
+          borderWidth: addPx(resolvedBorderWidth),
+          borderStyle: resolvedBorderWidth !== '0' ? 'solid' : 'none',
+          borderColor: resolvedBorderColor,
+          borderRadius: addPx(resolvedBorderRadius),
           minHeight: `${minHeight}px`,
           ...getPageBreakStyle(pageBreakBehavior),
         }}
@@ -229,7 +381,7 @@ const shadowMap: Record<string, string> = {
   lg: '0 10px 15px rgba(0,0,0,0.15)',
 };
 
-const ServerContainer: Config['components'][string] = {
+const ServerContainer = {
   ...Container,
   render: ({
     padding,
@@ -245,17 +397,22 @@ const ServerContainer: Config['components'][string] = {
   }: ContainerProps & { puck: { renderDropZone: (opts: { zone: string }) => React.ReactNode }; id?: string }) => {
     const resolvedBackgroundColor = resolveStylableValue(backgroundColor) ?? 'transparent';
     const resolvedBorderColor = resolveStylableValue(borderColor) ?? '#e5e7eb';
+    const resolvedBorderRadius = resolveStylableValue(borderRadius) ?? '0';
+    const resolvedBorderWidth = resolveStylableValue(borderWidth) ?? '0';
+    const resolvedPadding = resolveStylableValue(padding) ?? '16';
+
+    const addPx = (v: string) => /[a-z%]/i.test(v) ? v : `${v}px`;
 
     return (
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
-          padding: `${padding}px`,
-          borderWidth: `${borderWidth}px`,
-          borderStyle: borderWidth !== '0' ? 'solid' : 'none',
+          padding: addPx(resolvedPadding),
+          borderWidth: addPx(resolvedBorderWidth),
+          borderStyle: resolvedBorderWidth !== '0' ? 'solid' : 'none',
           borderColor: resolvedBorderColor,
-          borderRadius: `${borderRadius}px`,
+          borderRadius: resolvedBorderRadius.includes('px') ? resolvedBorderRadius : `${resolvedBorderRadius}px`,
           backgroundColor: resolvedBackgroundColor,
           boxShadow: shadowMap[shadow] ?? 'none',
           minHeight: `${minHeight}px`,
@@ -294,12 +451,12 @@ export const serverPuckConfig: Config = {
     Spacer,
     Divider: ServerDivider,
     PageBreak,
-    DataTable,
+    DataTable: ServerDataTable,
     ChartBlock: ServerChartBlock,
     Container: ServerContainer,
     GridRow,
-    GridColumn,
-    Section,
+    GridColumn: ServerGridColumn,
+    Section: ServerSection,
     FlexBox: ServerFlexBox,
-  },
+  } as unknown as Config['components'],
 };

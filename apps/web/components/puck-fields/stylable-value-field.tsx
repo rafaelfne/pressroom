@@ -2,6 +2,16 @@
 
 import { useStyleGuide } from '@/contexts/style-guide-context';
 import type { StylableValue } from '@/lib/types/style-system';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type StylableValueFieldProps = {
   value: StylableValue | string;
@@ -28,95 +38,116 @@ export function StylableValueField({ value, onChange, field }: StylableValueFiel
       ? { mode: 'inline', inline: value }
       : value ?? { mode: 'inline', inline: '' };
 
-  // Filter tokens based on field configuration
+  // Filter tokens based on category (the broad semantic group).
+  // cssProperty is metadata on the token, not a filter criterion — e.g. all
+  // "border" tokens (border-color, border-width, border-radius) should be
+  // available in any border-related field.
   const filteredTokens = tokens.filter((t) => {
-    if (field.tokenCssProperty && t.cssProperty !== field.tokenCssProperty) return false;
     if (field.tokenCategory && t.category !== field.tokenCategory) return false;
     return true;
   });
 
   const hasTokens = filteredTokens.length > 0;
+  const isColorField =
+    field.tokenCssProperty === 'color' ||
+    field.tokenCategory === 'color' ||
+    field.tokenCategory === 'background';
 
-  return (
-    <div>
-      {field?.label && (
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          {field.label}
-        </label>
-      )}
-
-      {/* Mode toggle — only shown when tokens are available */}
-      {hasTokens && (
-        <div className="mb-1.5 flex rounded-md border text-xs">
-          <button
-            type="button"
-            className={`flex-1 px-2 py-1 rounded-l-md transition-colors ${normalized.mode === 'inline'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
-              }`}
-            onClick={() =>
-              onChange({ mode: 'inline', inline: normalized.inline ?? '' })
-            }
-          >
-            Inline
-          </button>
-          <button
-            type="button"
-            className={`flex-1 px-2 py-1 rounded-r-md transition-colors ${normalized.mode === 'token'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
-              }`}
-            onClick={() =>
-              onChange({ mode: 'token', token: normalized.token ?? '' })
-            }
-          >
-            Token
-          </button>
-        </div>
-      )}
-
-      {/* Inline mode */}
-      {normalized.mode === 'inline' || !hasTokens ? (
-        <div className="flex gap-1">
-          <input
-            type="text"
+  // No tokens available — render plain input without tabs
+  if (!hasTokens) {
+    return (
+      <div className="space-y-1.5">
+        {field?.label && <Label className='font-semibold'>{field.label}</Label>}
+        <div className="flex gap-1.5">
+          <Input
             value={normalized.inline ?? ''}
             onChange={(e) =>
               onChange({ mode: 'inline', inline: e.target.value })
             }
-            placeholder="e.g. #3B82F6"
-            className="w-full rounded-md border px-2 py-1 text-sm"
+            placeholder="Type a value..."
+            className="h-8 text-xs bg-input/30"
           />
-          {field.tokenCssProperty === 'color' ||
-            field.tokenCategory === 'color' ||
-            field.tokenCategory === 'background' ? (
+          {isColorField && (
             <input
               type="color"
               value={normalized.inline || '#000000'}
               onChange={(e) =>
                 onChange({ mode: 'inline', inline: e.target.value })
               }
-              className="h-8 w-8 shrink-0 cursor-pointer rounded border p-0.5"
+              className="h-8 w-8 shrink-0 cursor-pointer rounded-md border border-input p-0.5"
             />
-          ) : null}
+          )}
         </div>
-      ) : (
-        /* Token mode */
-        <select
-          value={normalized.token ?? ''}
-          onChange={(e) =>
-            onChange({ mode: 'token', token: e.target.value })
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {field?.label && <Label className='font-semibold'>{field.label}</Label>}
+
+      <Tabs
+        value={normalized.mode}
+        onValueChange={(mode) => {
+          if (mode === 'inline') {
+            onChange({ mode: 'inline', inline: normalized.inline ?? '' });
+          } else {
+            onChange({ mode: 'token', token: normalized.token ?? '' });
           }
-          className="w-full rounded-md border px-2 py-1.5 text-sm"
-        >
-          <option value="">Select a token...</option>
-          {filteredTokens.map((t) => (
-            <option key={t.name} value={t.name}>
-              {t.label} ({t.value})
-            </option>
-          ))}
-        </select>
-      )}
+        }}
+      >
+        <TabsList className="h-7 w-full">
+          <TabsTrigger value="inline" className="text-xs h-5">
+            Inline
+          </TabsTrigger>
+          <TabsTrigger value="token" className="text-xs h-5">
+            Token
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="inline" className="mt-1.5">
+          <div className="flex gap-1.5">
+            <Input
+              value={normalized.inline ?? ''}
+              onChange={(e) =>
+                onChange({ mode: 'inline', inline: e.target.value })
+              }
+              placeholder="Type a value..."
+              className="h-8 text-xs bg-linear-30"
+            />
+            {isColorField && (
+              <input
+                type="color"
+                value={normalized.inline || '#000000'}
+                onChange={(e) =>
+                  onChange({ mode: 'inline', inline: e.target.value })
+                }
+                className="h-8 w-8 shrink-0 cursor-pointer rounded-md border border-input p-0.5 bg-input/30"
+              />
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="token" className="mt-1.5">
+          <Select
+            value={normalized.token ?? ''}
+            onValueChange={(token) =>
+              onChange({ mode: 'token', token })
+            }
+          >
+            <SelectTrigger size="sm" className="w-full text-xs">
+              <SelectValue placeholder="Select a token..." />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredTokens.map((t) => (
+                <SelectItem key={t.name} value={t.name}>
+                  {t.label} ({t.value})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

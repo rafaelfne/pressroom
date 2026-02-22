@@ -63,6 +63,7 @@ describe('FlexBox component', () => {
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition=""
+        styleConditions=""
         id="test-flexbox"
         puck={mockPuckContext}
       />,
@@ -95,6 +96,7 @@ describe('FlexBox component', () => {
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition=""
+        styleConditions=""
         id="test-flexbox"
         puck={mockPuckContext}
       />,
@@ -127,6 +129,7 @@ describe('FlexBox component', () => {
         paddingBottom=""
         paddingLeft=""
         visibilityCondition=""
+        styleConditions=""
         id="test-flexbox"
         puck={mockPuckContext}
       />,
@@ -162,6 +165,7 @@ describe('FlexBox component', () => {
         paddingBottom=""
         paddingLeft=""
         visibilityCondition=""
+        styleConditions=""
         id="test-flexbox"
         puck={mockPuckContext}
       />,
@@ -198,6 +202,7 @@ describe('FlexBox component', () => {
         paddingBottom=""
         paddingLeft=""
         visibilityCondition=""
+        styleConditions=""
         id="test-flexbox"
         puck={mockPuckContext}
       />,
@@ -235,6 +240,7 @@ describe('FlexBox component', () => {
         paddingBottom=""
         paddingLeft=""
         visibilityCondition=""
+        styleConditions=""
         id="test-flexbox"
         puck={mockPuckContext}
       />,

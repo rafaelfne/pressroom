@@ -18,65 +18,67 @@ describe('TextBlock visibilityCondition and margin', () => {
   it('accepts visibilityCondition prop', () => {
     const Component = puckConfig.components.TextBlock.render;
     const visibilityCondition = JSON.stringify({ expression: '{{data.show}}', operator: 'truthy' });
-    
+
     // Should render without error
     const { container } = render(
-      <Component 
-        text="Test" 
-        fontSize="1rem" 
-        customFontSize={16} 
-        lineHeight="1.5" 
-        customLineHeight={1.5} 
-        letterSpacing="0em" 
-        customLetterSpacing={0} 
-        fontFamily="" 
-        customFontFamily="" 
-        color="#000000" 
-        alignment="left" 
-        bold="false" 
-        italic="false" 
+      <Component
+        text="Test"
+        fontSize="1rem"
+        customFontSize={16}
+        lineHeight="1.5"
+        customLineHeight={1.5}
+        letterSpacing="0em"
+        customLetterSpacing={0}
+        fontFamily=""
+        customFontFamily=""
+        color="#000000"
+        alignment="left"
+        bold="false"
+        italic="false"
         pageBreakBehavior="auto"
         visibilityCondition={visibilityCondition}
         marginTop="0"
         marginRight="0"
         marginBottom="0"
         marginLeft="0"
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     expect(container.querySelector('div[style]')).toBeInTheDocument();
   });
 
   it('applies margin props', () => {
     const Component = puckConfig.components.TextBlock.render;
     const { container } = render(
-      <Component 
-        text="Test" 
-        fontSize="1rem" 
-        customFontSize={16} 
-        lineHeight="1.5" 
-        customLineHeight={1.5} 
-        letterSpacing="0em" 
-        customLetterSpacing={0} 
-        fontFamily="" 
-        customFontFamily="" 
-        color="#000000" 
-        alignment="left" 
-        bold="false" 
-        italic="false" 
+      <Component
+        text="Test"
+        fontSize="1rem"
+        customFontSize={16}
+        lineHeight="1.5"
+        customLineHeight={1.5}
+        letterSpacing="0em"
+        customLetterSpacing={0}
+        fontFamily=""
+        customFontFamily=""
+        color="#000000"
+        alignment="left"
+        bold="false"
+        italic="false"
         pageBreakBehavior="auto"
         visibilityCondition=""
         marginTop="10px"
         marginRight="20px"
         marginBottom="30px"
         marginLeft="40px"
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     const styledDiv = container.querySelector('div[style]');
     expect(styledDiv).toHaveStyle({
       marginTop: '10px',
@@ -95,13 +97,13 @@ describe('HeadingBlock visibilityCondition and margin', () => {
   it('accepts visibilityCondition prop', () => {
     const Component = puckConfig.components.HeadingBlock.render;
     const visibilityCondition = JSON.stringify({ expression: '{{data.show}}', operator: 'truthy' });
-    
+
     // Should render without error
     const { container } = render(
-      <Component 
-        text="Test Heading" 
-        level="h2" 
-        color="#000000" 
+      <Component
+        text="Test Heading"
+        level="h2"
+        color="#000000"
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition={visibilityCondition}
@@ -109,21 +111,22 @@ describe('HeadingBlock visibilityCondition and margin', () => {
         marginRight="0"
         marginBottom="0"
         marginLeft="0"
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     expect(container.querySelector('h2')).toBeInTheDocument();
   });
 
   it('applies margin props', () => {
     const Component = puckConfig.components.HeadingBlock.render;
     const { container } = render(
-      <Component 
-        text="Test Heading" 
-        level="h2" 
-        color="#000000" 
+      <Component
+        text="Test Heading"
+        level="h2"
+        color="#000000"
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition=""
@@ -131,11 +134,12 @@ describe('HeadingBlock visibilityCondition and margin', () => {
         marginRight="10px"
         marginBottom="15px"
         marginLeft="20px"
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     const heading = container.querySelector('h2');
     expect(heading).toHaveStyle({
       marginTop: '5px',
@@ -154,10 +158,10 @@ describe('FlexBox visibilityCondition and padding', () => {
   it('accepts visibilityCondition prop', () => {
     const Component = puckConfig.components.FlexBox.render;
     const visibilityCondition = JSON.stringify({ expression: '{{data.show}}', operator: 'truthy' });
-    
+
     // Should render without error
     const { container } = render(
-      <Component 
+      <Component
         direction="column"
         wrap="nowrap"
         justifyContent="flex-start"
@@ -178,18 +182,19 @@ describe('FlexBox visibilityCondition and padding', () => {
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition={visibilityCondition}
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     expect(container.querySelector('div[style]')).toBeInTheDocument();
   });
 
   it('applies individual padding props', () => {
     const Component = puckConfig.components.FlexBox.render;
     const { container } = render(
-      <Component 
+      <Component
         direction="column"
         wrap="nowrap"
         justifyContent="flex-start"
@@ -210,11 +215,12 @@ describe('FlexBox visibilityCondition and padding', () => {
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition=""
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     const flexDiv = container.querySelector('div[style]');
     expect(flexDiv).toHaveStyle({
       padding: '5px 10px 15px 20px',
@@ -224,7 +230,7 @@ describe('FlexBox visibilityCondition and padding', () => {
   it('uses all-sides padding when individual not set', () => {
     const Component = puckConfig.components.FlexBox.render;
     const { container } = render(
-      <Component 
+      <Component
         direction="column"
         wrap="nowrap"
         justifyContent="flex-start"
@@ -245,11 +251,12 @@ describe('FlexBox visibilityCondition and padding', () => {
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition=""
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     const flexDiv = container.querySelector('div[style]');
     expect(flexDiv).toHaveStyle({
       padding: '16px',
@@ -259,7 +266,7 @@ describe('FlexBox visibilityCondition and padding', () => {
   it('individual padding overrides all-sides padding', () => {
     const Component = puckConfig.components.FlexBox.render;
     const { container } = render(
-      <Component 
+      <Component
         direction="column"
         wrap="nowrap"
         justifyContent="flex-start"
@@ -280,11 +287,12 @@ describe('FlexBox visibilityCondition and padding', () => {
         fontFamily=""
         pageBreakBehavior="auto"
         visibilityCondition=""
-        id="test" 
-        puck={mockPuckContext} 
+        styleConditions=""
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     const flexDiv = container.querySelector('div[style]');
     // When at least one individual padding is set, it uses CSS shorthand
     expect(flexDiv).toHaveStyle({
@@ -301,21 +309,21 @@ describe('Divider visibilityCondition', () => {
   it('accepts visibilityCondition prop', () => {
     const Component = puckConfig.components.Divider.render;
     const visibilityCondition = JSON.stringify({ expression: '{{data.show}}', operator: 'truthy' });
-    
+
     // Should render without error
     const { container } = render(
-      <Component 
+      <Component
         orientation="horizontal"
         color="#e5e7eb"
         thickness="1"
         lineStyle="solid"
         pageBreakBehavior="auto"
         visibilityCondition={visibilityCondition}
-        id="test" 
-        puck={mockPuckContext} 
+        id="test"
+        puck={mockPuckContext}
       />
     );
-    
+
     expect(container.querySelector('hr')).toBeInTheDocument();
   });
 });

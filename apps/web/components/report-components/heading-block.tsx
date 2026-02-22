@@ -1,7 +1,8 @@
 'use client';
 
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, textareaField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 import { useInheritedStyles } from '@/contexts/inherited-styles-context';
 import { useStyleGuide } from '@/contexts/style-guide-context';
 import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
@@ -12,59 +13,37 @@ export type HeadingBlockProps = {
   text: string;
   level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   color: StylableValue | string;
-  fontFamily: string;
+  fontFamily: StylableValue | string;
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
   styleConditions: string;
-  marginTop: string;
-  marginRight: string;
-  marginBottom: string;
-  marginLeft: string;
+  marginTop: StylableValue | string;
+  marginRight: StylableValue | string;
+  marginBottom: StylableValue | string;
+  marginLeft: StylableValue | string;
 };
 
 export const HeadingBlock: ComponentConfig<HeadingBlockProps> = {
   label: 'Heading Block',
   fields: {
-    text: { type: 'text', label: 'Heading Text' },
-    level: {
-      type: 'select',
-      label: 'Heading Level',
-      options: [
-        { label: 'H1', value: 'h1' },
-        { label: 'H2', value: 'h2' },
-        { label: 'H3', value: 'h3' },
-        { label: 'H4', value: 'h4' },
-        { label: 'H5', value: 'h5' },
-        { label: 'H6', value: 'h6' },
-      ],
-    },
-    color: { type: 'text', label: 'Text Color' },
-    fontFamily: { type: 'text', label: 'Font Family' },
-    pageBreakBehavior: pageBreakField,
-    visibilityCondition: {
-      type: 'textarea',
-      label: 'Visibility Condition (JSON)',
-    },
-    styleConditions: {
-      type: 'textarea',
-      label: 'Style Conditions (JSON)',
-    },
-    marginTop: {
-      type: 'text',
-      label: 'Margin Top',
-    },
-    marginRight: {
-      type: 'text',
-      label: 'Margin Right',
-    },
-    marginBottom: {
-      type: 'text',
-      label: 'Margin Bottom',
-    },
-    marginLeft: {
-      type: 'text',
-      label: 'Margin Left',
-    },
+    text: textField('Heading Text'),
+    level: selectField('Heading Level', [
+      { label: 'H1', value: 'h1' },
+      { label: 'H2', value: 'h2' },
+      { label: 'H3', value: 'h3' },
+      { label: 'H4', value: 'h4' },
+      { label: 'H5', value: 'h5' },
+      { label: 'H6', value: 'h6' },
+    ]),
+    color: textField('Text Color'),
+    fontFamily: textField('Font Family'),
+    pageBreakBehavior: pageBreakCustomField,
+    visibilityCondition: textareaField('Visibility Condition (JSON)'),
+    styleConditions: textareaField('Style Conditions (JSON)'),
+    marginTop: textField('Margin Top'),
+    marginRight: textField('Margin Right'),
+    marginBottom: textField('Margin Bottom'),
+    marginLeft: textField('Margin Left'),
   },
   defaultProps: {
     text: 'Heading',
@@ -92,20 +71,25 @@ function HeadingBlockRender({ text, level, color, fontFamily, pageBreakBehavior,
   // Resolve StylableValue (supports both plain strings and token references)
   const { tokens } = useStyleGuide();
   const resolvedColor = resolveStylableValue(color, tokens) ?? DEFAULT_HEADING_COLOR;
+  const resolvedFontFamily = resolveStylableValue(fontFamily, tokens) ?? '';
+  const resolvedMarginTop = resolveStylableValue(marginTop, tokens) ?? '0';
+  const resolvedMarginRight = resolveStylableValue(marginRight, tokens) ?? '0';
+  const resolvedMarginBottom = resolveStylableValue(marginBottom, tokens) ?? '0';
+  const resolvedMarginLeft = resolveStylableValue(marginLeft, tokens) ?? '0';
 
   // Use inherited values as fallback when own value is the default
   const finalColor = resolvedColor !== DEFAULT_HEADING_COLOR ? resolvedColor : (inherited.color || resolvedColor);
-  const finalFontFamily = fontFamily ? fontFamily : (inherited.fontFamily || undefined);
+  const finalFontFamily = resolvedFontFamily ? resolvedFontFamily : (inherited.fontFamily || undefined);
 
   return (
     <Tag
       style={{
         color: finalColor,
         fontFamily: finalFontFamily ? `"${finalFontFamily}", sans-serif` : undefined,
-        marginTop,
-        marginRight,
-        marginBottom,
-        marginLeft,
+        marginTop: resolvedMarginTop,
+        marginRight: resolvedMarginRight,
+        marginBottom: resolvedMarginBottom,
+        marginLeft: resolvedMarginLeft,
         ...getPageBreakStyle(pageBreakBehavior)
       }}
       className="p-2"

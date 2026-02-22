@@ -1,5 +1,8 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 
 export type ImageBlockProps = {
   src: string;
@@ -12,11 +15,11 @@ export type ImageBlockProps = {
 export const ImageBlock: ComponentConfig<ImageBlockProps> = {
   label: 'Image Block',
   fields: {
-    src: { type: 'text', label: 'Image URL' },
-    alt: { type: 'text', label: 'Alt Text' },
-    width: { type: 'text', label: 'Width (e.g. 200px)' },
-    height: { type: 'text', label: 'Height (e.g. auto)' },
-    pageBreakBehavior: pageBreakField,
+    src: textField('Image URL'),
+    alt: textField('Alt Text'),
+    width: textField('Width (e.g. 200px)'),
+    height: textField('Height (e.g. auto)'),
+    pageBreakBehavior: pageBreakCustomField,
   },
   defaultProps: {
     src: '',

@@ -48,6 +48,8 @@ describe('Container component', () => {
         shadow="none"
         minHeight="100"
         pageBreakBehavior="auto"
+        visibilityCondition=""
+        styleConditions=""
         id="test-container"
         puck={mockPuckContext}
       />,
@@ -75,6 +77,8 @@ describe('Container component', () => {
         shadow="md"
         minHeight="40"
         pageBreakBehavior="auto"
+        visibilityCondition=""
+        styleConditions=""
         id="test-container"
         puck={mockPuckContext}
       />,

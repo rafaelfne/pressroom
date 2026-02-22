@@ -2,14 +2,15 @@
 
 import type { ComponentConfig } from '@puckeditor/core';
 import { useStyleGuide } from '@/contexts/style-guide-context';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, textareaField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
 
 export type ContainerProps = {
-  padding: string;
-  borderWidth: string;
+  padding: StylableValue | string;
+  borderWidth: StylableValue | string;
   borderColor: StylableValue | string;
-  borderRadius: string;
+  borderRadius: StylableValue | string;
   backgroundColor: StylableValue | string;
   shadow: 'none' | 'sm' | 'md' | 'lg';
   minHeight: string;
@@ -28,49 +29,21 @@ const shadowMap: Record<ContainerProps['shadow'], string> = {
 export const Container: ComponentConfig<ContainerProps> = {
   label: 'Container',
   fields: {
-    padding: {
-      type: 'text',
-      label: 'Padding (px)',
-    },
-    borderWidth: {
-      type: 'text',
-      label: 'Border Width (px)',
-    },
-    borderColor: {
-      type: 'text',
-      label: 'Border Color',
-    },
-    borderRadius: {
-      type: 'text',
-      label: 'Border Radius (px)',
-    },
-    backgroundColor: {
-      type: 'text',
-      label: 'Background Color',
-    },
-    shadow: {
-      type: 'select',
-      label: 'Shadow',
-      options: [
-        { label: 'None', value: 'none' },
-        { label: 'Small', value: 'sm' },
-        { label: 'Medium', value: 'md' },
-        { label: 'Large', value: 'lg' },
-      ],
-    },
-    minHeight: {
-      type: 'text',
-      label: 'Min Height (px)',
-    },
-    pageBreakBehavior: pageBreakField,
-    visibilityCondition: {
-      type: 'textarea',
-      label: 'Visibility Condition (JSON)',
-    },
-    styleConditions: {
-      type: 'textarea',
-      label: 'Style Conditions (JSON)',
-    },
+    padding: textField('Padding (px)'),
+    borderWidth: textField('Border Width (px)'),
+    borderColor: textField('Border Color'),
+    borderRadius: textField('Border Radius (px)'),
+    backgroundColor: textField('Background Color'),
+    shadow: selectField('Shadow', [
+      { label: 'None', value: 'none' },
+      { label: 'Small', value: 'sm' },
+      { label: 'Medium', value: 'md' },
+      { label: 'Large', value: 'lg' },
+    ]),
+    minHeight: textField('Min Height (px)'),
+    pageBreakBehavior: pageBreakCustomField,
+    visibilityCondition: textareaField('Visibility Condition (JSON)'),
+    styleConditions: textareaField('Style Conditions (JSON)'),
   },
   defaultProps: {
     padding: '16',
@@ -102,17 +75,22 @@ function ContainerRender({
   const { tokens } = useStyleGuide();
   const resolvedBackgroundColor = resolveStylableValue(backgroundColor, tokens) ?? 'transparent';
   const resolvedBorderColor = resolveStylableValue(borderColor, tokens) ?? '#e5e7eb';
+  const resolvedBorderRadius = resolveStylableValue(borderRadius, tokens) ?? '0';
+  const resolvedBorderWidth = resolveStylableValue(borderWidth, tokens) ?? '0';
+  const resolvedPadding = resolveStylableValue(padding, tokens) ?? '16';
+
+  const addPx = (v: string) => /[a-z%]/i.test(v) ? v : `${v}px`;
 
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
-        padding: `${padding}px`,
-        borderWidth: `${borderWidth}px`,
-        borderStyle: borderWidth !== '0' ? 'solid' : 'none',
+        padding: addPx(resolvedPadding),
+        borderWidth: addPx(resolvedBorderWidth),
+        borderStyle: resolvedBorderWidth !== '0' ? 'solid' : 'none',
         borderColor: resolvedBorderColor,
-        borderRadius: `${borderRadius}px`,
+        borderRadius: resolvedBorderRadius.includes('px') ? resolvedBorderRadius : `${resolvedBorderRadius}px`,
         backgroundColor: resolvedBackgroundColor,
         boxShadow: shadowMap[shadow],
         minHeight: `${minHeight}px`,

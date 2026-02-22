@@ -461,10 +461,11 @@ export const ServerChartBlock: ComponentConfig<ChartBlockProps> = {
       chartSvg = renderPieChart(data, chartProps, parsedWidth, parsedHeight, colorArray, chartType === 'donut');
     }
 
+    const bgColor = typeof backgroundColor === 'string' ? backgroundColor : undefined;
     const wrapperStyle: React.CSSProperties = {
-      backgroundColor: backgroundColor || 'transparent',
+      backgroundColor: bgColor || 'transparent',
       border: containerBorder === 'true' ? '1px solid #d1d5db' : 'none',
-      padding: containerBorder === 'true' || backgroundColor ? '16px' : '0',
+      padding: containerBorder === 'true' || bgColor ? '16px' : '0',
       borderRadius: containerBorder === 'true' ? '8px' : '0',
       ...pageBreakStyle,
     };

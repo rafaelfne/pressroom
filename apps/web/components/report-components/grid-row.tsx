@@ -1,5 +1,8 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -115,100 +118,46 @@ export const GridRow: ComponentConfig<GridRowProps> = {
   label: 'Grid Row',
   fields: {
     /* --- Column layout --- */
-    columns: {
-      type: 'select',
-      label: 'Column Layout',
-      options: [
-        { label: '2 Equal (1/2 + 1/2)', value: '2-equal' },
-        { label: '3 Equal (1/3 + 1/3 + 1/3)', value: '3-equal' },
-        { label: '4 Equal (1/4 × 4)', value: '4-equal' },
-        { label: 'Narrow + Wide (1/3 + 2/3)', value: '1-3_2-3' },
-        { label: 'Wide + Narrow (2/3 + 1/3)', value: '2-3_1-3' },
-        { label: 'Custom', value: 'custom' },
-      ],
-    },
-    customColumns: {
-      type: 'text',
-      label: 'Custom Columns (CSS grid-template-columns)',
-    },
+    columns: selectField('Column Layout', [
+      { label: '2 Equal (1/2 + 1/2)', value: '2-equal' },
+      { label: '3 Equal (1/3 + 1/3 + 1/3)', value: '3-equal' },
+      { label: '4 Equal (1/4 × 4)', value: '4-equal' },
+      { label: 'Narrow + Wide (1/3 + 2/3)', value: '1-3_2-3' },
+      { label: 'Wide + Narrow (2/3 + 1/3)', value: '2-3_1-3' },
+      { label: 'Custom', value: 'custom' },
+    ]),
+    customColumns: textField('Custom Columns (CSS grid-template-columns)'),
 
     /* --- Row template --- */
-    gridTemplateRows: {
-      type: 'text',
-      label: 'Row Template (CSS grid-template-rows)',
-    },
+    gridTemplateRows: textField('Row Template (CSS grid-template-rows)'),
 
     /* --- Gap --- */
-    columnGap: {
-      type: 'text',
-      label: 'Column Gap (px)',
-    },
-    rowGap: {
-      type: 'text',
-      label: 'Row Gap (px)',
-    },
+    columnGap: textField('Column Gap (px)'),
+    rowGap: textField('Row Gap (px)'),
 
     /* --- Alignment: items --- */
-    justifyItems: {
-      type: 'select',
-      label: 'Justify Items (horizontal in cells)',
-      options: alignItemsOptions,
-    },
-    alignItems: {
-      type: 'select',
-      label: 'Align Items (vertical in cells)',
-      options: alignItemsOptions,
-    },
+    justifyItems: selectField('Justify Items (horizontal in cells)', alignItemsOptions),
+    alignItems: selectField('Align Items (vertical in cells)', alignItemsOptions),
 
     /* --- Alignment: content --- */
-    justifyContent: {
-      type: 'select',
-      label: 'Justify Content (grid horizontal)',
-      options: justifyContentOptions,
-    },
-    alignContent: {
-      type: 'select',
-      label: 'Align Content (grid vertical)',
-      options: justifyContentOptions,
-    },
+    justifyContent: selectField('Justify Content (grid horizontal)', justifyContentOptions),
+    alignContent: selectField('Align Content (grid vertical)', justifyContentOptions),
 
     /* --- Auto placement --- */
-    gridAutoFlow: {
-      type: 'select',
-      label: 'Auto Flow',
-      options: gridAutoFlowOptions,
-    },
-    gridAutoRows: {
-      type: 'text',
-      label: 'Auto Rows (CSS grid-auto-rows)',
-    },
-    gridAutoColumns: {
-      type: 'text',
-      label: 'Auto Columns (CSS grid-auto-columns)',
-    },
+    gridAutoFlow: selectField('Auto Flow', gridAutoFlowOptions),
+    gridAutoRows: textField('Auto Rows (CSS grid-auto-rows)'),
+    gridAutoColumns: textField('Auto Columns (CSS grid-auto-columns)'),
 
     /* --- Sizing --- */
-    height: {
-      type: 'text',
-      label: 'Height (px)',
-    },
-    minHeight: {
-      type: 'text',
-      label: 'Min Height (px)',
-    },
-    maxHeight: {
-      type: 'text',
-      label: 'Max Height (px)',
-    },
+    height: textField('Height (px)'),
+    minHeight: textField('Min Height (px)'),
+    maxHeight: textField('Max Height (px)'),
 
     /* --- Spacing --- */
-    padding: {
-      type: 'text',
-      label: 'Padding (px)',
-    },
+    padding: textField('Padding (px)'),
 
     /* --- Page break --- */
-    pageBreakBehavior: pageBreakField,
+    pageBreakBehavior: pageBreakCustomField,
   },
 
   defaultProps: {

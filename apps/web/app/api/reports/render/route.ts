@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { renderRequestSchema } from '@/lib/validation/render-schemas';
 import { checkRateLimit } from '@/lib/rendering/rate-limiter';
+import type { StyleToken } from '@/lib/types/style-system';
 
 export const runtime = 'nodejs';
 
@@ -149,19 +150,19 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Fetch style guide tokens if template has a style guide
-    let styleTokens: Array<{ id: string; name: string; label: string; category: string; cssProperty: string; value: string; sortOrder: number }> = [];
+    let styleTokens: StyleToken[] = [];
     if (templateId) {
-      const template = await prisma.template.findFirst({
+      const templateForGuide = await prisma.template.findFirst({
         where: { id: templateId },
         select: { styleGuideId: true },
       });
-      if (template?.styleGuideId) {
+      if (templateForGuide?.styleGuideId) {
         const styleGuide = await prisma.styleGuide.findUnique({
-          where: { id: template.styleGuideId },
+          where: { id: templateForGuide.styleGuideId },
           include: { tokens: { orderBy: { sortOrder: 'asc' } } },
         });
         if (styleGuide) {
-          styleTokens = styleGuide.tokens;
+          styleTokens = styleGuide.tokens as StyleToken[];
         }
       }
     }

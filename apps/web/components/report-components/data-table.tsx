@@ -1,5 +1,10 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useStyleGuide } from '@/contexts/style-guide-context';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, radioField, toggleField, textareaField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
+import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
 import { Database } from 'lucide-react';
 import { resolveBindings } from '@/lib/binding';
 
@@ -32,23 +37,23 @@ export type DataTableProps = {
   density: 'dense' | 'compact' | 'normal' | 'custom';
   customRowHeight: string;
   // Header styling
-  headerBgColor: string;
-  headerTextColor: string;
-  headerFontSize: string;
-  headerFontWeight: string;
-  headerFontFamily: string;
-  headerPadding: string;
-  headerBorderColor: string;
+  headerBgColor: StylableValue | string;
+  headerTextColor: StylableValue | string;
+  headerFontSize: StylableValue | string;
+  headerFontWeight: StylableValue | string;
+  headerFontFamily: StylableValue | string;
+  headerPadding: StylableValue | string;
+  headerBorderColor: StylableValue | string;
   headerTextTransform: string;
   // Group header styling
   showGroupHeaders: string;
-  groupHeaderBgColor: string;
-  groupHeaderTextColor: string;
-  groupHeaderFontSize: string;
-  groupHeaderFontWeight: string;
-  groupHeaderFontFamily: string;
-  groupHeaderPadding: string;
-  groupHeaderBorderColor: string;
+  groupHeaderBgColor: StylableValue | string;
+  groupHeaderTextColor: StylableValue | string;
+  groupHeaderFontSize: StylableValue | string;
+  groupHeaderFontWeight: StylableValue | string;
+  groupHeaderFontFamily: StylableValue | string;
+  groupHeaderPadding: StylableValue | string;
+  groupHeaderBorderColor: StylableValue | string;
   groupHeaderTextTransform: string;
   groupHeaderTextAlign: string;
   // Footer
@@ -56,20 +61,47 @@ export type DataTableProps = {
   footerMode: 'columns' | 'freetext';
   footerLabel: string;
   footerColumns: FooterColumn[];
-  footerBgColor: string;
-  footerTextColor: string;
-  footerFontSize: string;
-  footerFontWeight: string;
-  footerFontFamily: string;
-  footerPadding: string;
-  footerBorderColor: string;
+  footerBgColor: StylableValue | string;
+  footerTextColor: StylableValue | string;
+  footerFontSize: StylableValue | string;
+  footerFontWeight: StylableValue | string;
+  footerFontFamily: StylableValue | string;
+  footerPadding: StylableValue | string;
+  footerBorderColor: StylableValue | string;
   footerTextTransform: string;
   // Rows
-  evenRowColor: string;
-  oddRowColor: string;
+  evenRowColor: StylableValue | string;
+  oddRowColor: StylableValue | string;
   verticalBorders: string;
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
+};
+
+/** Pre-resolved color and typography values for reuse by server-config (no hooks needed). */
+export type ResolvedDataTableColors = {
+  rHeaderBgColor: string;
+  rHeaderTextColor: string;
+  rHeaderBorderColor: string;
+  rHeaderFontSize: string;
+  rHeaderFontWeight: string;
+  rHeaderFontFamily: string;
+  rHeaderPadding: string;
+  rGroupHeaderBgColor: string;
+  rGroupHeaderTextColor: string;
+  rGroupHeaderBorderColor: string;
+  rGroupHeaderFontSize: string;
+  rGroupHeaderFontWeight: string;
+  rGroupHeaderFontFamily: string;
+  rGroupHeaderPadding: string;
+  rFooterBgColor: string;
+  rFooterTextColor: string;
+  rFooterBorderColor: string;
+  rFooterFontSize: string;
+  rFooterFontWeight: string;
+  rFooterFontFamily: string;
+  rFooterPadding: string;
+  rEvenRowColor: string;
+  rOddRowColor: string;
 };
 
 /** Pixels added per indent level for sub-item rows */
@@ -188,10 +220,7 @@ function buildGridTemplateColumns(columns: DataTableColumn[]): string {
 export const DataTable: ComponentConfig<DataTableProps> = {
   label: 'Data Table',
   fields: {
-    dataExpression: {
-      type: 'text',
-      label: 'Data Source',
-    },
+    dataExpression: textField('Data Source'),
     columns: {
       type: 'array',
       label: 'Columns',
@@ -263,152 +292,56 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         padding: '',
       },
     },
-    striped: {
-      type: 'radio',
-      label: 'Zebra Striping',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    bordered: {
-      type: 'radio',
-      label: 'Borders',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    density: {
-      type: 'select',
-      label: 'Density',
-      options: [
-        { label: 'Dense', value: 'dense' },
-        { label: 'Compact', value: 'compact' },
-        { label: 'Normal', value: 'normal' },
-        { label: 'Custom', value: 'custom' },
-      ],
-    },
-    customRowHeight: {
-      type: 'text',
-      label: 'Custom Row Height (px)',
-    },
+    striped: toggleField('Zebra Striping'),
+    bordered: toggleField('Borders'),
+    density: selectField('Density', [
+      { label: 'Dense', value: 'dense' },
+      { label: 'Compact', value: 'compact' },
+      { label: 'Normal', value: 'normal' },
+      { label: 'Custom', value: 'custom' },
+    ]),
+    customRowHeight: textField('Custom Row Height (px)'),
     // --- Header styling fields ---
-    headerBgColor: {
-      type: 'text',
-      label: 'Header Background Color',
-    },
-    headerTextColor: {
-      type: 'text',
-      label: 'Header Text Color',
-    },
-    headerFontSize: {
-      type: 'text',
-      label: 'Header Font Size',
-    },
-    headerFontWeight: {
-      type: 'text',
-      label: 'Header Font Weight',
-    },
-    headerFontFamily: {
-      type: 'text',
-      label: 'Header Font Family',
-    },
-    headerPadding: {
-      type: 'text',
-      label: 'Header Padding',
-    },
-    headerBorderColor: {
-      type: 'text',
-      label: 'Header Border Color',
-    },
-    headerTextTransform: {
-      type: 'select',
-      label: 'Header Text Transform',
-      options: [
-        { label: 'None', value: 'none' },
-        { label: 'Uppercase', value: 'uppercase' },
-        { label: 'Lowercase', value: 'lowercase' },
-        { label: 'Capitalize', value: 'capitalize' },
-      ],
-    },
+    headerBgColor: textField('Header Background Color'),
+    headerTextColor: textField('Header Text Color'),
+    headerFontSize: textField('Header Font Size'),
+    headerFontWeight: textField('Header Font Weight'),
+    headerFontFamily: textField('Header Font Family'),
+    headerPadding: textField('Header Padding'),
+    headerBorderColor: textField('Header Border Color'),
+    headerTextTransform: selectField('Header Text Transform', [
+      { label: 'None', value: 'none' },
+      { label: 'Uppercase', value: 'uppercase' },
+      { label: 'Lowercase', value: 'lowercase' },
+      { label: 'Capitalize', value: 'capitalize' },
+    ]),
     // --- Group header fields ---
-    showGroupHeaders: {
-      type: 'radio',
-      label: 'Show Group Headers',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    groupHeaderBgColor: {
-      type: 'text',
-      label: 'Group Header Background Color',
-    },
-    groupHeaderTextColor: {
-      type: 'text',
-      label: 'Group Header Text Color',
-    },
-    groupHeaderFontSize: {
-      type: 'text',
-      label: 'Group Header Font Size',
-    },
-    groupHeaderFontWeight: {
-      type: 'text',
-      label: 'Group Header Font Weight',
-    },
-    groupHeaderFontFamily: {
-      type: 'text',
-      label: 'Group Header Font Family',
-    },
-    groupHeaderPadding: {
-      type: 'text',
-      label: 'Group Header Padding',
-    },
-    groupHeaderBorderColor: {
-      type: 'text',
-      label: 'Group Header Border Color',
-    },
-    groupHeaderTextTransform: {
-      type: 'select',
-      label: 'Group Header Text Transform',
-      options: [
-        { label: 'None', value: 'none' },
-        { label: 'Uppercase', value: 'uppercase' },
-        { label: 'Lowercase', value: 'lowercase' },
-        { label: 'Capitalize', value: 'capitalize' },
-      ],
-    },
-    groupHeaderTextAlign: {
-      type: 'select',
-      label: 'Group Header Text Align',
-      options: [
-        { label: 'Left', value: 'left' },
-        { label: 'Center', value: 'center' },
-        { label: 'Right', value: 'right' },
-      ],
-    },
+    showGroupHeaders: toggleField('Show Group Headers'),
+    groupHeaderBgColor: textField('Group Header Background Color'),
+    groupHeaderTextColor: textField('Group Header Text Color'),
+    groupHeaderFontSize: textField('Group Header Font Size'),
+    groupHeaderFontWeight: textField('Group Header Font Weight'),
+    groupHeaderFontFamily: textField('Group Header Font Family'),
+    groupHeaderPadding: textField('Group Header Padding'),
+    groupHeaderBorderColor: textField('Group Header Border Color'),
+    groupHeaderTextTransform: selectField('Group Header Text Transform', [
+      { label: 'None', value: 'none' },
+      { label: 'Uppercase', value: 'uppercase' },
+      { label: 'Lowercase', value: 'lowercase' },
+      { label: 'Capitalize', value: 'capitalize' },
+    ]),
+    groupHeaderTextAlign: selectField('Group Header Text Align', [
+      { label: 'Left', value: 'left' },
+      { label: 'Center', value: 'center' },
+      { label: 'Right', value: 'right' },
+    ]),
     // --- Footer fields ---
-    showFooterRow: {
-      type: 'radio',
-      label: 'Show Footer Row',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    footerMode: {
-      type: 'radio',
-      label: 'Footer Mode',
-      options: [
-        { label: 'Per Column', value: 'columns' },
-        { label: 'Free Text (Full Width)', value: 'freetext' },
-      ],
-    },
-    footerLabel: {
-      type: 'text',
-      label: 'Footer Label',
-    },
+    showFooterRow: toggleField('Show Footer Row'),
+    footerMode: radioField('Footer Mode', [
+      { label: 'Per Column', value: 'columns' },
+      { label: 'Free Text (Full Width)', value: 'freetext' },
+    ]),
+    footerLabel: textField('Footer Label'),
     footerColumns: {
       type: 'array',
       label: 'Footer Columns',
@@ -455,66 +388,25 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         fontColor: '',
       },
     },
-    footerBgColor: {
-      type: 'text',
-      label: 'Footer Background Color',
-    },
-    footerTextColor: {
-      type: 'text',
-      label: 'Footer Text Color',
-    },
-    footerFontSize: {
-      type: 'text',
-      label: 'Footer Font Size',
-    },
-    footerFontWeight: {
-      type: 'text',
-      label: 'Footer Font Weight',
-    },
-    footerFontFamily: {
-      type: 'text',
-      label: 'Footer Font Family',
-    },
-    footerPadding: {
-      type: 'text',
-      label: 'Footer Padding',
-    },
-    footerBorderColor: {
-      type: 'text',
-      label: 'Footer Border Color',
-    },
-    footerTextTransform: {
-      type: 'select',
-      label: 'Footer Text Transform',
-      options: [
-        { label: 'None', value: 'none' },
-        { label: 'Uppercase', value: 'uppercase' },
-        { label: 'Lowercase', value: 'lowercase' },
-        { label: 'Capitalize', value: 'capitalize' },
-      ],
-    },
+    footerBgColor: textField('Footer Background Color'),
+    footerTextColor: textField('Footer Text Color'),
+    footerFontSize: textField('Footer Font Size'),
+    footerFontWeight: textField('Footer Font Weight'),
+    footerFontFamily: textField('Footer Font Family'),
+    footerPadding: textField('Footer Padding'),
+    footerBorderColor: textField('Footer Border Color'),
+    footerTextTransform: selectField('Footer Text Transform', [
+      { label: 'None', value: 'none' },
+      { label: 'Uppercase', value: 'uppercase' },
+      { label: 'Lowercase', value: 'lowercase' },
+      { label: 'Capitalize', value: 'capitalize' },
+    ]),
     // --- Row colors ---
-    evenRowColor: {
-      type: 'text',
-      label: 'Even Row Color',
-    },
-    oddRowColor: {
-      type: 'text',
-      label: 'Odd Row Color',
-    },
-    verticalBorders: {
-      type: 'radio',
-      label: 'Vertical Borders',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    pageBreakBehavior: pageBreakField,
-    visibilityCondition: {
-      type: 'textarea',
-      label: 'Visibility Condition (JSON)',
-    },
+    evenRowColor: textField('Even Row Color'),
+    oddRowColor: textField('Odd Row Color'),
+    verticalBorders: toggleField('Vertical Borders'),
+    pageBreakBehavior: pageBreakCustomField,
+    visibilityCondition: textareaField('Visibility Condition (JSON)'),
   },
   defaultProps: {
     dataExpression: '{{data.items}}',
@@ -564,48 +456,31 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     pageBreakBehavior: 'auto',
     visibilityCondition: '',
   },
-  render: ({
-    dataExpression,
-    columns,
-    striped,
-    bordered,
-    density,
-    customRowHeight,
-    headerBgColor,
-    headerTextColor,
-    headerFontSize,
-    headerFontWeight,
-    headerFontFamily,
-    headerPadding,
-    headerBorderColor,
-    headerTextTransform,
-    showGroupHeaders,
-    groupHeaderBgColor,
-    groupHeaderTextColor,
-    groupHeaderFontSize,
-    groupHeaderFontWeight,
-    groupHeaderFontFamily,
-    groupHeaderPadding,
-    groupHeaderBorderColor,
-    groupHeaderTextTransform,
-    groupHeaderTextAlign,
-    showFooterRow,
-    footerMode,
-    footerLabel,
-    footerColumns,
-    footerBgColor,
-    footerTextColor,
-    footerFontSize,
-    footerFontWeight,
-    footerFontFamily,
-    footerPadding,
-    footerBorderColor,
-    footerTextTransform,
-    evenRowColor,
-    oddRowColor,
-    verticalBorders,
-    pageBreakBehavior,
-  }) => {
+  render: (props) => <DataTableRender {...props} />,
+};
+
+/** Shared render logic for client and server rendering (no React hooks). */
+export function renderDataTableBody(
+  props: Omit<DataTableProps, 'visibilityCondition'>,
+  colors: ResolvedDataTableColors,
+): React.ReactNode {
+    const {
+      dataExpression, columns, striped, bordered, density, customRowHeight,
+      headerTextTransform,
+      showGroupHeaders, groupHeaderTextTransform, groupHeaderTextAlign,
+      showFooterRow, footerMode, footerLabel, footerColumns,
+      footerTextTransform,
+      verticalBorders, pageBreakBehavior,
+    } = props;
+    const {
+      rHeaderBgColor, rHeaderTextColor, rHeaderBorderColor,
+      rHeaderFontSize, rHeaderFontWeight, rHeaderFontFamily, rHeaderPadding,
+      rGroupHeaderBgColor, rGroupHeaderTextColor, rGroupHeaderBorderColor,
+      rGroupHeaderFontSize, rGroupHeaderFontWeight, rGroupHeaderFontFamily, rGroupHeaderPadding,
+      rFooterBgColor, rFooterTextColor, rFooterBorderColor,
+      rFooterFontSize, rFooterFontWeight, rFooterFontFamily, rFooterPadding,
+      rEvenRowColor, rOddRowColor,
+    } = colors;
     const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
 
     // After resolveBindings() in the PDF pipeline, dataExpression becomes the actual array.
@@ -762,21 +637,21 @@ export const DataTable: ComponentConfig<DataTableProps> = {
     };
 
     // Resolved border colors
-    const resolvedHeaderBorderColor = headerBorderColor || '#d1d5db';
-    const resolvedFooterBorderColor = footerBorderColor || '#d1d5db';
+    const resolvedHeaderBorderColor = rHeaderBorderColor || '#d1d5db';
+    const resolvedFooterBorderColor = rFooterBorderColor || '#d1d5db';
 
     // ── Header cell base style ──
     const thBaseStyle: React.CSSProperties = {
-      backgroundColor: headerBgColor || '#f3f4f6',
-      color: headerTextColor || '#111827',
-      fontWeight: headerFontWeight || 600,
-      padding: headerPadding || defaultHeaderCellPadding,
+      backgroundColor: rHeaderBgColor,
+      color: rHeaderTextColor,
+      fontWeight: rHeaderFontWeight || 600,
+      padding: rHeaderPadding || defaultHeaderCellPadding,
       textAlign: 'left',
       borderBottom: isBordered ? `2px solid ${resolvedHeaderBorderColor}` : 'none',
       borderRight: (isBordered || hasVerticalBorders) ? '1px solid #e5e7eb' : 'none',
     };
-    if (headerFontSize) thBaseStyle.fontSize = headerFontSize;
-    if (headerFontFamily) thBaseStyle.fontFamily = headerFontFamily;
+    if (rHeaderFontSize) thBaseStyle.fontSize = rHeaderFontSize;
+    if (rHeaderFontFamily) thBaseStyle.fontFamily = rHeaderFontFamily;
     if (headerTextTransform && headerTextTransform !== 'none') {
       thBaseStyle.textTransform = headerTextTransform as React.CSSProperties['textTransform'];
     }
@@ -790,17 +665,17 @@ export const DataTable: ComponentConfig<DataTableProps> = {
 
     // ── Footer row base style ──
     const footerRowBaseStyle: React.CSSProperties = {
-      backgroundColor: footerBgColor || '#f3f4f6',
-      color: footerTextColor || '#111827',
-      fontWeight: footerFontWeight || 'bold',
+      backgroundColor: rFooterBgColor,
+      color: rFooterTextColor,
+      fontWeight: rFooterFontWeight || 'bold',
       borderTop: `2px solid ${resolvedFooterBorderColor}`,
     };
-    if (footerFontSize) footerRowBaseStyle.fontSize = footerFontSize;
-    if (footerFontFamily) footerRowBaseStyle.fontFamily = footerFontFamily;
+    if (rFooterFontSize) footerRowBaseStyle.fontSize = rFooterFontSize;
+    if (rFooterFontFamily) footerRowBaseStyle.fontFamily = rFooterFontFamily;
     if (footerTextTransform && footerTextTransform !== 'none') {
       footerRowBaseStyle.textTransform = footerTextTransform as React.CSSProperties['textTransform'];
     }
-    const footerCellPadding = footerPadding || bodyCellPadding;
+    const footerCellPadding = rFooterPadding || bodyCellPadding;
 
     // ── Build body rows ──
     let dataRowIndex = 0;
@@ -818,16 +693,16 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         const ghCellStyle: React.CSSProperties = {
           ...tdBaseStyle,
           gridColumn: '1 / -1',
-          fontWeight: groupHeaderFontWeight || 'bold',
-          backgroundColor: groupHeaderBgColor || '#1a5632',
-          color: groupHeaderTextColor || '#ffffff',
+          fontWeight: rGroupHeaderFontWeight || 'bold',
+          backgroundColor: rGroupHeaderBgColor,
+          color: rGroupHeaderTextColor,
           borderRight: 'none',
           textAlign: (groupHeaderTextAlign as React.CSSProperties['textAlign']) || 'left',
         };
-        if (groupHeaderFontSize) ghCellStyle.fontSize = groupHeaderFontSize;
-        if (groupHeaderFontFamily) ghCellStyle.fontFamily = groupHeaderFontFamily;
-        if (groupHeaderPadding) ghCellStyle.padding = groupHeaderPadding;
-        if (groupHeaderBorderColor) ghCellStyle.borderBottom = `1px solid ${groupHeaderBorderColor}`;
+        if (rGroupHeaderFontSize) ghCellStyle.fontSize = rGroupHeaderFontSize;
+        if (rGroupHeaderFontFamily) ghCellStyle.fontFamily = rGroupHeaderFontFamily;
+        if (rGroupHeaderPadding) ghCellStyle.padding = rGroupHeaderPadding;
+        if (rGroupHeaderBorderColor) ghCellStyle.borderBottom = `1px solid ${rGroupHeaderBorderColor}`;
         if (groupHeaderTextTransform && groupHeaderTextTransform !== 'none') {
           ghCellStyle.textTransform = groupHeaderTextTransform as React.CSSProperties['textTransform'];
         }
@@ -854,8 +729,8 @@ export const DataTable: ComponentConfig<DataTableProps> = {
 
         const rowBgColor = isStriped
           ? currentDataRowIndex % 2 === 0
-            ? evenRowColor || 'transparent'
-            : oddRowColor || '#f9fafb'
+            ? rEvenRowColor
+            : rOddRowColor
           : 'transparent';
 
         bodyRows.push(
@@ -990,5 +865,33 @@ export const DataTable: ComponentConfig<DataTableProps> = {
         </div>
       </div>
     );
-  },
-};
+}
+
+function DataTableRender(props: Omit<DataTableProps, 'visibilityCondition'>) {
+  const { tokens } = useStyleGuide();
+  return renderDataTableBody(props, {
+    rHeaderBgColor: resolveStylableValue(props.headerBgColor, tokens) ?? '#f3f4f6',
+    rHeaderTextColor: resolveStylableValue(props.headerTextColor, tokens) ?? '#111827',
+    rHeaderBorderColor: resolveStylableValue(props.headerBorderColor, tokens) ?? '#d1d5db',
+    rHeaderFontSize: resolveStylableValue(props.headerFontSize, tokens) ?? '',
+    rHeaderFontWeight: resolveStylableValue(props.headerFontWeight, tokens) ?? '600',
+    rHeaderFontFamily: resolveStylableValue(props.headerFontFamily, tokens) ?? '',
+    rHeaderPadding: resolveStylableValue(props.headerPadding, tokens) ?? '',
+    rGroupHeaderBgColor: resolveStylableValue(props.groupHeaderBgColor, tokens) ?? '#1a5632',
+    rGroupHeaderTextColor: resolveStylableValue(props.groupHeaderTextColor, tokens) ?? '#ffffff',
+    rGroupHeaderBorderColor: resolveStylableValue(props.groupHeaderBorderColor, tokens) ?? '',
+    rGroupHeaderFontSize: resolveStylableValue(props.groupHeaderFontSize, tokens) ?? '',
+    rGroupHeaderFontWeight: resolveStylableValue(props.groupHeaderFontWeight, tokens) ?? 'bold',
+    rGroupHeaderFontFamily: resolveStylableValue(props.groupHeaderFontFamily, tokens) ?? '',
+    rGroupHeaderPadding: resolveStylableValue(props.groupHeaderPadding, tokens) ?? '',
+    rFooterBgColor: resolveStylableValue(props.footerBgColor, tokens) ?? '#f3f4f6',
+    rFooterTextColor: resolveStylableValue(props.footerTextColor, tokens) ?? '#111827',
+    rFooterBorderColor: resolveStylableValue(props.footerBorderColor, tokens) ?? '#d1d5db',
+    rFooterFontSize: resolveStylableValue(props.footerFontSize, tokens) ?? '',
+    rFooterFontWeight: resolveStylableValue(props.footerFontWeight, tokens) ?? 'bold',
+    rFooterFontFamily: resolveStylableValue(props.footerFontFamily, tokens) ?? '',
+    rFooterPadding: resolveStylableValue(props.footerPadding, tokens) ?? '',
+    rEvenRowColor: resolveStylableValue(props.evenRowColor, tokens) ?? 'transparent',
+    rOddRowColor: resolveStylableValue(props.oddRowColor, tokens) ?? '#f9fafb',
+  });
+}

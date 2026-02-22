@@ -1,7 +1,8 @@
 'use client';
 
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, numberField, toggleField, textareaField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 import { useInheritedStyles } from '@/contexts/inherited-styles-context';
 import { useStyleGuide } from '@/contexts/style-guide-context';
 import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
@@ -30,131 +31,61 @@ export type TextBlockProps = {
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
   styleConditions: string;
-  marginTop: string;
-  marginRight: string;
-  marginBottom: string;
-  marginLeft: string;
+  marginTop: StylableValue | string;
+  marginRight: StylableValue | string;
+  marginBottom: StylableValue | string;
+  marginLeft: StylableValue | string;
 };
 
 export const TextBlock: ComponentConfig<TextBlockProps> = {
   label: 'Text Block',
   fields: {
-    text: { type: 'textarea', label: 'Text' },
-    fontFamily: {
-      type: 'select',
-      label: 'Font Family',
-      options: GOOGLE_FONT_OPTIONS.map(o => ({ label: o.label, value: o.value })),
-    },
-    customFontFamily: {
-      type: 'text',
-      label: 'Custom Font (Google Fonts name)',
-    },
-    fontSize: {
-      type: 'select',
-      label: 'Font Size',
-      options: [
-        { label: 'Small', value: '0.875rem' },
-        { label: 'Base', value: '1rem' },
-        { label: 'Large', value: '1.25rem' },
-        { label: 'Extra Large', value: '1.5rem' },
-        { label: 'Custom', value: 'custom' },
-      ],
-    },
-    customFontSize: {
-      type: 'number',
-      label: 'Custom Size (px)',
-      min: 8,
-      max: 200,
-    },
-    lineHeight: {
-      type: 'select',
-      label: 'Line Height',
-      options: [
-        { label: 'Tight', value: '1' },
-        { label: 'Snug', value: '1.25' },
-        { label: 'Normal', value: '1.5' },
-        { label: 'Relaxed', value: '1.75' },
-        { label: 'Loose', value: '2' },
-        { label: 'Custom', value: 'custom' },
-      ],
-    },
-    customLineHeight: {
-      type: 'number',
-      label: 'Custom Line Height',
-      min: 0.5,
-      max: 5,
-    },
-    letterSpacing: {
-      type: 'select',
-      label: 'Letter Spacing',
-      options: [
-        { label: 'Tighter', value: '-0.05em' },
-        { label: 'Tight', value: '-0.025em' },
-        { label: 'Normal', value: '0em' },
-        { label: 'Wide', value: '0.025em' },
-        { label: 'Wider', value: '0.05em' },
-        { label: 'Widest', value: '0.1em' },
-        { label: 'Custom', value: 'custom' },
-      ],
-    },
-    customLetterSpacing: {
-      type: 'number',
-      label: 'Custom Letter Spacing (px)',
-      min: -10,
-      max: 50,
-    },
-    color: { type: 'text', label: 'Text Color' },
-    alignment: {
-      type: 'select',
-      label: 'Alignment',
-      options: [
-        { label: 'Left', value: 'left' },
-        { label: 'Center', value: 'center' },
-        { label: 'Right', value: 'right' },
-        { label: 'Justify', value: 'justify' },
-      ],
-    },
-    bold: {
-      type: 'radio',
-      label: 'Bold',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    italic: {
-      type: 'radio',
-      label: 'Italic',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    pageBreakBehavior: pageBreakField,
-    visibilityCondition: {
-      type: 'textarea',
-      label: 'Visibility Condition (JSON)',
-    },
-    styleConditions: {
-      type: 'textarea',
-      label: 'Style Conditions (JSON)',
-    },
-    marginTop: {
-      type: 'text',
-      label: 'Margin Top',
-    },
-    marginRight: {
-      type: 'text',
-      label: 'Margin Right',
-    },
-    marginBottom: {
-      type: 'text',
-      label: 'Margin Bottom',
-    },
-    marginLeft: {
-      type: 'text',
-      label: 'Margin Left',
-    },
+    text: textareaField('Text'),
+    fontFamily: selectField('Font Family', GOOGLE_FONT_OPTIONS.map(o => ({ label: o.label, value: o.value }))),
+    customFontFamily: textField('Custom Font (Google Fonts name)'),
+    fontSize: selectField('Font Size', [
+      { label: 'Small', value: '0.875rem' },
+      { label: 'Base', value: '1rem' },
+      { label: 'Large', value: '1.25rem' },
+      { label: 'Extra Large', value: '1.5rem' },
+      { label: 'Custom', value: 'custom' },
+    ]),
+    customFontSize: numberField('Custom Size (px)', { min: 8, max: 200 }),
+    lineHeight: selectField('Line Height', [
+      { label: 'Tight', value: '1' },
+      { label: 'Snug', value: '1.25' },
+      { label: 'Normal', value: '1.5' },
+      { label: 'Relaxed', value: '1.75' },
+      { label: 'Loose', value: '2' },
+      { label: 'Custom', value: 'custom' },
+    ]),
+    customLineHeight: numberField('Custom Line Height', { min: 0.5, max: 5, step: 0.25 }),
+    letterSpacing: selectField('Letter Spacing', [
+      { label: 'Tighter', value: '-0.05em' },
+      { label: 'Tight', value: '-0.025em' },
+      { label: 'Normal', value: '0em' },
+      { label: 'Wide', value: '0.025em' },
+      { label: 'Wider', value: '0.05em' },
+      { label: 'Widest', value: '0.1em' },
+      { label: 'Custom', value: 'custom' },
+    ]),
+    customLetterSpacing: numberField('Custom Letter Spacing (px)', { min: -10, max: 50 }),
+    color: textField('Text Color'),
+    alignment: selectField('Alignment', [
+      { label: 'Left', value: 'left' },
+      { label: 'Center', value: 'center' },
+      { label: 'Right', value: 'right' },
+      { label: 'Justify', value: 'justify' },
+    ]),
+    bold: toggleField('Bold'),
+    italic: toggleField('Italic'),
+    pageBreakBehavior: pageBreakCustomField,
+    visibilityCondition: textareaField('Visibility Condition (JSON)'),
+    styleConditions: textareaField('Style Conditions (JSON)'),
+    marginTop: textField('Margin Top'),
+    marginRight: textField('Margin Right'),
+    marginBottom: textField('Margin Bottom'),
+    marginLeft: textField('Margin Left'),
   },
   defaultProps: {
     text: 'Enter your text here',
@@ -194,6 +125,10 @@ function TextBlockRender({ text, fontSize, customFontSize, lineHeight, customLin
   // Resolve StylableValue (supports both plain strings and token references)
   const { tokens } = useStyleGuide();
   const resolvedColor = resolveStylableValue(color, tokens) ?? DEFAULT_TEXT_COLOR;
+  const resolvedMarginTop = resolveStylableValue(marginTop, tokens) ?? '0';
+  const resolvedMarginRight = resolveStylableValue(marginRight, tokens) ?? '0';
+  const resolvedMarginBottom = resolveStylableValue(marginBottom, tokens) ?? '0';
+  const resolvedMarginLeft = resolveStylableValue(marginLeft, tokens) ?? '0';
 
   // Use inherited values as fallback when own value is the default
   const finalColor = resolvedColor !== DEFAULT_TEXT_COLOR ? resolvedColor : (inherited.color || resolvedColor);
@@ -220,10 +155,10 @@ function TextBlockRender({ text, fontSize, customFontSize, lineHeight, customLin
           fontStyle: italic === 'true' ? 'italic' : 'normal',
           overflowWrap: 'break-word',
           wordBreak: 'break-word',
-          marginTop,
-          marginRight,
-          marginBottom,
-          marginLeft,
+          marginTop: resolvedMarginTop,
+          marginRight: resolvedMarginRight,
+          marginBottom: resolvedMarginBottom,
+          marginLeft: resolvedMarginLeft,
           ...getPageBreakStyle(pageBreakBehavior),
         }}
         className="p-2"

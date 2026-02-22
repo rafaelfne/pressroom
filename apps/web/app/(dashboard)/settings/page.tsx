@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   let teamData = null;
   let organizations: Array<{ id: string; name: string; slug: string; _count: { templates: number } }> = [];
   let currentUserRole = 'member';
-  let styleGuidesByOrg: Record<string, Awaited<ReturnType<typeof listStyleGuides>>> = {};
+  const styleGuidesByOrg: Record<string, Awaited<ReturnType<typeof listStyleGuides>>> = {};
 
   if (team) {
     teamData = await prisma.team.findUnique({

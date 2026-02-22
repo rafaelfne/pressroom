@@ -1,5 +1,10 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { useStyleGuide } from '@/contexts/style-guide-context';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, selectField, toggleField, textareaField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
+import { resolveStylableValue, type StylableValue } from '@/lib/types/style-system';
 import {
   BarChart,
   Bar,
@@ -42,7 +47,7 @@ export type ChartBlockProps = {
   yAxisFormat: 'number' | 'percentage' | 'currency';
   xAxisRotation: '0' | '45' | '90';
   centerLabel: string;
-  backgroundColor: string;
+  backgroundColor: StylableValue | string;
   containerBorder: string;
   pageBreakBehavior: PageBreakBehavior;
   visibilityCondition: string;
@@ -94,126 +99,46 @@ function getXAxisRotationAngle(rotation: '0' | '45' | '90'): number {
 export const ChartBlock: ComponentConfig<ChartBlockProps> = {
   label: 'Chart',
   fields: {
-    chartType: {
-      type: 'select',
-      label: 'Chart Type',
-      options: [
-        { label: 'Bar', value: 'bar' },
-        { label: 'Line', value: 'line' },
-        { label: 'Pie', value: 'pie' },
-        { label: 'Area', value: 'area' },
-        { label: 'Donut', value: 'donut' },
-        { label: 'Stacked Bar', value: 'stackedBar' },
-      ],
-    },
-    dataExpression: {
-      type: 'text',
-      label: 'Data Source',
-    },
-    xField: {
-      type: 'text',
-      label: 'X-Axis Field',
-    },
-    yField: {
-      type: 'text',
-      label: 'Y-Axis Field',
-    },
-    title: {
-      type: 'text',
-      label: 'Title',
-    },
-    subtitle: {
-      type: 'text',
-      label: 'Subtitle',
-    },
-    height: {
-      type: 'text',
-      label: 'Height (px)',
-    },
-    width: {
-      type: 'text',
-      label: 'Width (px)',
-    },
-    colors: {
-      type: 'text',
-      label: 'Colors (comma-separated hex)',
-    },
-    showLegend: {
-      type: 'radio',
-      label: 'Show Legend',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    showGrid: {
-      type: 'radio',
-      label: 'Show Grid',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    showTooltip: {
-      type: 'radio',
-      label: 'Show Tooltip',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    series: {
-      type: 'text',
-      label: 'Series Config (JSON)',
-    },
-    xAxisFormat: {
-      type: 'select',
-      label: 'X-Axis Format',
-      options: [
-        { label: 'Category', value: 'category' },
-        { label: 'Date', value: 'date' },
-        { label: 'Number', value: 'number' },
-      ],
-    },
-    yAxisFormat: {
-      type: 'select',
-      label: 'Y-Axis Format',
-      options: [
-        { label: 'Number', value: 'number' },
-        { label: 'Percentage', value: 'percentage' },
-        { label: 'Currency', value: 'currency' },
-      ],
-    },
-    xAxisRotation: {
-      type: 'select',
-      label: 'X-Axis Label Rotation',
-      options: [
-        { label: '0°', value: '0' },
-        { label: '45°', value: '45' },
-        { label: '90°', value: '90' },
-      ],
-    },
-    centerLabel: {
-      type: 'text',
-      label: 'Donut Center Label',
-    },
-    backgroundColor: {
-      type: 'text',
-      label: 'Background Color',
-    },
-    containerBorder: {
-      type: 'radio',
-      label: 'Container Border',
-      options: [
-        { label: 'Yes', value: 'true' },
-        { label: 'No', value: 'false' },
-      ],
-    },
-    pageBreakBehavior: pageBreakField,
-    visibilityCondition: {
-      type: 'textarea',
-      label: 'Visibility Condition (JSON)',
-    },
+    chartType: selectField('Chart Type', [
+      { label: 'Bar', value: 'bar' },
+      { label: 'Line', value: 'line' },
+      { label: 'Pie', value: 'pie' },
+      { label: 'Area', value: 'area' },
+      { label: 'Donut', value: 'donut' },
+      { label: 'Stacked Bar', value: 'stackedBar' },
+    ]),
+    dataExpression: textField('Data Source'),
+    xField: textField('X-Axis Field'),
+    yField: textField('Y-Axis Field'),
+    title: textField('Title'),
+    subtitle: textField('Subtitle'),
+    height: textField('Height (px)'),
+    width: textField('Width (px)'),
+    colors: textField('Colors (comma-separated hex)'),
+    showLegend: toggleField('Show Legend'),
+    showGrid: toggleField('Show Grid'),
+    showTooltip: toggleField('Show Tooltip'),
+    series: textField('Series Config (JSON)'),
+    xAxisFormat: selectField('X-Axis Format', [
+      { label: 'Category', value: 'category' },
+      { label: 'Date', value: 'date' },
+      { label: 'Number', value: 'number' },
+    ]),
+    yAxisFormat: selectField('Y-Axis Format', [
+      { label: 'Number', value: 'number' },
+      { label: 'Percentage', value: 'percentage' },
+      { label: 'Currency', value: 'currency' },
+    ]),
+    xAxisRotation: selectField('X-Axis Label Rotation', [
+      { label: '0°', value: '0' },
+      { label: '45°', value: '45' },
+      { label: '90°', value: '90' },
+    ]),
+    centerLabel: textField('Donut Center Label'),
+    backgroundColor: textField('Background Color'),
+    containerBorder: toggleField('Container Border'),
+    pageBreakBehavior: pageBreakCustomField,
+    visibilityCondition: textareaField('Visibility Condition (JSON)'),
   },
   defaultProps: {
     chartType: 'bar',
@@ -238,7 +163,10 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     pageBreakBehavior: 'avoid',
     visibilityCondition: '',
   },
-  render: ({
+  render: (props) => <ChartBlockRender {...props} />,
+};
+
+function ChartBlockRender({
     chartType,
     dataExpression,
     xField,
@@ -259,7 +187,9 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
     backgroundColor,
     containerBorder,
     pageBreakBehavior,
-  }) => {
+  }: Omit<ChartBlockProps, 'visibilityCondition'>) {
+    const { tokens } = useStyleGuide();
+    const resolvedBackgroundColor = resolveStylableValue(backgroundColor, tokens) ?? 'transparent';
     const pageBreakStyle = getPageBreakStyle(pageBreakBehavior);
 
     // Parse series JSON string safely
@@ -336,9 +266,9 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
 
     // Outer wrapper styles
     const wrapperStyle: React.CSSProperties = {
-      backgroundColor: backgroundColor || 'transparent',
+      backgroundColor: resolvedBackgroundColor,
       border: shouldShowBorder ? '1px solid #d1d5db' : 'none',
-      padding: shouldShowBorder || backgroundColor ? '16px' : '0',
+      padding: shouldShowBorder || resolvedBackgroundColor !== 'transparent' ? '16px' : '0',
       borderRadius: shouldShowBorder ? '8px' : '0',
       ...pageBreakStyle,
     };
@@ -583,5 +513,4 @@ export const ChartBlock: ComponentConfig<ChartBlockProps> = {
         <div style={containerStyle}>{chartElement}</div>
       </div>
     );
-  },
-};
+}

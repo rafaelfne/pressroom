@@ -1,5 +1,8 @@
+'use client';
+
 import type { ComponentConfig } from '@puckeditor/core';
-import { getPageBreakStyle, pageBreakField, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { getPageBreakStyle, type PageBreakBehavior } from '@/lib/utils/page-break';
+import { textField, pageBreakCustomField } from '@/components/puck-fields/field-helpers';
 
 export type SpacerProps = {
   height: string;
@@ -9,11 +12,8 @@ export type SpacerProps = {
 export const Spacer: ComponentConfig<SpacerProps> = {
   label: 'Spacer',
   fields: {
-    height: {
-      type: 'text',
-      label: 'Height (px)',
-    },
-    pageBreakBehavior: pageBreakField,
+    height: textField('Height (px)'),
+    pageBreakBehavior: pageBreakCustomField,
   },
   defaultProps: {
     height: '32',

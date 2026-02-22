@@ -66,9 +66,10 @@ export async function renderReport(
     // prop values participate in the remaining pipeline steps)
     resolved = resolveStyleConditionsInData(resolved, data, styleTokens);
     resolved = resolveBindings(resolved, data) as Data;
-    if (styleTokens.length > 0) {
-      resolved = resolveStyleTokensInData(resolved, styleTokens);
-    }
+    // Always resolve StylableValue objects to plain strings — even without
+    // tokens.  This normalises { mode:'inline', inline:'16' } → '16' so
+    // server render functions always receive plain CSS strings.
+    resolved = resolveStyleTokensInData(resolved, styleTokens);
     return resolved;
   };
 
