@@ -53,7 +53,7 @@ export function selectField(label: string, options: FieldOption[]) {
       <div className="space-y-1.5">
         <Label htmlFor={name} className="font-semibold">{label}</Label>
         <Select value={value || undefined} onValueChange={onChange}>
-          <SelectTrigger className="w-full text-xs bg-slate-900! text-amber-500 font-semibold">
+          <SelectTrigger className="w-full text-xs font-semibold">
             <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>

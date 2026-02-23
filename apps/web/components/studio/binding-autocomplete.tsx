@@ -370,7 +370,7 @@ export function BindingAutocomplete({
           onSelect={handleSelect}
           onClick={handleSelect}
           placeholder={placeholder}
-          className="min-h-20 resize-y font-mono text-xs bg-slate-900! text-amber-500 font-semibold"
+          className="min-h-20 resize-y font-mono text-xs font-semibold"
           spellCheck={false}
           data-testid="binding-input"
         />
@@ -384,7 +384,7 @@ export function BindingAutocomplete({
           onSelect={handleSelect}
           onClick={handleSelect}
           placeholder={placeholder}
-          className="font-mono text-xs bg-slate-900! text-amber-500 font-semibold"
+          className="font-mono text-xs font-semibold"
           spellCheck={false}
           data-testid="binding-input"
         />
